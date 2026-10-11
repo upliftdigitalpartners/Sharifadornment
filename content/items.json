@@ -109,7 +109,7 @@
   "rentPrice": "",
   "pairs": [],
   "id": "temple-pendant-rani-haar",
-  "name": "Temple Pendant Rani Haar",
+  "name": "Heritage Pendant Rani Haar",
   "collection": "bridal",
   "image": "assets/img/col-bridal.jpg"
  },
@@ -413,7 +413,7 @@
  {
   "description": "An ivory box clutch embroidered with the Taj Mahal in gold, with a chain strap.",
   "price": "$42",
-  "soldOut": false,
+  "soldOut": true,
   "featured": false,
   "images": [],
   "video": "",
