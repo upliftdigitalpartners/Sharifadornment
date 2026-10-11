@@ -11,11 +11,11 @@
  },
  "home": {
   "label": "Jewelry & Accessories · Queens, NY",
-  "title": "Heirloom jewelry for *every celebration.*",
+  "title": "Heirloom jewelry and accessories  for *every celebration.*",
   "intro": "Bridal sets, kundan, pearls, bangles and potlis — chosen piece by piece and delivered to your door.",
   "button": "Explore the collections",
   "link": "Message to order",
-  "heroImage": "assets/img/hero.jpg",
+  "heroImage": "assets/uploads/home-mv3x3og20.jpg",
   "heroVideo": "assets/uploads/video-mv3wr5dy0.mp4",
   "heroVideoMobile": "assets/uploads/video-mv3utux50.mp4",
   "collectionsLabel": "The collections",
@@ -203,8 +203,8 @@
  "banner": {
   "on": false,
   "text": "Wedding season appointments are open.",
-  "linkText": "Book a call",
-  "link": "book.html"
+  "linkText": "",
+  "link": ""
  },
  "footer": {
   "hours": "Video & phone appointments · Delivery available",
