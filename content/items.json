@@ -187,7 +187,7 @@
  },
  {
   "description": "Multicolour stones set kundan-style in gold, with a matching tikka — bright enough to carry a simple outfit.",
-  "price": "65$",
+  "price": "$65",
   "soldOut": false,
   "featured": true,
   "images": [],
@@ -198,8 +198,8 @@
   "rent": false,
   "rentPrice": "",
   "pairs": [
-   "taj-embroidered-clutch",
-   "antique-gold-kangan-stack"
+   "antique-gold-kangan-stack",
+   "taj-embroidered-clutch"
   ],
   "id": "navratna-kundan-set",
   "name": "Navratna Kundan Set",
@@ -226,7 +226,7 @@
  },
  {
   "description": "Bold geometric stones in jewel tones, framed in gold, with a matching ring.",
-  "price": "48$",
+  "price": "$48",
   "soldOut": false,
   "featured": false,
   "images": [
@@ -246,7 +246,7 @@
  },
  {
   "description": "A delicate kundan choker on layered pearl strands, with matching stud earrings.",
-  "price": "38$",
+  "price": "$38",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -300,7 +300,7 @@
  },
  {
   "description": "A long chain with a large silver medallion pendant and pearl drops, with a matching tikka.",
-  "price": "37$",
+  "price": "$37",
   "soldOut": false,
   "featured": false,
   "images": [
@@ -320,7 +320,7 @@
  },
  {
   "description": "Oxidized silver necklace with peacock motifs and coloured stones, with a matching ring.",
-  "price": "40$",
+  "price": "$40",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -358,7 +358,7 @@
  },
  {
   "description": "A long silver-tone chain with a sculpted pendant set with pink stones, with a matching tikka and ring.",
-  "price": "",
+  "price": "$37",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -520,7 +520,7 @@
  },
  {
   "description": "An ivory potli covered in pearls, with a pearl fringe and drawstring.",
-  "price": "42$",
+  "price": "$42",
   "soldOut": false,
   "featured": false,
   "images": [],
