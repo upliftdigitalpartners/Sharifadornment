@@ -419,7 +419,7 @@
   "video": "",
   "size": "",
   "isNew": false,
-  "lastOne": false,
+  "lastOne": true,
   "rent": false,
   "rentPrice": "",
   "pairs": [],
