@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8c6b2f"/>
+      <stop offset=".35" stop-color="#f6ead0"/>
+      <stop offset=".6" stop-color="#c9a45c"/>
+      <stop offset="1" stop-color="#8c6b2f"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="31" fill="#141415"/>
+  <circle cx="32" cy="32" r="27.5" fill="none" stroke="url(#g)" stroke-width="1.2"/>
+  <text x="32" y="41" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="25" fill="url(#g)">SA</text>
+</svg>
