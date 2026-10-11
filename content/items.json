@@ -1,5 +1,15 @@
 [
  {
+  "id": "black-circular-clutch-bag",
+  "name": "Black Circular Clutch Bag",
+  "collection": "potli",
+  "image": "assets/uploads/piece-mv3c30fa.jpg",
+  "description": "",
+  "price": "42$",
+  "soldOut": false,
+  "featured": false
+ },
+ {
   "id": "antique-gold-kangan-stack",
   "name": "Antique Gold Kangan Stack",
   "collection": "bangles",
