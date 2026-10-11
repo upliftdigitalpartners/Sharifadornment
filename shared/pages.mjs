@@ -378,7 +378,7 @@ ${head("faq", site, { tag: "h1", intro: true })}
   // Appointments were retired; old links to book.html land on the enquiry page
   pages["book.html"] = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" /><title>Sharif Adornment</title>
-<meta name="robots" content="noindex" /><link rel="canonical" href="${abs("contact.html")}" />
+<meta name="robots" content="noindex" /><link rel="icon" href="assets/favicon.svg" type="image/svg+xml" /><link rel="canonical" href="${abs("contact.html")}" />
 <meta http-equiv="refresh" content="0; url=contact.html" /></head>
 <body><p><a href="contact.html">Continue to Sharif Adornment</a></p></body></html>
 `;
