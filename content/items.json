@@ -35,7 +35,7 @@
   "collection": "bridal",
   "image": "assets/gallery/gold-coin-temple-set.jpg",
   "description": "Antique gold coin necklace with a filigree pendant and soft aqua drops, with matching earrings and tikka.",
-  "price": "",
+  "price": "42$",
   "soldOut": false,
   "featured": false
  },
@@ -85,7 +85,7 @@
   "collection": "kundan",
   "image": "assets/gallery/pachi-kundan-choker.jpg",
   "description": "A delicate kundan choker on layered pearl strands, with matching stud earrings.",
-  "price": "",
+  "price": "38$",
   "soldOut": false,
   "featured": false
  },
@@ -105,7 +105,7 @@
   "collection": "oxidized",
   "image": "assets/gallery/silver-medallion-set.jpg",
   "description": "A long chain with a large silver medallion pendant and pearl drops, with a matching tikka.",
-  "price": "",
+  "price": "37$",
   "soldOut": false,
   "featured": false
  },
