@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$30",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "contemporary-butterfly-hasli",
+  "name": "Contemporary Butterfly Hasli",
+  "collection": "kundan",
+  "image": "assets/uploads/piece-mv4h5irm0.jpg"
+ },
+ {
+  "description": "",
   "price": "$65",
   "soldOut": false,
   "featured": false,
