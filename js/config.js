@@ -20,15 +20,18 @@ window.SITE_CONFIG = {
    * Missing files simply show gold placeholder art.
    */
   gallery: [
-    "gallery-1.jpg|tall",
-    "gallery-2.jpg",
-    "gallery-3.jpg",
-    "gallery-4.mp4|wide",
-    "gallery-5.jpg",
-    "gallery-6.jpg",
-    "gallery-7.jpg|tall",
-    "gallery-8.jpg",
-    "gallery-9.mp4",
-    "gallery-10.jpg|wide",
+    "gold-coin-temple-set.jpg|tall",
+    "fusion-hasli-ruby.jpg",
+    "multistone-statement-set.jpg|tall",
+    "taj-embroidered-clutch.jpg",
+    "black-velvet-potli.jpg|tall",
+    "silver-medallion-set.jpg|tall",
+    "pachi-kundan-choker.jpg",
+    "pearl-tassel-bag.jpg|tall",
+    "polki-pearl-necklace.jpg",
+    "mother-of-pearl-leaf-clutch.jpg",
+    "oxidized-peacock-set.jpg|tall",
+    "gold-pendant-pearl-mala.jpg|tall",
+    "beaded-kundan-pendant.jpg",
   ],
 };
