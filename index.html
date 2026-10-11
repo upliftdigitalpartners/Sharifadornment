@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sharif Adornment — Jewelry &amp; Accessories, Queens NY</title>
+  <meta name="description" content="Sharif Adornment — South Asian jewelry and accessories in Queens, New York. Bridal sets, kundan, oxidized silver, pearl malas, bangles, jhumkas, potli bags and clutches. Delivery available." />
+  <meta name="theme-color" content="#141414" />
+  <link rel="canonical" href="https://sharifadornment.com/" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+
+  <!-- Social sharing -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Sharif Adornment" />
+  <meta property="og:description" content="Bridal sets, kundan, pearl malas, bangles, potli bags and clutches — Queens, New York. Delivery available." />
+  <meta property="og:url" content="https://sharifadornment.com/" />
+  <meta property="og:image" content="https://sharifadornment.com/assets/img/og-image.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.min.js",
+        "three/addons/": "./vendor/three/addons/"
+      }
+    }
+  </script>
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "JewelryStore",
+      "name": "Sharif Adornment",
+      "url": "https://sharifadornment.com/",
+      "image": "https://sharifadornment.com/assets/img/og-image.jpg",
+      "telephone": "+1-347-705-9653",
+      "priceRange": "$$",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Queens",
+        "addressRegion": "NY",
+        "postalCode": "11375",
+        "addressCountry": "US"
+      },
+      "sameAs": ["https://www.facebook.com/SharifAdornment/"]
+    }
+  </script>
+</head>
+<body class="is-loading">
+  <!-- Loader: a monogram drawn in gold -->
+  <div class="loader" aria-hidden="true">
+    <svg class="loader__mark" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="54" />
+      <text x="60" y="74" text-anchor="middle">SA</text>
+    </svg>
+    <div class="loader__bar"><span></span></div>
+  </div>
+
+  <!-- 3D stage, fixed behind everything -->
+  <canvas id="stage" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"><span></span></div>
+
+  <header class="nav">
+    <a href="#top" class="nav__brand" aria-label="Sharif Adornment home">
+      <img src="assets/favicon.svg" alt="" width="34" height="34" />
+      <span>Sharif <em>Adornment</em></span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#collections">Collections</a>
+      <a href="#story">Story</a>
+      <a href="#order">How to Order</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#contact" class="nav__cta">Enquire</a>
+    </nav>
+    <button class="nav__toggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button>
+  </header>
+
+  <main id="top">
+    <!-- HERO — the 3D bangles live here. data-ring = x, y, scale, tilt for the scroll choreography -->
+    <section class="hero" data-ring="0.42,0.08,1,0">
+      <div class="hero__inner">
+        <p class="eyebrow reveal">Jewelry &amp; Accessories · Queens, New York</p>
+        <h1 class="hero__title">
+          <span class="line"><span class="word">Sharif</span></span>
+          <span class="line"><span class="word gold-text">Adornment</span></span>
+        </h1>
+        <p class="hero__tag reveal">Heritage adornment for every celebration.</p>
+        <div class="hero__actions reveal">
+          <a href="#collections" class="btn btn--gold magnetic">Explore the Collections</a>
+          <a href="#contact" class="btn btn--ghost magnetic">Message to Order</a>
+        </div>
+      </div>
+      <a href="#collections" class="scroll-cue" aria-label="Scroll down"><span></span></a>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Kundan</span><i>✦</i><span>Bridal Sets</span><i>✦</i><span>Pearl Malas</span><i>✦</i><span>Oxidized Silver</span><i>✦</i><span>Jhumkas</span><i>✦</i><span>Bangles</span><i>✦</i><span>Potli Bags</span><i>✦</i><span>Clutches</span><i>✦</i>
+        <span>Kundan</span><i>✦</i><span>Bridal Sets</span><i>✦</i><span>Pearl Malas</span><i>✦</i><span>Oxidized Silver</span><i>✦</i><span>Jhumkas</span><i>✦</i><span>Bangles</span><i>✦</i><span>Potli Bags</span><i>✦</i><span>Clutches</span><i>✦</i>
+      </div>
+    </div>
+
+    <!-- COLLECTIONS -->
+    <section id="collections" class="section collections" data-ring="0.7,0.32,0.45,0.6">
+      <header class="section__head">
+        <p class="eyebrow reveal">I — The Collections</p>
+        <h2 class="reveal">Worn close.<br /><em>Remembered always.</em></h2>
+      </header>
+      <div class="cards">
+        <article class="card tilt reveal" data-img="assets/img/col-bridal.jpg">
+          <div class="card__media"></div>
+          <div class="card__body">
+            <span class="card__num">01</span>
+            <h3>Bridal Sets</h3>
+            <p>Statement necklaces with matching earrings and tikka — for the mehndi, the nikah and every photo after.</p>
+          </div>
+        </article>
+        <article class="card tilt reveal" data-img="assets/img/col-kundan.jpg">
+          <div class="card__media"></div>
+          <div class="card__body">
+            <span class="card__num">02</span>
+            <h3>Kundan &amp; Stone</h3>
+            <p>Ruby, emerald and sapphire tones set in gold — colour that catches the light from across the room.</p>
+          </div>
+        </article>
+        <article class="card tilt reveal" data-img="assets/img/col-oxidized.jpg">
+          <div class="card__media"></div>
+          <div class="card__body">
+            <span class="card__num">03</span>
+            <h3>Oxidized Silver</h3>
+            <p>Antique silver finishes and bold, tribal-inspired forms with a quiet, old-world edge.</p>
+          </div>
+        </article>
+        <article class="card tilt reveal" data-img="assets/img/col-pearl.jpg">
+          <div class="card__media"></div>
+          <div class="card__body">
+            <span class="card__num">04</span>
+            <h3>Pearl Malas</h3>
+            <p>Layered pearl strands and rani haar silhouettes, finished with jewelled pendants.</p>
+          </div>
+        </article>
+        <article class="card tilt reveal" data-img="assets/img/col-bangles.jpg">
+          <div class="card__media"></div>
+          <div class="card__body">
+            <span class="card__num">05</span>
+            <h3>Bangles &amp; Jhumkas</h3>
+            <p>Stacks of carved kangan and swaying jhumkas — the finishing notes of every look.</p>
+          </div>
+        </article>
+        <article class="card tilt reveal" data-img="assets/img/col-potli.jpg">
+          <div class="card__media"></div>
+          <div class="card__body">
+            <span class="card__num">06</span>
+            <h3>Potlis &amp; Clutches</h3>
+            <p>Embroidered potli bags draped in pearls, and sculpted metal clutches made to be noticed.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- STORY -->
+    <section id="story" class="section atelier" data-ring="-0.62,0.05,0.7,-0.5">
+      <div class="atelier__grid">
+        <div class="atelier__art reveal">
+          <div class="frame" data-img="assets/img/story.jpg"><div class="frame__img parallax" data-speed="0.12"></div></div>
+          <div class="atelier__badge"><span>Queens<br />New York</span></div>
+        </div>
+        <div class="atelier__copy">
+          <p class="eyebrow reveal">II — Our Story</p>
+          <h2 class="reveal">Adornment is an <em>old language.</em></h2>
+          <p class="reveal">A grandmother's bangles. A bride's rani haar. Jhumkas borrowed for Eid and never quite returned. In South Asian homes, jewelry carries memory as much as it carries light.</p>
+          <p class="reveal">Sharif Adornment brings that tradition to Queens — jewelry and accessories chosen piece by piece for weddings, festivals and every celebration in between, and delivered to your door.</p>
+          <ul class="pillars reveal">
+            <li><strong>Heritage</strong><span>Timeless designs</span></li>
+            <li><strong>Curated</strong><span>Chosen with care</span></li>
+            <li><strong>Delivered</strong><span>Right to your door</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW TO ORDER -->
+    <section id="order" class="section craft" data-ring="0.7,0.42,0.42,1.2">
+      <header class="section__head">
+        <p class="eyebrow reveal">III — How to Order</p>
+        <h2 class="reveal">From first look <em>to your door.</em></h2>
+      </header>
+      <ol class="steps">
+        <li class="step reveal">
+          <div class="step__icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48"><circle cx="21" cy="21" r="11" /><path d="M29 29l9 9" /><path d="M21 15l1.6 4.4L27 21l-4.4 1.6L21 27l-1.6-4.4L15 21l4.4-1.6z" /></svg>
+          </div>
+          <span class="step__num">i</span>
+          <h3>Browse</h3>
+          <p>Explore the collections here, or catch the newest pieces in our Facebook photos and reels.</p>
+        </li>
+        <li class="step reveal">
+          <div class="step__icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48"><path d="M24 9c-8.8 0-16 6.4-16 14.3 0 4.3 2.1 8.1 5.5 10.7V40l5.6-3.1c1.5.4 3.2.7 4.9.7 8.8 0 16-6.4 16-14.3S32.8 9 24 9z" /><path d="M15 27l6-6 4 4 7-7" /></svg>
+          </div>
+          <span class="step__num">ii</span>
+          <h3>Message</h3>
+          <p>Send a screenshot of the piece you love on Messenger, or call or text us.</p>
+        </li>
+        <li class="step reveal">
+          <div class="step__icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48"><path d="M14 10h20l6 9-16 20L8 19z" /><path d="M8 19h32M19 10l-3 9 8 20 8-20-3-9" /></svg>
+          </div>
+          <span class="step__num">iii</span>
+          <h3>Confirm</h3>
+          <p>We'll confirm availability, price and delivery details with you directly.</p>
+        </li>
+        <li class="step reveal">
+          <div class="step__icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48"><path d="M9 17l15-8 15 8v16l-15 8-15-8z" /><path d="M9 17l15 8 15-8M24 25v16" /><path d="M16.5 13l15 8" /></svg>
+          </div>
+          <span class="step__num">iv</span>
+          <h3>Delivered</h3>
+          <p>Delivery and contactless delivery available — ready for the celebration.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- OCCASIONS -->
+    <section id="occasions" class="section bespoke" data-ring="0,0.02,1.15,2.2">
+      <div class="bespoke__panel reveal">
+        <p class="eyebrow">IV — For the Occasion</p>
+        <h2>Mehndi. Nikah. Eid. <em>Every celebration</em> deserves its glow.</h2>
+        <p>Send us a photo of your outfit and the occasion, and we'll suggest a set, bangles and a potli to complete the look.</p>
+        <a href="#contact" class="btn btn--gold magnetic">Style My Look</a>
+      </div>
+    </section>
+
+    <!-- GALLERY (filled from SITE_CONFIG.gallery in js/config.js) -->
+    <section id="gallery" class="section gallery" data-ring="0.9,0.75,0.35,3">
+      <header class="section__head section__head--row">
+        <div>
+          <p class="eyebrow reveal">V — Gallery</p>
+          <h2 class="reveal">Moments <em>in gold.</em></h2>
+        </div>
+        <a class="link-arrow reveal" data-config="facebook" href="https://www.facebook.com/SharifAdornment/" target="_blank" rel="noopener">See more on Facebook <span>→</span></a>
+      </header>
+      <div class="mosaic" data-gallery></div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section contact" data-ring="0.62,0.2,0.55,4">
+      <div class="contact__grid">
+        <div class="contact__copy">
+          <p class="eyebrow reveal">VI — Enquire &amp; Order</p>
+          <h2 class="reveal">Let's find <em>your piece.</em></h2>
+          <p class="reveal">Questions about a set, availability or delivery — send us a note and we'll get back to you.</p>
+          <div class="contact__channels reveal">
+            <a class="channel magnetic" data-config="messenger" href="https://m.me/SharifAdornment" target="_blank" rel="noopener">
+              <span class="channel__label">Message</span><span class="channel__value">Facebook Messenger</span>
+            </a>
+            <a class="channel magnetic" data-config="phone" href="#" hidden>
+              <span class="channel__label">Call or text</span><span class="channel__value" data-config-text="phone"></span>
+            </a>
+            <a class="channel magnetic" data-config="email" href="#" hidden>
+              <span class="channel__label">Email</span><span class="channel__value" data-config-text="email"></span>
+            </a>
+            <a class="channel magnetic" data-config="facebook" href="https://www.facebook.com/SharifAdornment/" target="_blank" rel="noopener">
+              <span class="channel__label">Follow</span><span class="channel__value">facebook.com/SharifAdornment</span>
+            </a>
+            <div class="channel channel--static">
+              <span class="channel__label">Based in</span><span class="channel__value" data-config-text="location"></span>
+            </div>
+          </div>
+        </div>
+        <form class="enquiry reveal" novalidate>
+          <div class="field">
+            <input id="f-name" name="name" type="text" placeholder=" " required autocomplete="name" />
+            <label for="f-name">Your name</label>
+          </div>
+          <div class="field">
+            <input id="f-contact" name="contact" type="text" placeholder=" " required autocomplete="tel" />
+            <label for="f-contact">Phone or email</label>
+          </div>
+          <div class="field">
+            <select id="f-topic" name="topic">
+              <option>Bridal set</option>
+              <option>Kundan &amp; stone jewelry</option>
+              <option>Oxidized silver</option>
+              <option>Pearl mala</option>
+              <option>Bangles &amp; jhumkas</option>
+              <option>Potli bag or clutch</option>
+              <option selected>Help me choose</option>
+            </select>
+            <label for="f-topic" class="is-static">I'm interested in</label>
+          </div>
+          <div class="field">
+            <textarea id="f-msg" name="message" rows="4" placeholder=" " required></textarea>
+            <label for="f-msg">The occasion, colours, the piece you saw…</label>
+          </div>
+          <button type="submit" class="btn btn--gold btn--block magnetic">Send Enquiry</button>
+          <p class="enquiry__note" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__mark gold-text">Sharif Adornment</div>
+    <div class="footer__row">
+      <span>© <span class="js-year"></span> Sharif Adornment. All rights reserved.</span>
+      <a data-config="facebook" href="https://www.facebook.com/SharifAdornment/" target="_blank" rel="noopener">Facebook</a>
+      <a href="#top">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js" defer></script>
+  <script type="module" src="js/scene.js"></script>
+</body>
+</html>
