@@ -55,7 +55,7 @@
   "collection": "kundan",
   "image": "assets/img/col-kundan.jpg",
   "description": "Multicolour stones set kundan-style in gold, with a matching tikka — bright enough to carry a simple outfit.",
-  "price": "",
+  "price": "65$",
   "soldOut": false,
   "featured": true
  },
@@ -95,7 +95,7 @@
   "collection": "oxidized",
   "image": "assets/img/col-oxidized.jpg",
   "description": "Oxidized silver statement necklace with mint stones and pink accents, with matching earrings.",
-  "price": "",
+  "price": "40$",
   "soldOut": false,
   "featured": false
  },
@@ -125,7 +125,7 @@
   "collection": "pearl",
   "image": "assets/img/col-pearl.jpg",
   "description": "Layered pearl strands finished with a sculptural baroque-pearl pendant and a matching tikka.",
-  "price": "",
+  "price": "50$",
   "soldOut": false,
   "featured": false
  },
@@ -135,7 +135,7 @@
   "collection": "pearl",
   "image": "assets/gallery/polki-pearl-necklace.jpg",
   "description": "Navy and pearl bead strands with a polki pendant and pearl drops, with matching earrings.",
-  "price": "",
+  "price": "45$",
   "soldOut": false,
   "featured": false
  },
@@ -145,7 +145,7 @@
   "collection": "potli",
   "image": "assets/img/col-potli.jpg",
   "description": "A red velvet potli with dense gold embroidery and a cascade of pearl strands.",
-  "price": "",
+  "price": "38$",
   "soldOut": false,
   "featured": true
  },
@@ -155,7 +155,7 @@
   "collection": "potli",
   "image": "assets/gallery/black-velvet-potli.jpg",
   "description": "Black velvet potli with gold embroidery, a gold silk top and pearl strand handles.",
-  "price": "",
+  "price": "38$",
   "soldOut": false,
   "featured": false
  },
@@ -165,7 +165,7 @@
   "collection": "potli",
   "image": "assets/gallery/taj-embroidered-clutch.jpg",
   "description": "An ivory box clutch embroidered with the Taj Mahal in gold, with a chain strap.",
-  "price": "",
+  "price": "42$",
   "soldOut": false,
   "featured": false
  },
@@ -175,7 +175,7 @@
   "collection": "potli",
   "image": "assets/gallery/pearl-tassel-bag.jpg",
   "description": "A pearl-beaded handbag with a scalloped tassel fringe and green accents.",
-  "price": "",
+  "price": "45$",
   "soldOut": false,
   "featured": false
  },
@@ -185,7 +185,7 @@
   "collection": "potli",
   "image": "assets/gallery/mother-of-pearl-leaf-clutch.jpg",
   "description": "A sculpted gold leaf clutch inlaid with mother-of-pearl, with a chain strap.",
-  "price": "",
+  "price": "100$",
   "soldOut": false,
   "featured": false
  }
