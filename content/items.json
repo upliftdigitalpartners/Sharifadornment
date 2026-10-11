@@ -1,0 +1,192 @@
+[
+ {
+  "id": "antique-gold-kangan-stack",
+  "name": "Antique Gold Kangan Stack",
+  "collection": "bangles",
+  "image": "assets/img/hero.jpg",
+  "description": "A stack of carved antique-gold kangan bangles set with small ruby and emerald stones. Wear the full stack or split it between both wrists.",
+  "price": "",
+  "soldOut": false,
+  "featured": true
+ },
+ {
+  "id": "pearl-cascade-jhumkas",
+  "name": "Pearl Cascade Jhumkas",
+  "collection": "bangles",
+  "image": "assets/img/col-bangles.jpg",
+  "description": "Gold-finish earrings with tiers of pearl-studded jhumkas that sway as you move.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "temple-pendant-rani-haar",
+  "name": "Temple Pendant Rani Haar",
+  "collection": "bridal",
+  "image": "assets/img/col-bridal.jpg",
+  "description": "Layered pearl strands with ruby beads and a carved temple-style pendant, with a matching tikka.",
+  "price": "",
+  "soldOut": false,
+  "featured": true
+ },
+ {
+  "id": "gold-coin-temple-set",
+  "name": "Gold Coin Temple Set",
+  "collection": "bridal",
+  "image": "assets/gallery/gold-coin-temple-set.jpg",
+  "description": "Antique gold coin necklace with a filigree pendant and soft aqua drops, with matching earrings and tikka.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "gold-pendant-pearl-mala",
+  "name": "Gold Pendant Pearl Mala",
+  "collection": "bridal",
+  "image": "assets/gallery/gold-pendant-pearl-mala.jpg",
+  "description": "Pearl and ruby bead strands finished with a gold pendant and pearl fringe, with a matching tikka.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "navratna-kundan-set",
+  "name": "Navratna Kundan Set",
+  "collection": "kundan",
+  "image": "assets/img/col-kundan.jpg",
+  "description": "Multicolour stones set kundan-style in gold, with a matching tikka — bright enough to carry a simple outfit.",
+  "price": "",
+  "soldOut": false,
+  "featured": true
+ },
+ {
+  "id": "ruby-fusion-hasli",
+  "name": "Ruby Fusion Hasli",
+  "collection": "kundan",
+  "image": "assets/gallery/fusion-hasli-ruby.jpg",
+  "description": "A sculpted gold hasli with ruby flower details, paired with ruby jhumkas.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "multistone-statement-set",
+  "name": "Multistone Statement Set",
+  "collection": "kundan",
+  "image": "assets/gallery/multistone-statement-set.jpg",
+  "description": "Bold geometric stones in jewel tones, framed in gold, with a matching ring.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "pachi-kundan-choker",
+  "name": "Pachi Kundan Choker",
+  "collection": "kundan",
+  "image": "assets/gallery/pachi-kundan-choker.jpg",
+  "description": "A delicate kundan choker on layered pearl strands, with matching stud earrings.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "mint-oxidized-statement-set",
+  "name": "Mint Stone Oxidized Set",
+  "collection": "oxidized",
+  "image": "assets/img/col-oxidized.jpg",
+  "description": "Oxidized silver statement necklace with mint stones and pink accents, with matching earrings.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "silver-medallion-set",
+  "name": "Silver Medallion Set",
+  "collection": "oxidized",
+  "image": "assets/gallery/silver-medallion-set.jpg",
+  "description": "A long chain with a large silver medallion pendant and pearl drops, with a matching tikka.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "oxidized-peacock-set",
+  "name": "Oxidized Peacock Set",
+  "collection": "oxidized",
+  "image": "assets/gallery/oxidized-peacock-set.jpg",
+  "description": "Oxidized silver necklace with peacock motifs and coloured stones, with a matching ring.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "baroque-pearl-mala",
+  "name": "Baroque Pearl Mala",
+  "collection": "pearl",
+  "image": "assets/img/col-pearl.jpg",
+  "description": "Layered pearl strands finished with a sculptural baroque-pearl pendant and a matching tikka.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "polki-pearl-necklace",
+  "name": "Polki Pearl Necklace",
+  "collection": "pearl",
+  "image": "assets/gallery/polki-pearl-necklace.jpg",
+  "description": "Navy and pearl bead strands with a polki pendant and pearl drops, with matching earrings.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "red-zardozi-potli",
+  "name": "Red Zardozi Potli",
+  "collection": "potli",
+  "image": "assets/img/col-potli.jpg",
+  "description": "A red velvet potli with dense gold embroidery and a cascade of pearl strands.",
+  "price": "",
+  "soldOut": false,
+  "featured": true
+ },
+ {
+  "id": "black-velvet-potli",
+  "name": "Black Velvet Pearl Potli",
+  "collection": "potli",
+  "image": "assets/gallery/black-velvet-potli.jpg",
+  "description": "Black velvet potli with gold embroidery, a gold silk top and pearl strand handles.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "taj-embroidered-clutch",
+  "name": "Taj Embroidered Clutch",
+  "collection": "potli",
+  "image": "assets/gallery/taj-embroidered-clutch.jpg",
+  "description": "An ivory box clutch embroidered with the Taj Mahal in gold, with a chain strap.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "pearl-tassel-bag",
+  "name": "Pearl Tassel Bag",
+  "collection": "potli",
+  "image": "assets/gallery/pearl-tassel-bag.jpg",
+  "description": "A pearl-beaded handbag with a scalloped tassel fringe and green accents.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ },
+ {
+  "id": "mother-of-pearl-leaf-clutch",
+  "name": "Mother-of-Pearl Leaf Clutch",
+  "collection": "potli",
+  "image": "assets/gallery/mother-of-pearl-leaf-clutch.jpg",
+  "description": "A sculpted gold leaf clutch inlaid with mother-of-pearl, with a chain strap.",
+  "price": "",
+  "soldOut": false,
+  "featured": false
+ }
+]

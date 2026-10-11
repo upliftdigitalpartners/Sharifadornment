@@ -247,11 +247,11 @@ style in other tools. Export `.jpg` at about 80% quality.
 | File | Where it shows | Aspect | Size |
 |---|---|---|---|
 | `assets/img/hero.jpg` | Hero (and the video's still frame) | 5:4 | 1000×800 |
-| `assets/video/hero.mp4` | Hero video (set `heroVideo` in `js/config.js`) | 5:4 (16:9 is fine, it gets cropped) | 1000×800, < 4 MB |
+| `assets/video/hero.mp4` | Hero video (path set in Studio → Details) | 5:4 (16:9 is fine, it gets cropped) | 1000×800, < 4 MB |
 | `assets/img/col-*.jpg` | Collection cards 01–06 | 4:5 | 1000×1250 |
 | `assets/img/story.jpg` | "Our story" | 3:4 | 1200×1600 |
 | `assets/img/og-image.jpg` | Link preview on WhatsApp, Facebook, iMessage | 1.91:1 | 1200×630 |
-| `assets/gallery/*` | Gallery (list them in `js/config.js`) | 4:5 | ≤ 1200px wide |
+| Pieces and gallery | Upload in the Studio (resized automatically) | 4:5 | any |
 
 ---
 
