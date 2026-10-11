@@ -42,8 +42,8 @@ they'll be compressed for the web (target: under 4 MB).
 
 ### 1. Hero loop: bangle stack (most important)
 Source photo: `bangles-for-ai.jpg` (the antique-gold bangle stack, card cropped out).
-Make a **4:5 portrait** version for the site; a 9:16 version is a bonus for
-Instagram/Facebook reels.
+Generate in **16:9** with the piece centred; the site crops it to 5:4. A 9:16
+version is a bonus for Instagram/Facebook reels.
 
 ```
 The stack of antique gold kangan bangles rests on a soft ivory stand. The camera makes a
@@ -246,8 +246,8 @@ style in other tools. Export `.jpg` at about 80% quality.
 
 | File | Where it shows | Aspect | Size |
 |---|---|---|---|
-| `assets/img/hero.jpg` | Hero (and the video's still frame) | 4:5 | 1200×1500 |
-| `assets/video/hero.mp4` | Hero video (set `heroVideo` in `js/config.js`) | 4:5 | 1080×1350, < 4 MB |
+| `assets/img/hero.jpg` | Hero (and the video's still frame) | 5:4 | 1000×800 |
+| `assets/video/hero.mp4` | Hero video (set `heroVideo` in `js/config.js`) | 5:4 (16:9 is fine, it gets cropped) | 1000×800, < 4 MB |
 | `assets/img/col-*.jpg` | Collection cards 01–06 | 4:5 | 1000×1250 |
 | `assets/img/story.jpg` | "Our story" | 3:4 | 1200×1600 |
 | `assets/img/og-image.jpg` | Link preview on WhatsApp, Facebook, iMessage | 1.91:1 | 1200×630 |

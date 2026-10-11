@@ -17,8 +17,8 @@ window.SITE_CONFIG = {
    * photo (assets/img/hero.jpg). Leave as "" to show the photo only.
    * heroVideoMobile is a smaller/portrait version for phones (falls back to heroVideo).
    */
-  heroVideo: "",        // e.g. "assets/video/hero.mp4"
-  heroVideoMobile: "",  // e.g. "assets/video/hero-mobile.mp4"
+  heroVideo: "assets/video/hero.mp4",
+  heroVideoMobile: "assets/video/hero-mobile.mp4",
 
   /*
    * Gallery — files inside assets/gallery/. Images (.jpg .png .webp) or
