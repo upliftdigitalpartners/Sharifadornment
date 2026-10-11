@@ -142,8 +142,12 @@
         session.set(s);
       }
       f.reset();
-      await start();
+      // Signing in again after a session ends keeps the edits already on screen
+      if (state.site) { lock.hidden = true; app.hidden = false; render(); }
+      else await start();
     } catch (x) {
+      app.hidden = true;
+      lock.hidden = false;
       $("[data-unlock-error]").textContent = x.message;
       f.password.select();
     } finally {
@@ -192,16 +196,17 @@
 
   /* ---------- Dirty tracking & publish bar ---------- */
   // Photos that are actually used (a photo picked and then cancelled is never uploaded)
-  const usedUploads = () => {
-    const all = JSON.stringify(state.site) + JSON.stringify(state.items);
+  const usedUploads = (all = JSON.stringify(state.site) + JSON.stringify(state.items)) => {
     const used = (path) => all.includes(`"${path}"`) || all.includes(`"${path.replace(/-sm(\.\w+)$/, "$1")}"`);
     return [...state.uploads].filter(([path]) => used(path));
   };
+  let publishing = false;
   const isDirty = () => state.site && (JSON.stringify(state.site) !== state.saved.site ||
     JSON.stringify(state.items) !== state.saved.items);
   const changed = () => {
     const dirty = isDirty();
     $("[data-publish]").classList.toggle("is-dirty", dirty);
+    if (publishing) return; // the publish bar shows progress until it finishes
     $("[data-status]").textContent = dirty ? "Unpublished changes" : "All changes published";
     $("[data-publish-btn]").disabled = !dirty;
     $("[data-discard]").hidden = !dirty;
@@ -233,9 +238,13 @@
     const btn = $("[data-publish-btn]");
     const status = $("[data-status]");
     btn.disabled = true;
+    publishing = true;
+    $("[data-discard]").hidden = true;
+    // Publish exactly what is on screen now; edits made while it runs stay unpublished
+    const snap = { site: JSON.stringify(state.site), items: JSON.stringify(state.items) };
     try {
       // Upload new photos and videos first (each is just stored data until the commit uses it)
-      const ups = usedUploads();
+      const ups = usedUploads(snap.site + snap.items);
       const uploads = [];
       for (const [i, [path, blob]] of ups.entries()) {
         status.textContent = `Uploading ${i + 1} of ${ups.length}…`;
@@ -244,13 +253,17 @@
       }
       // The server checks the content, rebuilds every page and commits it all at once
       status.textContent = "Publishing…";
-      const out = await api("publish", { site: state.site, items: state.items, uploads, base: state.shas }, session.get());
-      state.saved = { site: JSON.stringify(state.site), items: JSON.stringify(state.items) };
+      const out = await api("publish", { site: JSON.parse(snap.site), items: JSON.parse(snap.items), uploads, base: state.shas }, session.get());
+      state.saved = snap;
       state.shas = out.shas;
-      state.uploads.clear();
+      for (const u of uploads) state.uploads.delete(u.path);
+      publishing = false;
       changed();
-      toast(out.unchanged ? "Nothing new to publish." : "Published. The live site updates in about a minute.");
+      toast(out.unchanged ? "Nothing new to publish."
+        : isDirty() ? "Published. Changes made since you pressed Publish still need publishing."
+        : "Published. The live site updates in about a minute.");
     } catch (x) {
+      publishing = false;
       changed();
       if (x.status === 401) lockOut("Your session ended. Sign in again — your changes are still here until you leave the page.");
       else toast(x.message, true);
@@ -328,6 +341,8 @@
   /* ---------- Pieces ---------- */
   views.pieces = (el) => {
     const cols = state.site.collections;
+    // A collection that was deleted (or undone by Discard / Restore) can't stay as the filter
+    if (!cols.some((c) => c.id === state.filter)) state.filter = "all";
     el.innerHTML = `
       <div class="view__head">
         <div><h2>Pieces</h2><p>Everything on the Collections page. Tap a piece to edit it.</p></div>
@@ -443,6 +458,7 @@
       if (m) { const i = +m.dataset.thumbMain; [image, images[i]] = [images[i], image]; images = images.filter(Boolean); showMain(); drawThumbs(); }
       if (e.target.closest("[data-video-del]")) { video = ""; drawThumbs(); }
     });
+    const form = $("form", dlg);
     const nameNow = () => $("[name=name]", dlg).value || "piece";
     const showMain = () => { const img = $("[data-preview]", dlg); img.src = src(image); img.hidden = !image; };
     // Phone photos take a moment each, so show progress and hold "Done" until they're ready
@@ -458,6 +474,7 @@
         status.textContent = `Preparing photo ${n + 1} of ${files.length}…`;
         try {
           const path = await addPhoto(file, nameNow());
+          if (!form.isConnected) return; // the editor was closed meanwhile
           if (first && n === 0) { image = path; showMain(); } else { images.push(path); drawThumbs(); }
         } catch (x) { toast(x.message, true); }
       }
@@ -485,10 +502,12 @@
       for (const l of state.site.bridal.looks) l.pieces = (l.pieces || []).filter((p) => p !== id);
       dlg.close(); render();
     });
+    // Move to top saves the form first, so nothing typed is lost
+    let toTop = false;
     $("[data-top]", dlg)?.addEventListener("click", () => {
-      state.items = [existing, ...state.items.filter((i) => i !== existing)];
-      dlg.close(); render();
-      toast("Moved to the top of the Collections page.");
+      toTop = true;
+      form.requestSubmit();
+      toTop = false;
     });
     $("form", dlg).addEventListener("submit", (e) => {
       const f = e.target;
@@ -512,6 +531,10 @@
       };
       if (existing) {
         state.items[state.items.indexOf(existing)] = data;
+        if (toTop) {
+          state.items = [data, ...state.items.filter((i) => i !== data)];
+          toast("Moved to the top of the Collections page.");
+        }
       } else {
         let nid = slug(name);
         while (state.items.some((i) => i.id === nid)) nid += "-2";
@@ -572,14 +595,22 @@
         </div>
       </form>`;
     let image = c.image;
+    let busy = false;
+    let moveUp = false;
+    const form = $("form", dlg);
+    const done = $("[type=submit]", dlg);
     $("[data-file]", dlg).addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
+      busy = true; done.disabled = true;
       try {
-        image = await addPhoto(file, `collection-${$("[name=name]", dlg).value || "cover"}`);
+        const path = await addPhoto(file, `collection-${$("[name=name]", dlg).value || "cover"}`);
+        if (!form.isConnected) return;
+        image = path;
         const img = $("[data-preview]", dlg);
         img.src = src(image); img.hidden = false;
       } catch (x) { toast(x.message, true); }
+      finally { busy = false; done.disabled = false; e.target.value = ""; }
     });
     $("[data-cancel]", dlg).addEventListener("click", () => dlg.close());
     $("[data-delete]", dlg)?.addEventListener("click", () => {
@@ -588,17 +619,21 @@
       dlg.close(); render();
     });
     $("[data-up]", dlg)?.addEventListener("click", () => {
-      cols.splice(idx, 1); cols.splice(idx - 1, 0, existing);
-      dlg.close(); render();
+      moveUp = true;
+      form.requestSubmit();
+      moveUp = false;
     });
     $("form", dlg).addEventListener("submit", (e) => {
       const f = e.target;
+      if (busy) { e.preventDefault(); toast("One moment — still preparing the photo."); return; }
       const name = f.name.value.trim();
       if (!name) { e.preventDefault(); f.name.focus(); return; }
       if (!image) { e.preventDefault(); toast("Add a cover photo for this collection.", true); return; }
       const data = { ...c, name, text: f.text.value.trim(), image };
-      if (existing) cols[idx] = data;
-      else {
+      if (existing) {
+        cols[idx] = data;
+        if (moveUp) { cols.splice(idx, 1); cols.splice(idx - 1, 0, data); }
+      } else {
         let nid = slug(name);
         while (cols.some((x) => x.id === nid)) nid += "-2";
         cols.push({ ...data, id: nid });
