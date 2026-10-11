@@ -3,6 +3,10 @@
 [build]
   publish = "netlify/public"
   command = ""
+  # Each Netlify deploy costs credits, and every Studio publish is a commit to
+  # main. Only deploy when the API itself changed; skip everything else
+  # (content, pages, photos). Exit code 0 = skip this build.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- netlify/ shared/ netlify.toml package.json package-lock.json"
 
 # Netlify's secret scanner fails the build if a secret's value appears in any
 # file. The Studio password is a short word that also occurs inside ordinary
