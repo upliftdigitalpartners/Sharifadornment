@@ -17,7 +17,7 @@ export default async (req) => {
   const stats = getStore({ name: "stats", consistency: "strong" });
   const months = {};
   const d = new Date();
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 6; i++) {
     const m = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - i, 1)).toISOString().slice(0, 7);
     months[m] = (await stats.get(m, { type: "json" })) || {};
   }

@@ -49,9 +49,16 @@ export function badges(it) {
   return b.join("");
 }
 
+/** "40" and "40$" read as "$40"; anything else is shown as typed. */
+export const money = (v = "") => {
+  const t = String(v).trim();
+  const m = t.match(/^\$?\s*(\d[\d,]*(?:\.\d{1,2})?)\s*\$?$/);
+  return m ? `$${m[1]}` : t;
+};
+
 export function priceLine(it) {
-  const buy = it.price || "Price on request";
-  return it.rent && it.rentPrice ? `${buy} · Rent ${it.rentPrice}` : buy;
+  const buy = money(it.price) || "Price on request";
+  return it.rent && it.rentPrice ? `${buy} · Rent ${money(it.rentPrice)}` : buy;
 }
 
 /** A piece in a grid. The link goes to the piece's own page; on the Collections
@@ -67,6 +74,9 @@ export function itemCard(it, site, { sizes } = {}) {
   <button class="heart" type="button" data-save="${esc(it.id)}" aria-pressed="false" aria-label="Save ${esc(it.name)}">${HEART}</button>
 </article>`;
 }
+
+/** Collections that have at least one piece (empty ones would lead to an empty page) */
+export const withPieces = (site, items) => (site.collections || []).filter((c) => items.some((i) => i.collection === c.id));
 
 export function collectionCard(c, i) {
   return `<a class="piece reveal" href="collections.html?c=${encodeURIComponent(c.id)}">
@@ -98,7 +108,7 @@ export function pieceDetail(it, site, items, { heading = "h2" } = {}) {
   const dots = media.length > 1 ? `<div class="dots" aria-hidden="true">${media.map((_, i) => `<span${i ? "" : ' class="is-on"'}></span>`).join("")}</div>` : "";
   const facts = [
     it.size && ["Size", it.size],
-    it.rent && ["Rent", it.rentPrice ? `${it.rentPrice} — ask about dates` : "Available to rent — ask about dates"],
+    it.rent && ["Rent", it.rentPrice ? `${money(it.rentPrice)} — ask about dates` : "Available to rent — ask about dates"],
   ].filter(Boolean);
   const pairs = pairsFor(it, items);
   const H = heading;
@@ -121,7 +131,7 @@ export function pieceDetail(it, site, items, { heading = "h2" } = {}) {
       <a class="link" href="contact.html?piece=${encodeURIComponent(it.id)}">Enquiry form</a>
     </div>
     ${pairs.length ? `<div class="pairs"><p class="label">Complete the look</p><div class="pairs__row">${pairs.map((p) => `
-      <a class="pair" href="${pieceUrl(p)}" data-open="${esc(p.id)}">${img(p.image, p.name, { sizes: "120px" })}<span>${esc(p.name)}</span></a>`).join("")}</div></div>` : ""}
+      <a class="pair" href="${pieceUrl(p)}" data-open="${esc(p.id)}">${img(p.image, p.name, { sizes: "120px" })}<span>${esc(p.name)}</span><span class="pair__price">${esc(priceLine(p))}</span></a>`).join("")}</div></div>` : ""}
   </div>
 </div>`;
 }
@@ -153,7 +163,7 @@ export function lookHTML(look, items, i) {
     <h2>${rich(look.title)}</h2>
     <p>${esc(look.text)}</p>
     ${pieces.length ? `<p class="label">In this look</p><div class="pairs__row">${pieces.map((p) => `
-      <a class="pair" href="${pieceUrl(p)}">${img(p.image, p.name, { sizes: "120px" })}<span>${esc(p.name)}</span></a>`).join("")}</div>` : ""}
+      <a class="pair" href="${pieceUrl(p)}">${img(p.image, p.name, { sizes: "120px" })}<span>${esc(p.name)}</span><span class="pair__price">${esc(priceLine(p))}</span></a>`).join("")}</div>` : ""}
   </div>
 </article>`;
 }
@@ -163,8 +173,8 @@ export const galleryHTML = (images = []) =>
     ? `<figure class="reveal"><video src="${esc(g.src)}" muted loop playsinline preload="metadata" aria-hidden="true"></video></figure>`
     : `<figure class="reveal"><button class="slide__zoom" type="button" data-zoom="${esc(g.src)}" aria-label="View full screen">${img(g.src, g.alt, { sizes: "(max-width: 860px) 50vw, 25vw" })}</button></figure>`).join("");
 
-export const bannerHTML = (b = {}) =>
-  b.on && b.text ? `<div class="banner" data-banner><p>${rich(b.text)}${b.link && b.linkText ? ` <a href="${esc(b.link)}">${esc(b.linkText)}</a>` : ""}</p><button type="button" class="banner__close" data-banner-close aria-label="Dismiss">×</button></div>` : "";
+export const bannerHTML = (b) =>
+  b?.on && b.text ? `<div class="banner" data-banner><p>${rich(b.text)}${b.link && b.linkText ? ` <a href="${esc(b.link)}">${esc(b.linkText)}</a>` : ""}</p><button type="button" class="banner__close" data-banner-close aria-label="Dismiss">×</button></div>` : "";
 
 /** WhatsApp number in international form, digits only (US numbers get a 1) */
 export const waNumber = (n = "") => {

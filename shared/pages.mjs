@@ -8,7 +8,7 @@
 import {
   esc, rich, img, motif, itemCard, collectionCard, pieceDetail, stepsHTML, pillarsHTML,
   paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, bannerHTML, collectionName,
-  priceLine, pieceUrl, waNumber, HEART,
+  priceLine, pieceUrl, waNumber, HEART, withPieces,
 } from "./render.mjs";
 
 export const SITE_URL = "https://sharifadornment.com/";
@@ -38,7 +38,7 @@ function shell(site, { file, title, desc, body, base = "", ogImage = "assets/img
   const b = site.business || {};
   const nav = NAV.map(([href, label]) =>
     `      <a href="${href}"${href === file ? ' aria-current="page"' : ""}>${label}</a>`).join("\n");
-  const bookLabel = esc(site.nav?.book || "Book a call");
+  const msgLabel = esc(site.nav?.book || "Message us");
   const social = [
     b.facebook && `<a href="${esc(b.facebook)}" target="_blank" rel="noopener" aria-label="Facebook">${ICONS.facebook}</a>`,
     b.instagram && `<a href="${esc(b.instagram)}" target="_blank" rel="noopener" aria-label="Instagram">${ICONS.instagram}</a>`,
@@ -71,13 +71,13 @@ function shell(site, { file, title, desc, body, base = "", ogImage = "assets/img
   <link rel="stylesheet" href="css/style.css" />${preload}${jsonld ? `\n  <script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, "\\u003c")}</script>` : ""}
 </head>
 <body data-page="${page || file.replace(/\.html$/, "")}">
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip" href="${base ? file : ""}#main">Skip to content</a>
   ${bannerHTML(site.banner)}
   <header class="nav">
-    <a href="index.html" class="nav__brand" aria-label="Sharif Adornment home"><span class="caps">SHARIF</span> Adornment</a>
+    <a href="index.html" class="nav__brand" aria-label="Sharif Adornment home"><span class="caps">SHARIF</span> <span class="glitter">Adornment</span></a>
     <nav class="nav__links" id="menu" aria-label="Primary">
 ${nav}
-      <a href="book.html" class="nav__cta"${file === "book.html" ? ' aria-current="page"' : ""}>${bookLabel}</a>
+      ${messageLink(site, "nav__cta", msgLabel)}
     </nav>
     <div class="nav__tools">
       <button class="icon-btn saved-toggle" type="button" data-saved-open aria-label="Saved pieces">${HEART}<span class="count" data-saved-count hidden>0</span></button>
@@ -96,14 +96,14 @@ ${body}
   <footer class="footer">
     <div class="footer__top">
       <div class="footer__about">
-        <p class="footer__mark"><span class="caps">SHARIF</span> <em>Adornment</em></p>
-        <p class="footer__hours" data-t="footer.hours">${esc(f.hours || "")}</p>
+        <p class="footer__mark"><span class="caps">SHARIF</span> <em class="glitter">Adornment</em></p>
+        <p class="footer__hours" data-t="footer.hours">${rich(f.hours || "")}</p>
         ${social ? `<div class="socials">${social}</div>` : ""}
       </div>
       <form class="newsletter" data-newsletter novalidate>
         <p class="label">Newsletter</p>
         <h3 data-t="footer.newsletterTitle">${rich(f.newsletterTitle || "")}</h3>
-        <p class="newsletter__text" data-t="footer.newsletterText">${esc(f.newsletterText || "")}</p>
+        <p class="newsletter__text" data-t="footer.newsletterText">${rich(f.newsletterText || "")}</p>
         <div class="newsletter__row">
           <input type="email" name="email" required autocomplete="email" placeholder="Email address" aria-label="Email address" />
           <button class="btn" type="submit">Sign up</button>
@@ -113,11 +113,11 @@ ${body}
     </div>
     <nav class="footer__links" aria-label="More">
       <a href="collections.html">Collections</a><a href="bridal.html">Bridal</a><a href="order.html">How to order</a>
-      <a href="faq.html">FAQ</a><a href="book.html">${bookLabel}</a><a href="contact.html">Enquire</a>
+      <a href="faq.html">FAQ</a><a href="contact.html">Enquire</a>
     </nav>
     <div class="footer__row">
       <span><a class="footer__c" href="studio/" aria-label="Studio">©</a> <span class="js-year">${new Date().getFullYear()}</span> Sharif Adornment</span>
-      <a href="#main">Back to top</a>
+      <a href="${base ? file : ""}#main">Back to top</a>
     </div>
   </footer>
 
@@ -149,7 +149,7 @@ ${body}
     <button class="sheet__close" type="button" data-zoom-close>Close</button>
     <div class="zoom__stage"><img alt="" /></div>
   </dialog>
-  <div class="toast" data-toast role="status" aria-live="polite"></div>
+  <div class="toast" data-toast role="status" aria-live="polite" popover="manual"></div>
 
   <script type="module" src="js/app.js"></script>
 </body>
@@ -161,9 +161,9 @@ const head = (prefix, site, { tag = "h2", row = "", intro = false } = {}) => {
   const s = prefix.split(".").reduce((v, k) => v?.[k], site) || {};
   return `      <header class="section__head${row ? " section__head--row" : ""}">
         <div>
-          <p class="label reveal" data-t="${prefix}.label">${esc(s.label || "")}</p>
+          <p class="label reveal" data-t="${prefix}.label">${rich(s.label || "")}</p>
           <${tag} class="${tag === "h1" ? "page__title " : ""}reveal" data-t="${prefix}.title">${rich(s.title || "")}</${tag}>
-          ${intro && s.intro ? `<p class="page__intro reveal" data-t="${prefix}.intro">${esc(s.intro)}</p>` : ""}
+          ${intro && s.intro ? `<p class="page__intro reveal" data-t="${prefix}.intro">${rich(s.intro)}</p>` : ""}
         </div>${row}
       </header>`;
 };
@@ -173,9 +173,9 @@ const occasion = (site) => {
   return `    <section class="occasion">
       <div class="occasion__inner reveal">
         ${motif("motif--short")}
-        <p class="label" data-t="occasion.label">${esc(o.label)}</p>
+        <p class="label" data-t="occasion.label">${rich(o.label)}</p>
         <h2 data-t="occasion.title">${rich(o.title)}</h2>
-        <p data-t="occasion.text">${esc(o.text)}</p>
+        <p data-t="occasion.text">${rich(o.text)}</p>
         <a href="contact.html" class="btn btn--light" data-t="occasion.button">${rich(o.button)}</a>
       </div>
     </section>`;
@@ -191,6 +191,14 @@ ${head("reviews", site)}
 };
 
 const skeleton = (n) => Array.from({ length: n }, () => '<div class="item item--skeleton" aria-hidden="true"><div class="item__img"></div><span></span><span></span></div>').join("");
+
+/** The main "message us" link: Messenger if set, otherwise the enquiry page. */
+function messageLink(site, cls, label, attrs = "") {
+  const href = site.business?.messenger;
+  return href
+    ? `<a href="${esc(href)}" class="${cls}" data-href="business.messenger" target="_blank" rel="noopener"${attrs}>${label}</a>`
+    : `<a href="contact.html" class="${cls}"${attrs}>${label}</a>`;
+}
 
 export function buildSite(site, items) {
   const h = site.home || {};
@@ -210,12 +218,12 @@ export function buildSite(site, items) {
     },
     body: `    <section class="hero">
       <div class="hero__copy">
-        <p class="label reveal" data-t="home.label">${esc(h.label)}</p>
+        <p class="label reveal" data-t="home.label">${rich(h.label)}</p>
         <h1 class="hero__title reveal" data-t="home.title">${rich(h.title)}</h1>
-        <p class="hero__lede reveal" data-t="home.intro">${esc(h.intro)}</p>
+        <p class="hero__lede reveal" data-t="home.intro">${rich(h.intro)}</p>
         <div class="hero__actions reveal">
           <a href="collections.html" class="btn" data-t="home.button">${rich(h.button)}</a>
-          <a href="book.html" class="link" data-t="nav.book">${esc(site.nav?.book || "Book a call")}</a>
+          ${messageLink(site, "link", esc(site.nav?.book || "Message us"), ' data-t="nav.book"')}
         </div>
       </div>
       <figure class="hero__media reveal" data-hero data-video="${esc(h.heroVideo || "")}" data-video-mobile="${esc(h.heroVideoMobile || "")}">
@@ -227,16 +235,16 @@ export function buildSite(site, items) {
 
     <section class="section">
       <header class="section__head">
-        <p class="label reveal" data-t="home.collectionsLabel">${esc(h.collectionsLabel)}</p>
+        <p class="label reveal" data-t="home.collectionsLabel">${rich(h.collectionsLabel)}</p>
         <h2 class="reveal" data-t="home.collectionsTitle">${rich(h.collectionsTitle)}</h2>
       </header>
-      <div class="collections" data-collections>${(site.collections || []).map(collectionCard).join("")}</div>
+      <div class="collections" data-collections>${withPieces(site, items).map(collectionCard).join("")}</div>
     </section>
 
     <section class="section" data-featured-section${visible.some((i) => i.featured) ? "" : " hidden"}>
       <header class="section__head section__head--row">
         <div>
-          <p class="label reveal" data-t="home.featuredLabel">${esc(h.featuredLabel)}</p>
+          <p class="label reveal" data-t="home.featuredLabel">${rich(h.featuredLabel)}</p>
           <h2 class="reveal" data-t="home.featuredTitle">${rich(h.featuredTitle)}</h2>
         </div>
         <a class="link reveal" href="collections.html">View all pieces</a>
@@ -247,9 +255,9 @@ export function buildSite(site, items) {
     <section class="section story">
       <figure class="story__img reveal">${img(site.story?.image, "Gold and ruby bead necklace set displayed with flowers", { sizes: "(max-width: 860px) 100vw, 45vw", attrs: 'data-src="story.image"' })}</figure>
       <div class="story__copy">
-        <p class="label reveal" data-t="story.label">${esc(site.story?.label)}</p>
+        <p class="label reveal" data-t="story.label">${rich(site.story?.label)}</p>
         <h2 class="reveal" data-t="story.title">${rich(site.story?.title)}</h2>
-        <p class="reveal" data-t="story.paragraphs.0">${esc(site.story?.paragraphs?.[0] || "")}</p>
+        <p class="reveal" data-t="story.paragraphs.0">${rich(site.story?.paragraphs?.[0] || "")}</p>
         <a class="link reveal story__more" href="story.html" data-t="home.storyLink">${rich(h.storyLink)}</a>
       </div>
     </section>
@@ -284,11 +292,11 @@ ${head("collectionsPage", site, { tag: "h1", intro: true })}
   const br = site.bridal || {};
   pages["bridal.html"] = shell(site, {
     file: "bridal.html", title: "Bridal — Sharif Adornment",
-    desc: "Bridal jewelry looks from Sharif Adornment in Queens, NY — necklace sets, tikka, jhumkas, bangles and potlis. Book a bridal appointment.",
+    desc: "Bridal jewelry looks from Sharif Adornment in Queens, NY — necklace sets, tikka, jhumkas, bangles and potlis. Ask us about any bridal look.",
     ogImage: br.looks?.[0]?.image || undefined,
     body: `    <section class="section section--first">
 ${head("bridal", site, { tag: "h1", intro: true })}
-      <a href="book.html" class="btn reveal" data-t="bridal.button">${rich(br.button || "")}</a>
+      <a href="contact.html?c=bridal" class="btn reveal" data-t="bridal.button">${rich(br.button || "")}</a>
     </section>
     ${motif("motif--gap")}
     <section class="section looks" data-looks>${(br.looks || []).map((l, i) => lookHTML(l, items, i)).join("")}</section>
@@ -303,7 +311,7 @@ ${occasion(site)}`,
     body: `    <section class="section section--first story">
       <figure class="story__img reveal">${img(st.image, "Gold and ruby bead necklace set displayed with flowers", { sizes: "(max-width: 860px) 100vw, 45vw", lazy: false, attrs: 'data-src="story.image"' })}</figure>
       <div class="story__copy">
-        <p class="label reveal" data-t="story.label">${esc(st.label)}</p>
+        <p class="label reveal" data-t="story.label">${rich(st.label)}</p>
         <h1 class="page__title reveal" data-t="story.title">${rich(st.title)}</h1>
         <div class="story__text reveal" data-paragraphs="story.paragraphs">${paragraphsHTML(st.paragraphs)}</div>
         <dl class="pillars reveal" data-pillars>${pillarsHTML(st.pillars)}</dl>
@@ -361,39 +369,19 @@ ${head("faq", site, { tag: "h1", intro: true })}
     <section class="section section--tight cta">
       <h2 class="reveal">Still wondering about <em>something?</em></h2>
       <div class="cta__actions reveal">
-        <a href="contact.html" class="btn">Message us</a>
-        <a href="book.html" class="link">${esc(site.nav?.book || "Book a call")}</a>
+        ${messageLink(site, "btn", "Message us")}
+        <a href="contact.html" class="link">Send an enquiry</a>
       </div>
     </section>`,
   });
 
-  const bk = site.book || {};
-  pages["book.html"] = shell(site, {
-    file: "book.html", title: "Book a Call — Sharif Adornment",
-    desc: "Book a video or phone call to see Sharif Adornment pieces — bridal sets, kundan, pearls, bangles and potlis.",
-    body: `    <section class="section section--first contact">
-      <div class="contact__copy">
-        <p class="label reveal" data-t="book.label">${esc(bk.label)}</p>
-        <h1 class="page__title reveal" data-t="book.title">${rich(bk.title)}</h1>
-        <p class="reveal" data-t="book.intro">${esc(bk.intro)}</p>
-        ${motif("motif--left reveal")}
-        <p class="book__note reveal" data-t="book.note">${esc(bk.note)}</p>
-      </div>
-      <form class="enquiry reveal" data-form="book" novalidate>
-        <div class="field"><label for="b-name">Your name</label><input id="b-name" name="name" type="text" required autocomplete="name" /></div>
-        <div class="field"><label for="b-contact">Phone or email</label><input id="b-contact" name="contact" type="text" required autocomplete="tel" /></div>
-        <div class="field"><label for="b-type">Appointment</label><select id="b-type" name="type">${(bk.types || []).map((t) => `<option>${esc(t)}</option>`).join("")}</select></div>
-        <div class="field-row">
-          <div class="field"><label for="b-date">Preferred date</label><input id="b-date" name="date" type="date" required /></div>
-          <div class="field"><label for="b-time">Time of day</label><select id="b-time" name="time"><option>Morning</option><option selected>Afternoon</option><option>Evening</option></select></div>
-        </div>
-        <div class="field"><label for="b-occasion">Occasion and event date</label><input id="b-occasion" name="occasion" type="text" placeholder="e.g. Mehndi on 14 March" /></div>
-        <div class="field"><label for="b-notes">What would you like to see?</label><textarea id="b-notes" name="notes" rows="3" placeholder="Pieces you saved, colours, your outfit…"></textarea></div>
-        <button type="submit" class="btn btn--block" data-t="book.button">${rich(bk.button)}</button>
-        <p class="enquiry__note" role="status" aria-live="polite"></p>
-      </form>
-    </section>`,
-  });
+  // Appointments were retired; old links to book.html land on the enquiry page
+  pages["book.html"] = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8" /><title>Sharif Adornment</title>
+<meta name="robots" content="noindex" /><link rel="icon" href="assets/favicon.svg" type="image/svg+xml" /><link rel="canonical" href="${abs("contact.html")}" />
+<meta http-equiv="refresh" content="0; url=contact.html" /></head>
+<body><p><a href="contact.html">Continue to Sharif Adornment</a></p></body></html>
+`;
 
   const ct = site.contact || {};
   const b = site.business || {};
@@ -402,9 +390,9 @@ ${head("faq", site, { tag: "h1", intro: true })}
     desc: "Ask about a piece, availability or delivery. Message Sharif Adornment on Messenger, call or text, or send an enquiry.",
     body: `    <section class="section section--first contact">
       <div class="contact__copy">
-        <p class="label reveal" data-t="contact.label">${esc(ct.label)}</p>
+        <p class="label reveal" data-t="contact.label">${rich(ct.label)}</p>
         <h1 class="page__title reveal" data-t="contact.title">${rich(ct.title)}</h1>
-        <p class="reveal" data-t="contact.text">${esc(ct.text)}</p>
+        <p class="reveal" data-t="contact.text">${rich(ct.text)}</p>
         <dl class="channels reveal">
           ${b.messenger ? `<div><dt>Message</dt><dd><a href="${esc(b.messenger)}" target="_blank" rel="noopener">Facebook Messenger</a></dd></div>` : ""}
           ${b.whatsapp ? `<div><dt>WhatsApp</dt><dd><a href="https://wa.me/${waNumber(b.whatsapp)}" target="_blank" rel="noopener">${esc(b.whatsapp)}</a></dd></div>` : ""}
@@ -434,7 +422,7 @@ ${head("faq", site, { tag: "h1", intro: true })}
     const desc = `${it.description || it.name} ${priceLine(it)}. Sharif Adornment, Queens NY.`.trim();
     pages[pieceUrl(it)] = shell(site, {
       file: pieceUrl(it), base: "../", page: "piece",
-      title: `${it.name} — Sharif Adornment`, desc, ogImage: it.image,
+      title: `${it.name} — Sharif Adornment`, desc, ogImage: it.image || undefined,
       jsonld: {
         "@context": "https://schema.org", "@type": "Product", name: it.name, description: it.description || undefined,
         image: [it.image, ...(it.images || [])].filter(Boolean).map(abs), category: col || undefined,
@@ -451,7 +439,7 @@ ${head("faq", site, { tag: "h1", intro: true })}
     });
   }
 
-  const urls = ["", "collections.html", "bridal.html", "story.html", "order.html", "gallery.html", "faq.html", "book.html", "contact.html", ...items.map(pieceUrl)];
+  const urls = ["", "collections.html", "bridal.html", "story.html", "order.html", "gallery.html", "faq.html", "contact.html", ...items.map(pieceUrl)];
   pages["sitemap.xml"] = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${abs(u)}</loc></url>`).join("\n")}\n</urlset>\n`;
   return pages;
 }

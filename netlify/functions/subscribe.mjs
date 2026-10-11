@@ -3,7 +3,7 @@
 import { getStore } from "@netlify/blobs";
 import { cors, json } from "../lib/studio.mjs";
 
-const EMAIL = /^[^\s@<>"']{1,64}@[^\s@<>"']{1,190}\.[a-z]{2,24}$/i;
+const EMAIL = /^(?![/%.])[^\s@<>"'/\\%]{1,64}@[^\s@<>"']{1,190}\.[a-z]{2,24}$/i;
 
 export default async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });

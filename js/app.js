@@ -2,7 +2,7 @@
  * The pages arrive fully built (shared/pages.mjs); this adds the interactive
  * parts: quick view, saved pieces, asking about a piece, search and filters,
  * photo zoom, forms, night mode and the Studio's preview mode. */
-import { esc, rich, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, pieceUrl, waNumber } from "../shared/render.mjs";
+import { esc, rich, withPieces, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, money, pieceUrl, waNumber } from "../shared/render.mjs";
 
 const API = "https://sharif-adornment-studio.netlify.app/api";
 const $ = (s, el = document) => el.querySelector(s);
@@ -30,19 +30,39 @@ function toast(msg) {
   const t = $("[data-toast]");
   if (!t) return;
   t.textContent = msg;
-  t.classList.add("is-on");
+  // A popover sits in the top layer, so the message shows above an open quick view too
+  if (t.showPopover) { try { t.hidePopover(); t.showPopover(); } catch (_) { /* not supported */ } }
+  requestAnimationFrame(() => t.classList.add("is-on"));
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("is-on"), 4200);
+  toastTimer = setTimeout(() => {
+    t.classList.remove("is-on");
+    toastTimer = setTimeout(() => { try { t.hidePopover?.(); } catch (_) { /* ignore */ } }, 400);
+  }, 4200);
 }
 
 /* ---------- Stats (anonymous counts, no cookies) ---------- */
 const PREVIEW = params.has("preview");
 const tracking = !PREVIEW && navigator.doNotTrack !== "1" && !/^(localhost|127\.)/.test(location.hostname);
-function track(e, id = "") {
+function track(e, id = "", extra = {}) {
   if (!tracking) return;
-  try { navigator.sendBeacon(`${API}/track`, JSON.stringify({ e, id, p: location.pathname.replace(/\/$/, "/index.html") })); } catch (_) { /* ignore */ }
+  try { navigator.sendBeacon(`${API}/track`, JSON.stringify({ e, id, p: location.pathname.replace(/\/$/, "/index.html"), ...extra })); } catch (_) { /* ignore */ }
 }
-track("page");
+// The first page of a visit (per browser tab) also says, in one word each, where the
+// visitor came from and what kind of device it is. Nothing identifies the person.
+function visitInfo() {
+  try { if (sessionStorage.getItem("sa-visit")) return {}; sessionStorage.setItem("sa-visit", "1"); } catch (_) { return {}; }
+  let from = "";
+  try { from = new URL(document.referrer).hostname; } catch (_) { /* typed in or bookmarked */ }
+  const s = params.has("fbclid") || /(^|\.)(facebook|fb|messenger)\.com$|^fb\.me$/.test(from) ? "facebook"
+    : params.has("igshid") || /(^|\.)instagram\.com$/.test(from) ? "instagram"
+    : /(^|\.)google\.[a-z.]+$/.test(from) ? "google"
+    : /(^|\.)(whatsapp\.com|wa\.me)$/.test(from) ? "whatsapp"
+    : !from || from === location.hostname ? "direct" : "other";
+  const touch = matchMedia("(pointer: coarse)").matches;
+  const d = !touch ? "computer" : Math.min(screen.width, screen.height) < 600 ? "phone" : "tablet";
+  return { n: 1, s, d };
+}
+track("page", "", visitInfo());
 
 /* ---------- Night mode ---------- */
 const root = document.documentElement;
@@ -61,8 +81,9 @@ themeBtn?.addEventListener("click", () => {
 });
 
 /* ---------- Banner ---------- */
-const banner = $("[data-banner]");
-if (banner) {
+function setupBanner() {
+  const banner = $("[data-banner]");
+  if (!banner) { root.style.setProperty("--banner-h", "0px"); return; }
   const key = `sa-banner:${banner.textContent.trim().slice(0, 80)}`;
   const setH = () => root.style.setProperty("--banner-h", `${banner.isConnected ? banner.offsetHeight : 0}px`);
   try { if (sessionStorage.getItem(key)) banner.remove(); } catch (_) { /* ignore */ }
@@ -74,6 +95,7 @@ if (banner) {
     try { sessionStorage.setItem(key, "1"); } catch (_) { /* ignore */ }
   });
 }
+setupBanner();
 
 /* ---------- Nav (menu keeps keyboard focus inside while open) ---------- */
 const nav = $(".nav");
@@ -91,6 +113,7 @@ function setMenu(open) {
   else if (document.activeElement && menu.contains(document.activeElement)) toggle.focus();
 }
 toggle.addEventListener("click", () => setMenu(!nav.classList.contains("is-open")));
+matchMedia("(max-width: 1100px)").addEventListener("change", (e) => { if (!e.matches && nav.classList.contains("is-open")) setMenu(false); });
 $$("a", menu).forEach((a) => a.addEventListener("click", () => setMenu(false)));
 addEventListener("keydown", (e) => {
   if (!nav.classList.contains("is-open")) return;
@@ -202,7 +225,7 @@ function message(kind, pieces) {
   const it = pieces[0];
   if (kind === "notify") return `Hi! Please let me know when the ${it.name} is back in stock. ${absUrl(pieceUrl(it))}`;
   if (kind === "gift") return `Hi! I'd like to buy the ${it.name} as a gift. ${absUrl(pieceUrl(it))}`;
-  return `Hi! I'm interested in the ${it.name}${it.price ? ` (${it.price})` : ""}. ${absUrl(pieceUrl(it))}`;
+  return `Hi! I'm interested in the ${it.name}${it.price ? ` (${money(it.price)})` : ""}. ${absUrl(pieceUrl(it))}`;
 }
 async function sendMessage(text) {
   const b = site?.business || {};
@@ -316,7 +339,8 @@ function setupCollections() {
   if (!grid) return;
   const search = $("[data-search]");
   const results = $("[data-results]");
-  let active = params.get("c") && (site.collections || []).some((c) => c.id === params.get("c")) ? params.get("c") : (params.get("c") === "rent" ? "rent" : "all");
+  const wanted = params.get("c");
+  let active = wanted && $(`[data-filter="${CSS.escape(wanted)}"]`) ? wanted : "all";
   if (params.get("q")) search.value = params.get("q");
   const text = (it) => `${it.name} ${it.description} ${(site.collections || []).find((c) => c.id === it.collection)?.name || ""} ${it.size}`.toLowerCase();
   const apply = () => {
@@ -344,7 +368,7 @@ function setupCollections() {
   apply();
 }
 
-/* ---------- Forms: enquiry, booking, newsletter ---------- */
+/* ---------- Forms: enquiry and newsletter ---------- */
 function handoff(form, body, subject) {
   const note = $(".enquiry__note", form);
   const b = site?.business || {};
@@ -382,23 +406,8 @@ function setupForms() {
       e.preventDefault();
       if (!validate(enquiry)) return;
       const d = Object.fromEntries(new FormData(enquiry));
-      track("ask", piece?.id || "");
+      track("ask", piece?.id || "general-enquiry");
       handoff(enquiry, `Name: ${d.name}\nContact: ${d.contact}\nInterested in: ${d.topic}\n\n${d.message}`, `Enquiry — ${d.topic}`);
-    });
-  }
-  const book = $('[data-form="book"]');
-  if (book) {
-    const date = $("#b-date", book);
-    date.min = new Date().toISOString().slice(0, 10);
-    const pieces = saved.map(byId).filter(Boolean);
-    if (pieces.length) $("#b-notes", book).value = `Pieces I saved: ${pieces.map((p) => p.name).join(", ")}`;
-    book.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (!validate(book)) return;
-      const d = Object.fromEntries(new FormData(book));
-      const when = new Date(`${d.date}T12:00`).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
-      track("book");
-      handoff(book, `Appointment request\nName: ${d.name}\nContact: ${d.contact}\nType: ${d.type}\nPreferred: ${when}, ${d.time.toLowerCase()}\nOccasion: ${d.occasion || "—"}\n\n${d.notes || ""}`.trim(), `Appointment — ${d.type}`);
     });
   }
 }
@@ -424,7 +433,8 @@ $("[data-feed-load]")?.addEventListener("click", () => {
   const box = $("[data-feed-frame]");
   const page = encodeURIComponent(box.dataset.pageUrl);
   const w = Math.min(500, box.clientWidth || 500);
-  box.innerHTML = `<iframe title="Sharif Adornment on Facebook" src="https://www.facebook.com/plugins/page.php?href=${page}&tabs=timeline&width=${w}&height=720&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false" width="${w}" height="720" loading="lazy" allow="encrypted-media; picture-in-picture; web-share"></iframe>`;
+  box.innerHTML = `<iframe title="Sharif Adornment on Facebook" src="https://www.facebook.com/plugins/page.php?href=${page}&tabs=timeline&width=${w}&height=720&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false" width="${w}" height="720" loading="lazy" allow="encrypted-media; picture-in-picture; web-share"></iframe>
+    <p class="feed__fallback">Posts not showing? Some browsers block Facebook on other sites. <a href="${esc(box.dataset.pageUrl)}" target="_blank" rel="noopener">See them on Facebook</a></p>`;
   box.classList.add("is-loaded");
 });
 
@@ -451,8 +461,9 @@ function rerender() {
   $$("[data-src]").forEach((el) => { const v = get(site, el.dataset.src); if (v) { el.src = v; el.removeAttribute("srcset"); } });
   $$("[data-paragraphs]").forEach((el) => { el.innerHTML = paragraphsHTML(get(site, el.dataset.paragraphs)); });
   const set = (sel, html) => { const el = $(sel); if (el) el.innerHTML = html; };
-  set("[data-collections]", (site.collections || []).map(collectionCard).join(""));
+  set("[data-collections]", withPieces(site, items).map(collectionCard).join(""));
   set("[data-featured]", items.filter((i) => i.featured).map((it) => itemCard(it, site)).join(""));
+  $$("[data-featured-section]").forEach((s) => { s.hidden = !items.some((i) => i.featured); });
   set("[data-items]", items.map((it) => itemCard(it, site)).join(""));
   set("[data-steps]", stepsHTML(site.order?.steps));
   set("[data-pillars]", pillarsHTML(site.story?.pillars));
@@ -468,7 +479,8 @@ function rerender() {
     d.outerHTML = pieceDetail(byId(piece.dataset.piece), site, items, { heading: "h1" });
   }
   $("[data-banner]")?.remove();
-  if (site.banner?.on) $(".skip").insertAdjacentHTML("afterend", bannerHTML(site.banner));
+  $(".skip").insertAdjacentHTML("afterend", bannerHTML(site.banner));
+  setupBanner();
   const bar = document.createElement("div");
   bar.className = "preview-bar";
   bar.innerHTML = 'Preview — not published yet. <button type="button">Close preview</button>';
@@ -488,7 +500,7 @@ loadContent()
     setupCollections();
     setupForms();
     if (onPiecePage) track("view", $("[data-piece]")?.dataset.piece);
-    else if (params.get("piece") && $("[data-items]")) openPiece(params.get("piece"), { push: false });
+    else if (params.get("piece") && !$('[data-form="enquiry"]')) openPiece(params.get("piece"), { push: false });
   })
   .catch((err) => {
     console.warn("Content failed to load", err);

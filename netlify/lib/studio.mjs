@@ -119,6 +119,7 @@ const SHA = "[0-9a-f]{40}";
 export const SHA_RE = new RegExp(`^${SHA}$`);
 
 export function vet(method, path, body) {
+  if (typeof path !== "string" || path.split("?").length > 2 || path.includes("#")) return "This request isn't allowed.";
   const [p, q = ""] = path.split("?");
   if (method === "GET") {
     if (p === BASE && !q) return null;
