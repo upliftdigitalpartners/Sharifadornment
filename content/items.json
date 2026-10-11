@@ -3,9 +3,9 @@
   "id": "antique-gold-kangan-stack",
   "name": "Antique Gold Kangan Stack",
   "collection": "bangles",
-  "image": "assets/img/hero.jpg",
+  "image": "assets/uploads/antique-gold-kangan-stack-mv3bsmrp.jpg",
   "description": "A stack of carved antique-gold kangan bangles set with small ruby and emerald stones. Wear the full stack or split it between both wrists.",
-  "price": "",
+  "price": "70$",
   "soldOut": false,
   "featured": true
  },
@@ -15,7 +15,7 @@
   "collection": "bangles",
   "image": "assets/img/col-bangles.jpg",
   "description": "Gold-finish earrings with tiers of pearl-studded jhumkas that sway as you move.",
-  "price": "",
+  "price": "30$",
   "soldOut": false,
   "featured": false
  },
@@ -45,9 +45,9 @@
   "collection": "bridal",
   "image": "assets/gallery/gold-pendant-pearl-mala.jpg",
   "description": "Pearl and ruby bead strands finished with a gold pendant and pearl fringe, with a matching tikka.",
-  "price": "",
+  "price": "40$",
   "soldOut": false,
-  "featured": false
+  "featured": true
  },
  {
   "id": "navratna-kundan-set",
