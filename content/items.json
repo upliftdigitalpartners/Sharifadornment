@@ -59,21 +59,21 @@
  },
  {
   "description": "Gold-finish earrings with tiers of pearl-studded jhumkas that sway as you move.",
-  "price": "$30",
+  "price": "$35",
   "soldOut": false,
   "featured": false,
   "images": [],
   "video": "",
-  "size": "",
+  "size": "2.6",
   "isNew": false,
-  "lastOne": false,
+  "lastOne": true,
   "rent": false,
   "rentPrice": "",
   "pairs": [],
   "id": "pearl-cascade-jhumkas",
-  "name": "Pearl Cascade Jhumkas",
+  "name": "Set of four bangles",
   "collection": "bangles",
-  "image": "assets/img/col-bangles.jpg"
+  "image": "assets/uploads/pearl-cascade-jhumkas-mv3w5j2h0.jpg"
  },
  {
   "description": "A slim open gold kada studded with pearls — easy to wear alone or with a stack.",
