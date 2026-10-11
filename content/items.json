@@ -1,15 +1,5 @@
 [
  {
-  "id": "test-item",
-  "name": "test item",
-  "collection": "bridal",
-  "image": "assets/uploads/piece-mv3914fc.jpg",
-  "description": "",
-  "price": "",
-  "soldOut": false,
-  "featured": false
- },
- {
   "id": "antique-gold-kangan-stack",
   "name": "Antique Gold Kangan Stack",
   "collection": "bangles",
