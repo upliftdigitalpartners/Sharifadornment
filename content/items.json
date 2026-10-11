@@ -19,7 +19,7 @@
  },
  {
   "description": "",
-  "price": "42$",
+  "price": "$42",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -172,7 +172,7 @@
  },
  {
   "description": "A sculpted gold hasli with ruby flower details, paired with ruby jhumkas.",
-  "price": "45$",
+  "price": "$45",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -246,7 +246,7 @@
  },
  {
   "description": "Oxidized silver statement necklace with mint stones and pink accents, with matching earrings.",
-  "price": "40$",
+  "price": "$40",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -311,12 +311,12 @@
   "video": "",
   "size": "",
   "isNew": false,
-  "lastOne": false,
+  "lastOne": true,
   "rent": false,
   "rentPrice": "",
   "pairs": [],
   "id": "oxidized-stone-choker-set",
-  "name": "Oxidized Stone Choker Set",
+  "name": "Silver look alike Set",
   "collection": "oxidized",
   "image": "assets/pieces/oxidized-stone-choker-set.jpg"
  },
