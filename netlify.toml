@@ -4,5 +4,11 @@
   publish = "netlify/public"
   command = ""
 
+# Netlify's secret scanner fails the build if a secret's value appears in any
+# file. The Studio password is a short word that also occurs inside ordinary
+# CSS ("animation"), so skip it; GITHUB_TOKEN is still scanned.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "STUDIO_PASSWORD"
+
 [functions]
   directory = "netlify/functions"
