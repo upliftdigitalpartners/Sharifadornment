@@ -14,6 +14,9 @@ export const rich = (s = "") => esc(s).replace(/\*(.+?)\*/g, "<em>$1</em>");
 /** Every photo has a 640px copy next to it: name.jpg -> name-sm.jpg */
 export const sm = (src = "") => (/\.(jpe?g|png|webp)$/i.test(src) && !/-sm\.\w+$/.test(src) ? src.replace(/(\.\w+)$/, "-sm$1") : src);
 
+/** Photos are shown as WebP; each WebP has a JPG twin for Facebook previews and shop catalogs. */
+export const shareImg = (src = "") => src.replace(/\.webp$/i, ".jpg");
+
 export const isVideo = (src = "") => /\.(mp4|webm|mov)$/i.test(src);
 
 /** A responsive <img>. If the small copy is missing, it falls back to the full photo. */
@@ -54,6 +57,12 @@ export const money = (v = "") => {
   const t = String(v).trim();
   const m = t.match(/^\$?\s*(\d[\d,]*(?:\.\d{1,2})?)\s*\$?$/);
   return m ? `$${m[1]}` : t;
+};
+
+/** The price as a number, when it's a plain dollar amount ("$65", "65", "65$"), else null. */
+export const priceNumber = (it) => {
+  const m = money(it.price).match(/^\$(\d[\d,]*(?:\.\d{1,2})?)$/);
+  return m ? Number(m[1].replace(/,/g, "")) : null;
 };
 
 export function priceLine(it) {

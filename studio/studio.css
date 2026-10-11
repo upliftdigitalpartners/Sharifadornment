@@ -126,10 +126,28 @@ p { margin: 0; }
 
 /* ---------- Pieces ---------- */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 28px 16px; }
-.tile { display: grid; gap: 4px; padding: 0; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.tile, .tile__open { display: grid; gap: 4px; padding: 0; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+div.tile { cursor: default; align-content: start; }
+.tile.is-sold .tile__img img { opacity: 0.45; }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Quick price and labels under each piece */
+.quick { display: grid; gap: 6px; margin-top: 6px; }
+.quick__price input {
+  width: 100%; min-height: 36px; padding: 0 10px; box-sizing: border-box;
+  background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 0; font: 500 0.92rem var(--sans);
+}
+.quick__price input:focus { outline: none; border-color: var(--gold); }
+.quick__price input::placeholder { color: var(--muted); font-weight: 400; }
+.quick__toggles { display: flex; flex-wrap: wrap; gap: 4px; }
+.quick__t {
+  flex: 1 1 auto; min-height: 32px; padding: 0 8px; border: 1px solid var(--line); background: transparent; color: var(--muted);
+  font: 500 0.68rem/1 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+}
+.quick__t[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.quick__t[data-qt="featured"][aria-pressed="true"] { background: var(--gold); border-color: var(--gold); }
 .tile__img { position: relative; aspect-ratio: 4 / 5; background: var(--surface); overflow: hidden; margin-bottom: 8px; }
 .tile__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
-.tile:hover .tile__img img { transform: scale(1.04); }
+.tile:hover .tile__img img, .tile__open:hover .tile__img img { transform: scale(1.04); }
 .tile__flags { position: absolute; left: 8px; top: 8px; display: flex; gap: 4px; }
 .flag { padding: 4px 8px; background: var(--bg); color: var(--ink); font-size: 0.62rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
 .flag--gold { background: var(--gold); color: var(--bg); }

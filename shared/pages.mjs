@@ -8,7 +8,7 @@
 import {
   esc, rich, img, motif, itemCard, collectionCard, pieceDetail, stepsHTML, pillarsHTML,
   paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, bannerHTML, collectionName,
-  priceLine, pieceUrl, waNumber, HEART, withPieces,
+  priceLine, pieceUrl, waNumber, HEART, withPieces, shareImg, priceNumber,
 } from "./render.mjs";
 
 export const SITE_URL = "https://sharifadornment.com/";
@@ -62,7 +62,7 @@ function shell(site, { file, title, desc, body, base = "", ogImage = "assets/img
   <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(desc)}" />
   <meta property="og:url" content="${canonical}" />
-  <meta property="og:image" content="${esc(abs(ogImage))}" />
+  <meta property="og:image" content="${esc(abs(shareImg(ogImage)))}" />
   <meta name="twitter:card" content="summary_large_image" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -422,11 +422,17 @@ ${head("faq", site, { tag: "h1", intro: true })}
     const desc = `${it.description || it.name} ${priceLine(it)}. Sharif Adornment, Queens NY.`.trim();
     pages[pieceUrl(it)] = shell(site, {
       file: pieceUrl(it), base: "../", page: "piece",
-      title: `${it.name} — Sharif Adornment`, desc, ogImage: it.image || undefined,
+      title: `${it.name} — Sharif Adornment`, desc, ogImage: shareImg(it.image) || undefined,
       jsonld: {
         "@context": "https://schema.org", "@type": "Product", name: it.name, description: it.description || undefined,
-        image: [it.image, ...(it.images || [])].filter(Boolean).map(abs), category: col || undefined,
+        image: [it.image, ...(it.images || [])].filter(Boolean).map((x) => abs(shareImg(x))), category: col || undefined,
         brand: { "@type": "Brand", name: "Sharif Adornment" }, url: abs(pieceUrl(it)),
+        // Lets Google show the price and stock in search results
+        offers: priceNumber(it) == null ? undefined : {
+          "@type": "Offer", price: priceNumber(it).toFixed(2), priceCurrency: "USD", url: abs(pieceUrl(it)),
+          availability: `https://schema.org/${it.soldOut ? "OutOfStock" : "InStock"}`,
+          itemCondition: "https://schema.org/NewCondition",
+        },
       },
       body: `    <section class="section section--first piece-page" data-piece="${esc(it.id)}">
       <nav class="crumbs" aria-label="Breadcrumb"><a href="collections.html">Collections</a><span>/</span><a href="collections.html?c=${encodeURIComponent(it.collection)}">${esc(col)}</a></nav>
@@ -440,6 +446,31 @@ ${head("faq", site, { tag: "h1", intro: true })}
   }
 
   const urls = ["", "collections.html", "bridal.html", "story.html", "order.html", "gallery.html", "faq.html", "contact.html", ...items.map(pieceUrl)];
+  // Product catalog for Facebook & Instagram Shops (Commerce Manager) and Google Merchant Center.
+  // Pieces need a plain dollar price and a photo to be listed.
+  const listed = items.filter((it) => priceNumber(it) != null && it.image);
+  pages["products.xml"] = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
+<channel>
+<title>Sharif Adornment</title>
+<link>${SITE_URL}</link>
+<description>South Asian jewelry and accessories</description>
+${listed.map((it) => `<item>
+  <g:id>${esc(it.id)}</g:id>
+  <g:title>${esc(it.name)}</g:title>
+  <g:description>${esc(it.description || it.name)}</g:description>
+  <g:link>${esc(abs(pieceUrl(it)))}</g:link>
+  <g:image_link>${esc(abs(shareImg(it.image)))}</g:image_link>
+${(it.images || []).slice(0, 10).map((x) => `  <g:additional_image_link>${esc(abs(shareImg(x)))}</g:additional_image_link>\n`).join("")}  <g:availability>${it.soldOut ? "out of stock" : "in stock"}</g:availability>
+  <g:condition>new</g:condition>
+  <g:price>${priceNumber(it).toFixed(2)} USD</g:price>
+  <g:brand>Sharif Adornment</g:brand>
+  <g:product_type>${esc(collectionName(site, it.collection))}</g:product_type>
+</item>`).join("\n")}
+</channel>
+</rss>
+`;
+
   pages["sitemap.xml"] = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${abs(u)}</loc></url>`).join("\n")}\n</urlset>\n`;
   return pages;
 }

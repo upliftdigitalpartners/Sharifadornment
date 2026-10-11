@@ -159,7 +159,7 @@
   $("[data-signout]").addEventListener("click", () => {
     if (isDirty() && !confirm("You have unpublished changes. Sign out and lose them?")) return;
     session.clear();
-    location.reload();
+    draft.clear().finally(() => location.reload());
   });
 
   // Fill in anything older content is missing, so every editor has something to work with
@@ -192,12 +192,75 @@
     state.shas = { site: site.sha, items: items.sha };
     if (DEMO) toast("Demo mode — try anything; nothing will be published.");
     render();
+    await offerDraft();
+  }
+
+  /* ---------- Drafts: unpublished edits are kept on this device ----------
+   * Saved (with any new photos) a moment after each change, so closing the tab,
+   * a crash or a flat battery doesn't lose work. Cleared after Publish or Discard. */
+  const draft = (() => {
+    const KEY = DEMO ? "demo" : "draft";
+    const db = () => new Promise((ok, fail) => {
+      const req = indexedDB.open("sa-studio", 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("drafts");
+      req.onsuccess = () => ok(req.result);
+      req.onerror = () => fail(req.error);
+    });
+    const run = async (mode, fn) => {
+      const d = await db();
+      return new Promise((ok, fail) => {
+        const tx = d.transaction("drafts", mode);
+        const req = fn(tx.objectStore("drafts"));
+        tx.oncomplete = () => { d.close(); ok(req.result); };
+        tx.onerror = tx.onabort = () => { d.close(); fail(tx.error); };
+      });
+    };
+    let timer;
+    return {
+      get: () => run("readonly", (st) => st.get(KEY)).catch(() => null),
+      clear: () => { clearTimeout(timer); return run("readwrite", (st) => st.delete(KEY)).catch(() => {}); },
+      // Called on every change; writes once things settle for a moment
+      save() {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          if (!state.site) return;
+          if (!isDirty()) { draft.clear(); return; }
+          run("readwrite", (st) => st.put({
+            site: state.site, items: state.items, shas: state.shas, time: Date.now(), uploads: usedUploads(),
+          }, KEY)).catch(() => { /* private browsing or storage full: nothing more we can do */ });
+        }, 600);
+      },
+    };
+  })();
+
+  // After loading, offer back any edits this device didn't get to publish
+  async function offerDraft() {
+    const d = await draft.get();
+    if (!d?.site || !d?.items) return;
+    if (JSON.stringify(d.site) === state.saved.site && JSON.stringify(d.items) === state.saved.items) { draft.clear(); return; }
+    const when = new Date(d.time).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" });
+    const newer = d.shas && (d.shas.site !== state.shas.site || d.shas.items !== state.shas.items);
+    const ask = `You have unpublished changes on this device from ${when}. Bring them back?` +
+      (newer ? "\n\nNote: the site has been published since then. Bringing these back and publishing would replace those newer changes." : "");
+    if (!confirm(ask)) { draft.clear(); return; }
+    state.site = normalizeSite(d.site);
+    state.items = d.items.map(normalizeItem);
+    for (const [path, blob] of d.uploads || []) {
+      state.uploads.set(path, blob);
+      state.previews.set(path, URL.createObjectURL(blob));
+    }
+    render();
+    toast("Your unpublished changes are back. Check them, then press Publish.");
   }
 
   /* ---------- Dirty tracking & publish bar ---------- */
   // Photos that are actually used (a photo picked and then cancelled is never uploaded)
   const usedUploads = (all = JSON.stringify(state.site) + JSON.stringify(state.items)) => {
-    const used = (path) => all.includes(`"${path}"`) || all.includes(`"${path.replace(/-sm(\.\w+)$/, "$1")}"`);
+    // A photo counts as used along with its phone copy (-sm) and, for WebP, its JPG twin
+    const used = (path) => {
+      const full = path.replace(/-sm(\.\w+)$/, "$1");
+      return all.includes(`"${full}"`) || all.includes(`"${full.replace(/\.jpg$/, ".webp")}"`);
+    };
     return [...state.uploads].filter(([path]) => used(path));
   };
   let publishing = false;
@@ -205,6 +268,7 @@
     JSON.stringify(state.items) !== state.saved.items);
   const changed = () => {
     const dirty = isDirty();
+    draft.save();
     $("[data-publish]").classList.toggle("is-dirty", dirty);
     if (publishing) return; // the publish bar shows progress until it finishes
     $("[data-status]").textContent = dirty ? "Unpublished changes" : "All changes published";
@@ -293,20 +357,30 @@
         : "That file couldn't be read as a photo. Try a JPG or PNG.");
     }
     const w = pic.naturalWidth || pic.width, h = pic.naturalHeight || pic.height;
-    const make = (max, quality) => {
+    const make = (max, quality, type = "image/jpeg") => {
       const scale = Math.min(1, max / Math.max(w, h));
       const canvas = Object.assign(document.createElement("canvas"), { width: Math.round(w * scale), height: Math.round(h * scale) });
       canvas.getContext("2d").drawImage(pic, 0, 0, canvas.width, canvas.height);
-      return new Promise((ok) => canvas.toBlob(ok, "image/jpeg", quality));
+      return new Promise((ok) => canvas.toBlob(ok, type, quality));
     };
-    // Every photo gets a 1600px copy and a 640px copy for phones
+    // Every photo gets a 1600px copy and a 640px copy for phones. Where the browser can make
+    // WebP (about half the size) the site shows those, with a JPG twin for Facebook and shops.
     const base = `assets/uploads/${slug(name || file.name.replace(/\.\w+$/, ""))}-${uid()}`;
-    for (const [path, blob] of [[`${base}.jpg`, await make(1600, 0.82)], [`${base}-sm.jpg`, await make(640, 0.78)]]) {
+    const files = (await canWebp())
+      ? [[`${base}.webp`, await make(1600, 0.8, "image/webp")], [`${base}-sm.webp`, await make(640, 0.76, "image/webp")], [`${base}.jpg`, await make(1600, 0.82)]]
+      : [[`${base}.jpg`, await make(1600, 0.82)], [`${base}-sm.jpg`, await make(640, 0.78)]];
+    for (const [path, blob] of files) {
       state.uploads.set(path, blob);
       state.previews.set(path, URL.createObjectURL(blob));
     }
-    return `${base}.jpg`;
+    return files[0][0];
   }
+  // Safari can show WebP but not make it; it quietly makes a PNG instead, so check
+  let webpCheck;
+  const canWebp = () => (webpCheck ||= new Promise((ok) => {
+    const c = Object.assign(document.createElement("canvas"), { width: 2, height: 2 });
+    c.toBlob((b) => ok(b?.type === "image/webp"), "image/webp", 0.8);
+  }));
   async function addVideo(file, name) {
     const ext = { "video/mp4": "mp4", "video/webm": "webm" }[file.type];
     if (!ext) throw new Error("Please choose an MP4 or WebM video.");
@@ -345,7 +419,7 @@
     if (!cols.some((c) => c.id === state.filter)) state.filter = "all";
     el.innerHTML = `
       <div class="view__head">
-        <div><h2>Pieces</h2><p>Everything on the Collections page. Tap a piece to edit it.</p></div>
+        <div><h2>Pieces</h2><p>Everything on the Collections page. Tap a photo to edit a piece, or change the price and labels right here.</p></div>
         <button class="btn" data-new-piece>+ Add piece</button>
       </div>
       <div class="toolbar">
@@ -362,22 +436,48 @@
       const list = state.items.filter((i) => (state.filter === "all" || i.collection === state.filter) && (!q || i.name.toLowerCase().includes(q)));
       $("[data-count]", el).textContent = `${list.length} of ${state.items.length}`;
       $("[data-grid]", el).innerHTML = list.map((i) => `
-        <button class="tile" data-edit="${esc(i.id)}">
-          <div class="tile__img"><img src="${esc(src(i.image))}" alt="" loading="lazy" />
-            <div class="tile__flags">${i.featured ? '<span class="flag flag--gold">Featured</span>' : ""}${i.isNew ? '<span class="flag">New</span>' : ""}${i.lastOne ? '<span class="flag">Last one</span>' : ""}${i.rent ? '<span class="flag">Rent</span>' : ""}${i.soldOut ? '<span class="flag">Sold out</span>' : ""}${i.video ? '<span class="flag">▶</span>' : ""}</div>
+        <div class="tile${i.soldOut ? " is-sold" : ""}" data-tile="${esc(i.id)}">
+          <button type="button" class="tile__open" data-edit="${esc(i.id)}" aria-label="Edit ${esc(i.name)}">
+            <div class="tile__img"><img src="${esc(src(i.image))}" alt="" loading="lazy" />
+              <div class="tile__flags">${i.lastOne ? '<span class="flag">Last one</span>' : ""}${i.rent ? '<span class="flag">Rent</span>' : ""}${i.video ? '<span class="flag">▶</span>' : ""}</div>
+            </div>
+            <span class="tile__col">${esc(colName(i.collection))}</span>
+            <span class="tile__name">${esc(i.name)}</span>
+          </button>
+          <div class="quick">
+            <label class="quick__price"><span class="visually-hidden">Price of ${esc(i.name)}</span>
+              <input data-qprice value="${esc(i.price)}" placeholder="Price on request" inputmode="decimal" autocomplete="off" /></label>
+            <div class="quick__toggles">
+              ${[["soldOut", "Sold out"], ["featured", "Featured"], ["isNew", "New"]].map(([k, label]) =>
+                `<button type="button" class="quick__t" data-qt="${k}" aria-pressed="${!!i[k]}">${label}</button>`).join("")}
+            </div>
           </div>
-          <span class="tile__col">${esc(colName(i.collection))}</span>
-          <span class="tile__name">${esc(i.name)}</span>
-        </button>`).join("") + '<button class="tile tile--add" data-new-piece><div class="tile__img">+ Add piece</div></button>';
+        </div>`).join("") + '<button class="tile tile--add" data-new-piece><div class="tile__img">+ Add piece</div></button>';
     };
     draw();
     $("[data-query]", el).addEventListener("input", (e) => { state.query = e.target.value; draw(); });
     $("[data-filter-col]", el).addEventListener("change", (e) => { state.filter = e.target.value; draw(); });
+    const itemOf = (node) => state.items.find((i) => i.id === node.closest("[data-tile]")?.dataset.tile);
     el.addEventListener("click", (e) => {
       if (e.target.closest("[data-new-piece]")) editPiece(null);
       const t = e.target.closest("[data-edit]");
       if (t) editPiece(t.dataset.edit);
+      // Quick labels: Sold out / Featured / New, without opening the piece
+      const q = e.target.closest("[data-qt]");
+      const it = q && itemOf(q);
+      if (it) {
+        it[q.dataset.qt] = !it[q.dataset.qt];
+        q.setAttribute("aria-pressed", it[q.dataset.qt]);
+        q.closest("[data-tile]").classList.toggle("is-sold", !!it.soldOut);
+        changed();
+      }
     });
+    // Quick price: saved as you type
+    el.addEventListener("input", (e) => {
+      const it = e.target.matches("[data-qprice]") && itemOf(e.target);
+      if (it) { it.price = e.target.value.trim(); changed(); }
+    });
+    el.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches("[data-qprice]")) e.target.blur(); });
   };
 
   // Small tiles of other pieces to tick, used for "Complete the look" and bridal looks

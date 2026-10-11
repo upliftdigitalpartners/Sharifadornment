@@ -80,7 +80,7 @@ Everyone is signed out. A longer password (a short phrase) is stronger.
 
 | Tab | What you can do |
 |---|---|
-| **Pieces** | Add, edit, delete and reorder. Main photo plus more photos and a short video; price, size, description; Featured / New / Last one / Sold out / Available to rent (with a rental price); pick up to 3 pieces to "complete the look". |
+| **Pieces** | Change a price, or tap **Sold out / Featured / New**, right on the grid without opening the piece. Add, edit, delete and reorder. Main photo plus more photos and a short video; price, size, description; Featured / New / Last one / Sold out / Available to rent (with a rental price); pick up to 3 pieces to "complete the look". |
 | **Collections** | Rename, describe, change covers, add, reorder. |
 | **Bridal** | The Bridal page text and its looks: photo, title, description, and which pieces are in each look. |
 | **Reviews** | Add real customer reviews (text, name, occasion, optional photo). |
@@ -92,11 +92,37 @@ Everyone is signed out. A longer password (a short phrase) is stronger.
 | **Details** | Phone, WhatsApp, email, Messenger, Facebook, Instagram, location, and the hero videos (upload MP4 under 4 MB). |
 
 **Preview** shows the real site with your unpublished changes. **Publish**
-uploads new photos and videos (each saved in a phone-sized and a full-sized
-copy), then the Studio API checks everything, **rebuilds every page** from the
-content, removes photos nothing uses any more, and saves it all as one commit.
-The live site updates in about a minute. Add `?demo` to the Studio address to
-try it without publishing.
+uploads new photos and videos, then the Studio API checks everything,
+**rebuilds every page** (and the shop catalog) from the content, and saves it
+all as one commit. The live site updates in about a minute. Add `?demo` to the
+Studio address to try it without publishing.
+
+**Unpublished changes are kept on the device.** A moment after each change the
+Studio saves a draft, new photos included, in the browser. If the tab closes,
+the phone restarts or the battery dies before Publish, the next time the Studio
+opens on that device it offers to bring the changes back. Publishing or
+discarding clears the draft.
+
+**Photos** are saved in a full-size and a phone-size copy. Where the browser can
+(Chrome, Android, Edge, Firefox) they are WebP, about half the size of JPG, so
+pages load faster, plus a JPG copy used for Facebook link previews and the shop
+catalog. Safari and iPhones save JPGs, which work everywhere too.
+
+### Facebook & Instagram Shop, Google Shopping
+
+Every publish also rebuilds **https://sharifadornment.com/products.xml**, a
+product catalog with each piece's name, description, photos, price, stock (Sold
+out = out of stock), link and collection. Pieces need a plain dollar price
+(like `$65`) to be listed; "Price on request" pieces are left out.
+
+- **Facebook & Instagram:** in Meta Commerce Manager → Catalog → Data sources →
+  Data feed → Scheduled feed, paste that address and set it to update daily.
+  Then pieces can be shown in a Facebook/Instagram Shop and tagged in posts.
+- **Google:** in Google Merchant Center → Products → Add products → Scheduled
+  fetch, use the same address for free Google Shopping listings.
+
+Each piece page also tells Google its price and whether it's in stock, so
+searches can show "$65 · In stock".
 
 ### Analytics and privacy
 

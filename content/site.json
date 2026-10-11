@@ -15,7 +15,7 @@
   "intro": "Bridal sets, kundan, pearls, bangles and potlis — chosen piece by piece and delivered to your door.",
   "button": "Explore the collections",
   "link": "Message to order",
-  "heroImage": "assets/uploads/home-mv3x3og20.jpg",
+  "heroImage": "assets/uploads/home-mv3x3og20.webp",
   "heroVideo": "assets/uploads/video-mv3wr5dy0.mp4",
   "heroVideoMobile": "assets/uploads/video-mv3utux50.mp4",
   "collectionsLabel": "The collections",
@@ -35,55 +35,55 @@
    "id": "bridal",
    "name": "Bridal Sets",
    "text": "Statement necklaces with matching earrings and tikka, for the mehndi, the nikah and every photo after.",
-   "image": "assets/img/col-bridal.jpg"
+   "image": "assets/img/col-bridal.webp"
   },
   {
    "id": "kundan",
    "name": "Kundan & Stone",
    "text": "Ruby, emerald and sapphire tones set in gold — colour that catches the light from across the room.",
-   "image": "assets/img/col-kundan.jpg"
+   "image": "assets/img/col-kundan.webp"
   },
   {
    "id": "oxidized",
    "name": "Silver Look-Alike",
    "text": "Antique silver finishes and bold, tribal-inspired forms with a quiet, old-world edge.",
-   "image": "assets/img/col-oxidized.jpg"
+   "image": "assets/img/col-oxidized.webp"
   },
   {
    "id": "pearl",
    "name": "Pearl Malas",
    "text": "Layered pearl strands and rani haar silhouettes, finished with jewelled pendants.",
-   "image": "assets/img/col-pearl.jpg"
+   "image": "assets/img/col-pearl.webp"
   },
   {
    "id": "bangles",
    "name": "Bangles & Cuffs",
    "text": "",
-   "image": "assets/img/col-bangles.jpg"
+   "image": "assets/img/col-bangles.webp"
   },
   {
    "id": "potli",
    "name": "Potlis & Clutches",
    "text": "Embroidered potli bags draped in pearls, and sculpted clutches made to be noticed.",
-   "image": "assets/img/col-potli.jpg"
+   "image": "assets/img/col-potli.webp"
   },
   {
    "id": "earings",
    "name": "Earrings & Jhumkas",
    "text": "",
-   "image": "assets/uploads/collection-earings-mv3vmshz0.jpg"
+   "image": "assets/uploads/collection-earings-mv3vmshz0.webp"
   },
   {
    "id": "exclusive-pachi-kundan-necklaces",
    "name": "Exclusive Pachi kundan Necklaces",
    "text": "",
-   "image": "assets/uploads/collection-exclusive-pachi-kundan-necklaces-mv3wkb7l0.jpg"
+   "image": "assets/uploads/collection-exclusive-pachi-kundan-necklaces-mv3wkb7l0.webp"
   },
   {
    "id": "other-accessories",
    "name": "Other Accessories",
    "text": "",
-   "image": "assets/uploads/collection-other-accessories-mv3wodzd1.jpg"
+   "image": "assets/uploads/collection-other-accessories-mv3wodzd1.webp"
   }
  ],
  "story": {
@@ -93,7 +93,7 @@
    "A grandmother's bangles. A bride's rani haar. Jhumkas borrowed for Eid and never quite returned. In South Asian homes, jewelry carries memory as much as it carries light.",
    "Sharif Adornment brings that tradition to Queens — jewelry and accessories chosen piece by piece for weddings, festivals and every celebration in between, and delivered to your door."
   ],
-  "image": "assets/img/story.jpg",
+  "image": "assets/img/story.webp",
   "pillars": [
    {
     "title": "Heritage",
@@ -143,51 +143,51 @@
   "link": "See more on Facebook",
   "images": [
    {
-    "src": "assets/gallery/gold-coin-temple-set.jpg",
+    "src": "assets/gallery/gold-coin-temple-set.webp",
     "alt": "Antique gold coin necklace set with aqua drops"
    },
    {
-    "src": "assets/gallery/fusion-hasli-ruby.jpg",
+    "src": "assets/gallery/fusion-hasli-ruby.webp",
     "alt": "Gold hasli necklace with ruby flower jhumkas"
    },
    {
-    "src": "assets/gallery/multistone-statement-set.jpg",
+    "src": "assets/gallery/multistone-statement-set.webp",
     "alt": "Multicolour stone statement necklace set"
    },
    {
-    "src": "assets/gallery/taj-embroidered-clutch.jpg",
+    "src": "assets/gallery/taj-embroidered-clutch.webp",
     "alt": "Ivory clutch embroidered with the Taj Mahal"
    },
    {
-    "src": "assets/gallery/black-velvet-potli.jpg",
+    "src": "assets/gallery/black-velvet-potli.webp",
     "alt": "Black velvet potli bag with pearl strands"
    },
    {
-    "src": "assets/gallery/silver-medallion-set.jpg",
+    "src": "assets/gallery/silver-medallion-set.webp",
     "alt": "Silver medallion pendant set on a display bust"
    },
    {
-    "src": "assets/gallery/pachi-kundan-choker.jpg",
+    "src": "assets/gallery/pachi-kundan-choker.webp",
     "alt": "Pachi kundan choker with pearl strands"
    },
    {
-    "src": "assets/gallery/pearl-tassel-bag.jpg",
+    "src": "assets/gallery/pearl-tassel-bag.webp",
     "alt": "Pearl-beaded bag with tassel fringe"
    },
    {
-    "src": "assets/gallery/polki-pearl-necklace.jpg",
+    "src": "assets/gallery/polki-pearl-necklace.webp",
     "alt": "Polki pendant on navy and pearl strands"
    },
    {
-    "src": "assets/gallery/mother-of-pearl-leaf-clutch.jpg",
+    "src": "assets/gallery/mother-of-pearl-leaf-clutch.webp",
     "alt": "Gold and mother-of-pearl leaf clutch"
    },
    {
-    "src": "assets/gallery/oxidized-peacock-set.jpg",
+    "src": "assets/gallery/oxidized-peacock-set.webp",
     "alt": "Oxidized silver peacock necklace set"
    },
    {
-    "src": "assets/gallery/gold-pendant-pearl-mala.jpg",
+    "src": "assets/gallery/gold-pendant-pearl-mala.webp",
     "alt": "Gold pendant on pearl and ruby bead mala"
    }
   ],
@@ -220,7 +220,7 @@
    {
     "title": "The temple bride",
     "text": "Carved temple gold on layered pearls and ruby beads, finished with pearl jhumkas, a full kangan stack and a red potli.",
-    "image": "assets/img/col-bridal.jpg",
+    "image": "assets/img/col-bridal.webp",
     "pieces": [
      "temple-pendant-rani-haar",
      "pearl-cascade-jhumkas",
@@ -231,7 +231,7 @@
    {
     "title": "Jewel tones",
     "text": "Multicolour kundan for a reception or walima — bright enough to carry a simple outfit, with a sculpted clutch.",
-    "image": "assets/img/col-kundan.jpg",
+    "image": "assets/img/col-kundan.webp",
     "pieces": [
      "navratna-kundan-set",
      "multistone-statement-set",
@@ -241,7 +241,7 @@
    {
     "title": "Heirloom gold",
     "text": "Antique gold coins and a pearl mala, softened with aqua drops and a black velvet potli.",
-    "image": "assets/gallery/gold-coin-temple-set.jpg",
+    "image": "assets/gallery/gold-coin-temple-set.webp",
     "pieces": [
      "gold-coin-temple-set",
      "gold-pendant-pearl-mala",
