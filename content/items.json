@@ -7,7 +7,15 @@
   "description": "",
   "price": "42$",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "black-circular-clutch-bag",
@@ -17,7 +25,15 @@
   "description": "",
   "price": "42$",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "antique-gold-kangan-stack",
@@ -454,24 +470,6 @@
   "collection": "potli",
   "image": "assets/pieces/red-rose-clutch.jpg",
   "description": "A sculpted box clutch in deep red with ivory floral work and a gold chain strap.",
-  "price": "",
-  "soldOut": false,
-  "featured": false,
-  "images": [],
-  "video": "",
-  "size": "",
-  "isNew": false,
-  "lastOne": false,
-  "rent": false,
-  "rentPrice": "",
-  "pairs": []
- },
- {
-  "id": "black-zardozi-round-clutch",
-  "name": "Black Zardozi Round Clutch",
-  "collection": "potli",
-  "image": "assets/pieces/black-zardozi-round-clutch.jpg",
-  "description": "A round black clutch with gold zardozi embroidery and a chain strap.",
   "price": "",
   "soldOut": false,
   "featured": false,
