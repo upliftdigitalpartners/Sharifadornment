@@ -18,29 +18,18 @@
   <link rel="stylesheet" href="studio.css" />
 </head>
 <body>
-  <!-- Sign in -->
-  <section class="gate" data-gate hidden>
-    <form class="gate__card" data-signin>
+  <!-- Password -->
+  <section class="gate" data-lock hidden>
+    <form class="gate__card" data-unlock>
       <p class="eyebrow">Sharif Adornment</p>
       <h1>Studio</h1>
-      <p class="muted">Sign in with your GitHub access token to edit the site.</p>
+      <p class="muted">Enter the Studio password to edit the site.</p>
       <label class="field">
-        <span>Access token</span>
-        <input type="password" name="token" autocomplete="current-password" required placeholder="github_pat_…" />
+        <span>Password</span>
+        <input type="password" name="password" autocomplete="current-password" required autofocus />
       </label>
-      <label class="check"><input type="checkbox" name="remember" checked /> <span>Keep me signed in on this device</span></label>
       <button class="btn btn--block" type="submit">Enter</button>
-      <p class="gate__error" data-signin-error role="alert"></p>
-      <details class="help">
-        <summary>How do I get a token?</summary>
-        <ol>
-          <li>Sign in to GitHub as <strong>upliftdigitalpartners</strong> (the account that owns the site).</li>
-          <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Settings → Developer settings → Fine-grained tokens → Generate new token</a>.</li>
-          <li>Name it “Studio”, choose an expiry, and under <em>Repository access</em> pick <strong>Only select repositories → Sharifadornment</strong>.</li>
-          <li>Under <em>Permissions → Repository permissions</em>, set <strong>Contents</strong> to <strong>Read and write</strong>.</li>
-          <li>Generate, copy the token, and paste it above. Keep it private — anyone with it can edit the site.</li>
-        </ol>
-      </details>
+      <p class="gate__error" data-unlock-error role="alert"></p>
     </form>
   </section>
 

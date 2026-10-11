@@ -27,21 +27,50 @@ All wording, collections, pieces, gallery photos and contact details live in
 two files, `content/site.json` and `content/items.json`. You don't edit them by
 hand. Use the **Studio**, a private admin page:
 
-**https://sharifadornment.com/studio/**
+**https://sharifadornment.com/studio/**: or tap the **©** in the footer of any page.
 
-It isn't linked from the site and search engines are told to ignore it. Only
-someone with a GitHub access token for this repository can sign in, and only
-they can publish.
+The Studio isn't linked anywhere visible and search engines are told to ignore
+it. Sign-in is **password only**.
 
-**One-time setup (create the token):**
-1. Sign in to GitHub as **upliftdigitalpartners** (the account that owns this repo).
-2. Go to <https://github.com/settings/personal-access-tokens/new>.
-3. Name it "Studio", pick an expiry, and under **Repository access** choose
-   **Only select repositories → Sharifadornment**.
-4. Under **Repository permissions**, set **Contents** to **Read and write**.
-5. Generate it, copy it, and paste it into the Studio. Keep it private.
+### How it stays secure
 
-**In the Studio:**
+The site is static (GitHub Pages), so the password can't be checked in the
+browser: anything there is readable. Instead, a small **Studio API** runs as
+two Netlify Functions (`netlify/functions/`, shared code in `netlify/lib/studio.mjs`):
+
+- `POST /api/studio/login` checks the password **on the server**. It's
+  rate-limited per visitor, and each wrong guess is slowed down, so it can't be
+  brute-forced. A correct password returns a signed session that lasts 8 hours.
+- `POST /api/studio/github` checks the session, then makes the GitHub call
+  using a token that lives **only** in Netlify's secret environment variables.
+  The token never reaches the browser. It allows just the calls the Studio
+  needs, and only writes to `content/site.json`, `content/items.json` and
+  `assets/uploads/`. It refuses changes to the pages, scripts, the Studio
+  itself or the domain, refuses force-pushes, and only allows the `main` branch.
+- Only `sharifadornment.com` (and the github.io address) may call the API.
+
+Every change is a normal git commit, so anything can be undone from GitHub's history.
+
+### One-time setup (developer, not the admin)
+
+1. **Netlify project:** `sharif-adornment-studio` (already created).
+   `STUDIO_PASSWORD` is already set as a secret.
+2. **Link it to this repo:** Netlify → *sharif-adornment-studio* →
+   **Project configuration → Build & deploy → Link repository** → GitHub →
+   `upliftdigitalpartners/Sharifadornment`, branch `main`. `netlify.toml`
+   handles the rest: there's no build step, and it only deploys the API.
+3. **GitHub token:** signed in as `upliftdigitalpartners`, create a
+   [fine-grained token](https://github.com/settings/personal-access-tokens/new)
+   with **Only select repositories → Sharifadornment** and
+   **Repository permissions → Contents: Read and write**. In Netlify, add it as
+   environment variable **`GITHUB_TOKEN`** (secret, scope *Functions*), then
+   **Deploys → Trigger deploy**.
+
+To change the password, edit `STUDIO_PASSWORD` in Netlify and redeploy.
+Everyone is signed out. A longer password (a short phrase) is stronger.
+
+### In the Studio
+
 - **Pieces:** add, edit, delete and reorder pieces; set the price, mark
   **Sold out** or **Feature on the home page**; upload photos (resized
   automatically in the browser).
@@ -52,14 +81,13 @@ they can publish.
 - **Details:** phone, email, Messenger and Facebook links, location line,
   hero video files.
 
-Changes stay on your device until you press **Publish**, which saves
-everything to GitHub in one go. The live site updates in about a minute.
-Add `?demo` to the Studio address to try it without a token; nothing is
-published in demo mode.
+Changes stay on the device until **Publish**, which saves everything to GitHub
+in one commit. The live site updates in about a minute. Add `?demo` to the
+Studio address to try it without publishing.
 
 To change the hero **video**, upload the new file to `assets/video/` on GitHub
-and enter its path in **Studio → Details** (keep it under about 4 MB; see
-`PROMPTS.md`).
+and enter its path in **Studio → Details**. Keep it under about 4 MB; see
+`PROMPTS.md`.
 
 ## Preview locally
 
@@ -122,6 +150,7 @@ content/items.json                         the pieces
 css/style.css                              design system, layout, night mode
 js/app.js                                  loads content, renders lists, nav, form, night mode
 studio/                                    the admin (Studio)
+netlify/, netlify.toml                     the Studio API (Netlify Functions)
 assets/                                    favicon, images, gallery, video, uploads/
 PROMPTS.md                                 art direction and AI photo/video prompts
 CNAME / .nojekyll                          GitHub Pages config

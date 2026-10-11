@@ -1,0 +1,8 @@
+# Netlify hosts only the Studio's small API (netlify/functions).
+# The website itself is served by GitHub Pages.
+[build]
+  publish = "netlify/public"
+  command = ""
+
+[functions]
+  directory = "netlify/functions"

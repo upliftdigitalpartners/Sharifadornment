@@ -384,6 +384,9 @@ p { margin: 0; }
 .footer__row { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-top: 40px; font-size: 0.82rem; color: var(--muted); }
 .footer__row span { margin-right: auto; }
 .footer__row a:hover { color: var(--ink); }
+/* The © is the quiet way into the Studio: it looks like plain text */
+.footer__row .footer__c { display: inline-block; padding: 10px 6px; margin: -10px -6px; color: inherit; cursor: default; -webkit-tap-highlight-color: transparent; }
+.footer__row .footer__c:hover { color: inherit; }
 
 /* ---------- Inner pages ---------- */
 .section--first { padding-top: clamp(128px, 15vw, 196px); }
