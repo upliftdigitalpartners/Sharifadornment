@@ -126,11 +126,12 @@ Go to Squarespace **Domains → sharifadornment.com → DNS → DNS Settings**:
 | A | @ | 185.199.109.153 |
 | A | @ | 185.199.110.153 |
 | A | @ | 185.199.111.153 |
-| AAAA | @ | 2606:50c0:8000::153 |
-| AAAA | @ | 2606:50c0:8001::153 |
-| AAAA | @ | 2606:50c0:8002::153 |
-| AAAA | @ | 2606:50c0:8003::153 |
 | CNAME | www | upliftdigitalpartners.github.io |
+
+Don't add the optional `AAAA` (IPv6) records. With them, GitHub's domain
+check kept failing for this domain (`NotServedByPagesError`), and the owner's
+other GitHub Pages domains work with just the four `A` records and the `www`
+CNAME.
 
 ### 3. Turn on HTTPS
 DNS can take from a few minutes up to 24 hours to update. Once GitHub's Pages
