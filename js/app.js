@@ -43,11 +43,26 @@ function toast(msg) {
 /* ---------- Stats (anonymous counts, no cookies) ---------- */
 const PREVIEW = params.has("preview");
 const tracking = !PREVIEW && navigator.doNotTrack !== "1" && !/^(localhost|127\.)/.test(location.hostname);
-function track(e, id = "") {
+function track(e, id = "", extra = {}) {
   if (!tracking) return;
-  try { navigator.sendBeacon(`${API}/track`, JSON.stringify({ e, id, p: location.pathname.replace(/\/$/, "/index.html") })); } catch (_) { /* ignore */ }
+  try { navigator.sendBeacon(`${API}/track`, JSON.stringify({ e, id, p: location.pathname.replace(/\/$/, "/index.html"), ...extra })); } catch (_) { /* ignore */ }
 }
-track("page");
+// The first page of a visit (per browser tab) also says, in one word each, where the
+// visitor came from and what kind of device it is. Nothing identifies the person.
+function visitInfo() {
+  try { if (sessionStorage.getItem("sa-visit")) return {}; sessionStorage.setItem("sa-visit", "1"); } catch (_) { return {}; }
+  let from = "";
+  try { from = new URL(document.referrer).hostname; } catch (_) { /* typed in or bookmarked */ }
+  const s = params.has("fbclid") || /(^|\.)(facebook|fb|messenger)\.com$|^fb\.me$/.test(from) ? "facebook"
+    : params.has("igshid") || /(^|\.)instagram\.com$/.test(from) ? "instagram"
+    : /(^|\.)google\.[a-z.]+$/.test(from) ? "google"
+    : /(^|\.)(whatsapp\.com|wa\.me)$/.test(from) ? "whatsapp"
+    : !from || from === location.hostname ? "direct" : "other";
+  const touch = matchMedia("(pointer: coarse)").matches;
+  const d = !touch ? "computer" : Math.min(screen.width, screen.height) < 600 ? "phone" : "tablet";
+  return { n: 1, s, d };
+}
+track("page", "", visitInfo());
 
 /* ---------- Night mode ---------- */
 const root = document.documentElement;
@@ -353,7 +368,7 @@ function setupCollections() {
   apply();
 }
 
-/* ---------- Forms: enquiry, booking, newsletter ---------- */
+/* ---------- Forms: enquiry and newsletter ---------- */
 function handoff(form, body, subject) {
   const note = $(".enquiry__note", form);
   const b = site?.business || {};
@@ -391,23 +406,8 @@ function setupForms() {
       e.preventDefault();
       if (!validate(enquiry)) return;
       const d = Object.fromEntries(new FormData(enquiry));
-      track("ask", piece?.id || "");
+      track("ask", piece?.id || "general-enquiry");
       handoff(enquiry, `Name: ${d.name}\nContact: ${d.contact}\nInterested in: ${d.topic}\n\n${d.message}`, `Enquiry — ${d.topic}`);
-    });
-  }
-  const book = $('[data-form="book"]');
-  if (book) {
-    const date = $("#b-date", book);
-    date.min = new Date().toISOString().slice(0, 10);
-    const pieces = saved.map(byId).filter(Boolean);
-    if (pieces.length) $("#b-notes", book).value = `Pieces I saved: ${pieces.map((p) => p.name).join(", ")}`;
-    book.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (!validate(book)) return;
-      const d = Object.fromEntries(new FormData(book));
-      const when = new Date(`${d.date}T12:00`).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
-      track("book");
-      handoff(book, `Appointment request\nName: ${d.name}\nContact: ${d.contact}\nType: ${d.type}\nPreferred: ${when}, ${d.time.toLowerCase()}\nOccasion: ${d.occasion || "—"}\n\n${d.notes || ""}`.trim(), `Appointment — ${d.type}`);
     });
   }
 }

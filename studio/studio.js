@@ -806,49 +806,185 @@
     bindList(el);
   };
 
-  /* ---------- Stats ---------- */
+  /* ---------- Analytics ---------- */
+  const ANALYTICS_HEAD = '<div class="view__head"><div><h2>Analytics</h2><p>How people use the site. Anonymous: no names, no cookies, nothing personal.</p></div></div>';
   views.stats = (el) => {
-    el.innerHTML = `<div class="view__head"><div><h2>Stats</h2><p>Anonymous counts from the site: no names, no tracking cookies.</p></div></div><p class="loading">Loading…</p>`;
-    if (DEMO) { $(".loading", el).textContent = "Stats appear here once the site is live."; return; }
+    el.innerHTML = `${ANALYTICS_HEAD}<p class="loading">Loading…</p>`;
+    if (DEMO) { drawStats(el, sampleStats(), true); return; }
     api("stats", {}, session.get()).then((data) => drawStats(el, data)).catch((x) => {
       if (x.status === 401) lockOut("Please sign in again.");
-      else $(".loading", el).textContent = `Couldn't load stats (${x.message}).`;
+      else $(".loading", el).textContent = `Couldn't load analytics (${x.message}).`;
     });
   };
-  function drawStats(el, data) {
+
+  // Made-up numbers so the page can be tried in demo mode
+  function sampleStats() {
+    const ids = state.items.map((i) => i.id);
+    const pick = (n, f) => Object.fromEntries(ids.slice(0, n).map((id, i) => [id, f(i)]));
+    const now = new Date();
+    const month = (back) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - back, 1)).toISOString().slice(0, 7);
+    const days = (n, base) => Object.fromEntries(Array.from({ length: n }, (_, i) => [String(i + 1).padStart(2, "0"), Math.round(base * (0.6 + 0.8 * Math.abs(Math.sin(i * 1.7))))]));
+    return {
+      months: {
+        [month(0)]: {
+          visit: { all: 412 }, page: { "/index.html": 380, "/collections.html": 310, "/bridal.html": 96, "/gallery.html": 54, "/faq.html": 31, "/contact.html": 22 },
+          dayVisits: days(now.getUTCDate(), 34), dayPages: days(now.getUTCDate(), 80),
+          source: { facebook: 214, direct: 98, instagram: 41, google: 37, whatsapp: 15, other: 7 }, device: { phone: 331, computer: 62, tablet: 19 },
+          view: pick(14, (i) => 90 - i * 6), ask: { ...pick(6, (i) => 12 - i * 2), "general-enquiry": 5 }, save: pick(8, (i) => 20 - i * 2), share: pick(4, (i) => 6 - i),
+        },
+        [month(1)]: { visit: { all: 356 }, page: { "/index.html": 300 }, view: pick(10, (i) => 70 - i * 5), ask: pick(5, () => 6), save: pick(5, () => 4) },
+      },
+      subscribers: [{ email: "sample@example.com", date: now.toISOString() }],
+    };
+  }
+
+  function drawStats(el, data, sample = false) {
     const months = Object.keys(data.months);
     let m = months[0];
     const name = (id) => state.items.find((i) => i.id === id)?.name || id;
     const PAGE_NAMES = { "/index.html": "Home", "/collections.html": "Collections", "/bridal.html": "Bridal", "/story.html": "Our story", "/order.html": "How to order", "/gallery.html": "Gallery", "/faq.html": "FAQ", "/contact.html": "Enquire" };
     const pageName = (p) => PAGE_NAMES[p] || (p.startsWith("/p/") ? name(p.slice(3).replace(".html", "")) : p);
-    const top = (obj = {}, label = (k) => k, n = 8) => {
-      const rows = Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n);
-      return rows.length ? `<ol class="stat-list">${rows.map(([k, v]) => `<li><span>${esc(label(k))}</span><b>${v}</b></li>`).join("")}</ol>` : '<p class="muted">Nothing yet.</p>';
-    };
+    const SOURCES = { facebook: "Facebook", direct: "Typed in or bookmarked", instagram: "Instagram", google: "Google", whatsapp: "WhatsApp", other: "Other websites" };
+    const DEVICES = { phone: "Phone", computer: "Computer", tablet: "Tablet" };
     const sum = (obj = {}) => Object.values(obj).reduce((a, b) => a + b, 0);
+    const fmt = (n) => n.toLocaleString();
+    const monthName = (k, opts = { month: "long", year: "numeric" }) => new Date(`${k}-15T12:00:00`).toLocaleDateString(undefined, opts);
+
+    // A number tile, with the change from the month before when there's something to compare
+    const tile = (label, now, before, prevName, note = "") => {
+      let delta = "";
+      if (before > 0) {
+        const pct = Math.round(((now - before) / before) * 100);
+        delta = `<small class="delta">${pct > 0 ? "▲" : pct < 0 ? "▼" : "●"} ${Math.abs(pct)}% vs ${esc(prevName)}</small>`;
+      }
+      return `<div><span>${label}</span><b>${now == null ? "—" : fmt(now)}</b>${delta}${note ? `<small>${note}</small>` : ""}</div>`;
+    };
+
+    // Horizontal bars: one hue, labelled, longest first
+    const bars = (obj = {}, label = (k) => k, n = 8) => {
+      const rows = Object.entries(obj).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, n);
+      if (!rows.length) return '<p class="muted">Nothing yet.</p>';
+      const max = rows[0][1];
+      const total = sum(obj);
+      return `<ol class="hbars">${rows.map(([k, v]) => `<li>
+        <span class="hbars__label">${esc(label(k))}</span>
+        <span class="hbars__value">${fmt(v)}<small>${Math.round((v / total) * 100)}%</small></span>
+        <span class="hbars__track"><i style="width:${Math.max(2, (v / max) * 100)}%"></i></span></li>`).join("")}</ol>`;
+    };
+
+    // Columns per day of the month, with a hover/tap tooltip and a table to read the numbers
+    // Drawn at the screen's own width, so the axis text stays readable on phones
+    const chartW = () => Math.round(Math.min(720, Math.max(300, (el.clientWidth || 720) - 22)));
+    const dayChart = (perDay, unit, monthKey) => {
+      const [yr, mo] = monthKey.split("-").map(Number);
+      const count = new Date(yr, mo, 0).getDate();
+      const vals = Array.from({ length: count }, (_, i) => perDay[String(i + 1).padStart(2, "0")] || 0);
+      const top = Math.max(...vals);
+      const step = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000].find((s) => s * 4 >= top) || Math.ceil(top / 4);
+      const yMax = Math.max(step * Math.ceil(top / step), step);
+      const W = chartW(), H = W < 500 ? 180 : 220, L = 30, R = 4, T = 12, B = 26;
+      const band = (W - L - R) / count;
+      const bw = Math.max(2, Math.min(16, band - 2));
+      const y = (v) => T + (H - T - B) * (1 - v / yMax);
+      const ticks = Array.from({ length: Math.round(yMax / step) + 1 }, (_, i) => i * step);
+      const shown = new Set(W < 500 ? [1, 10, 20, count] : [1, 5, 10, 15, 20, 25, count]);
+      const col = (v, i) => {
+        if (!v) return "";
+        const x = L + band * i + (band - bw) / 2, top = y(v), base = y(0), r = Math.min(4, (base - top) / 2, bw / 2);
+        return `<path d="M${x},${base}V${top + r}Q${x},${top} ${x + r},${top}H${x + bw - r}Q${x + bw},${top} ${x + bw},${top + r}V${base}Z"/>`;
+      };
+      return `<div class="chart" data-chart>
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(unit)} per day in ${esc(monthName(monthKey))}">
+          <g class="chart__grid">${ticks.map((t) => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/><text x="${L - 8}" y="${y(t) + 4}" text-anchor="end">${t >= 1000 ? `${t / 1000}K` : t}</text>`).join("")}</g>
+          <g class="chart__x">${vals.map((_, i) => shown.has(i + 1) ? `<text x="${L + band * i + band / 2}" y="${H - 6}" text-anchor="middle">${i + 1}</text>` : "").join("")}</g>
+          <g class="chart__cols">${vals.map(col).join("")}</g>
+          <rect class="chart__hover" x="0" y="0" width="0" height="${H - T - B}" />
+        </svg>
+        <div class="chart__tip" hidden></div>
+      </div>
+      <details class="chart__table"><summary>Show as a table</summary>
+        <table><thead><tr><th>Day</th><th>${esc(unit)}</th></tr></thead><tbody>${vals.map((v, i) => `<tr><td>${monthName(monthKey, { month: "short" })} ${i + 1}</td><td>${fmt(v)}</td></tr>`).join("")}</tbody></table>
+      </details>`;
+    };
+    const bindChart = (perDay, unit, monthKey) => {
+      const box = $("[data-chart]", el);
+      if (!box) return;
+      const svg = $("svg", box), tip = $(".chart__tip", box), hover = $(".chart__hover", box);
+      const [y, mo] = monthKey.split("-").map(Number);
+      const count = new Date(y, mo, 0).getDate();
+      const W = svg.viewBox.baseVal.width, L = 30, R = 4, T = 12, band = (W - L - R) / count;
+      const show = (e) => {
+        const r = svg.getBoundingClientRect();
+        const x = ((e.clientX - r.left) / r.width) * W;
+        const i = Math.floor((x - L) / band);
+        if (i < 0 || i >= count) { tip.hidden = true; hover.setAttribute("width", 0); return; }
+        const v = perDay[String(i + 1).padStart(2, "0")] || 0;
+        hover.setAttribute("x", L + band * i); hover.setAttribute("y", T); hover.setAttribute("width", band);
+        tip.innerHTML = `<b>${fmt(v)}</b> ${esc(unit.toLowerCase())}<br><small>${monthName(monthKey, { month: "short" })} ${i + 1}</small>`;
+        tip.hidden = false;
+        const px = ((L + band * i + band / 2) / W) * r.width;
+        tip.style.left = `${Math.min(Math.max(px, 50), r.width - 50)}px`;
+      };
+      svg.addEventListener("pointermove", show);
+      svg.addEventListener("pointerdown", show);
+      svg.addEventListener("pointerleave", () => { tip.hidden = true; hover.setAttribute("width", 0); });
+    };
+
     const draw = () => {
       const d = data.months[m] || {};
+      const prevKey = months[months.indexOf(m) + 1];
+      const p = (prevKey && data.months[prevKey]) || {};
+      const prevName = prevKey ? monthName(prevKey, { month: "long" }) : "";
+      const hasVisits = sum(d.visit) > 0;
+      const perDay = hasVisits ? d.dayVisits : d.dayPages;
+      const unit = hasVisits ? "Visits" : "Page views";
+      const general = d.ask?.["general-enquiry"] || 0;
+      const pieceAsks = { ...(d.ask || {}) }; delete pieceAsks["general-enquiry"];
+
+      // Collections, from the pieces viewed in each
+      const byCol = {};
+      for (const [id, v] of Object.entries(d.view || {})) {
+        const c = state.items.find((i) => i.id === id)?.collection;
+        if (c) byCol[c] = (byCol[c] || 0) + v;
+      }
+      const colName = (id) => state.site.collections.find((c) => c.id === id)?.name || id;
+
+      // Every piece with any activity, most viewed first
+      const ids = [...new Set([d.view, pieceAsks, d.save, d.share].flatMap((o) => Object.keys(o || {})))];
+      const rows = ids.map((id) => [id, d.view?.[id] || 0, pieceAsks[id] || 0, d.save?.[id] || 0, d.share?.[id] || 0])
+        .sort((a, b) => b[1] - a[1] || b[2] - a[2]).slice(0, 20);
+
       el.innerHTML = `
-        <div class="view__head"><div><h2>Stats</h2><p>Anonymous counts from the site: no names, no tracking cookies.</p></div>
-          <select class="select" data-month>${months.map((x) => `<option ${x === m ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+        <div class="view__head"><div><h2>Analytics</h2><p>${sample ? "<b>Sample numbers</b> — demo mode. " : ""}How people use the site. Anonymous: no names, no cookies, nothing personal.</p></div>
+          <select class="select" data-month aria-label="Month">${months.map((x) => `<option value="${x}" ${x === m ? "selected" : ""}>${esc(monthName(x))}</option>`).join("")}</select></div>
         <div class="stat-cards">
-          <div><b>${sum(d.page)}</b><span>Page views</span></div>
-          <div><b>${sum(d.view)}</b><span>Pieces viewed</span></div>
-          <div><b>${sum(d.ask)}</b><span>Questions sent</span></div>
-          <div><b>${sum(d.save)}</b><span>Pieces saved</span></div>
+          ${tile("Visits", hasVisits ? sum(d.visit) : null, sum(p.visit), prevName, hasVisits ? "" : "Counted from this update on")}
+          ${tile("Page views", sum(d.page), sum(p.page), prevName)}
+          ${tile("Pieces viewed", sum(d.view), sum(p.view), prevName)}
+          ${tile("Questions sent", sum(d.ask), sum(p.ask), prevName, general ? `${fmt(general)} from the enquiry form` : "")}
+          ${tile("Pieces saved", sum(d.save), sum(p.save), prevName)}
         </div>
+        <section class="stat-block"><h3>${unit} per day</h3>
+          ${sum(perDay) ? dayChart(perDay || {}, unit, m) : '<p class="muted">Daily numbers are counted from this update on.</p>'}
+        </section>
         <div class="stat-grid">
-          <section><h3>Most viewed pieces</h3>${top(d.view, name)}</section>
-          <section><h3>Most asked about</h3>${top(d.ask, name)}</section>
-          <section><h3>Most saved</h3>${top(d.save, name)}</section>
-          <section><h3>Most shared</h3>${top(d.share, name)}</section>
-          <section><h3>Pages</h3>${top(d.page, pageName, 12)}</section>
+          <section><h3>Where visitors come from</h3>${bars(d.source, (k) => SOURCES[k] || k)}</section>
+          <section><h3>Devices</h3>${bars(d.device, (k) => DEVICES[k] || k)}</section>
+          <section><h3>Collections</h3><p class="muted small">Piece views in each collection</p>${bars(byCol, colName, 12)}</section>
+          <section><h3>Pages</h3>${bars(d.page, pageName, 10)}</section>
         </div>
+        <section class="stat-block"><h3>Pieces</h3>
+          ${rows.length ? `<div class="table-wrap"><table class="stat-table">
+            <thead><tr><th>Piece</th><th>Views</th><th>Questions</th><th>Saves</th><th>Shares</th></tr></thead>
+            <tbody>${rows.map(([id, ...n]) => `<tr><td>${esc(name(id))}</td>${n.map((v) => `<td>${v ? fmt(v) : '<span class="muted">–</span>'}</td>`).join("")}</tr>`).join("")}</tbody>
+          </table></div>` : '<p class="muted">Nothing yet.</p>'}
+        </section>
         <section class="group"><h3>Newsletter <small>${data.subscribers.length}</small></h3><div class="group__fields">
           ${data.subscribers.length ? `<button type="button" class="btn btn--ghost" data-copy-emails>Copy all emails</button>
           <ol class="stat-list">${data.subscribers.map((s) => `<li><span>${esc(s.email)}</span><small class="muted">${new Date(s.date).toLocaleDateString()}</small>
             <button type="button" class="add-link" data-unsub="${esc(s.email)}">Remove</button></li>`).join("")}</ol>` : '<p class="muted">No sign-ups yet.</p>'}
         </div></section>`;
+      if (sum(perDay)) bindChart(perDay, unit, m);
     };
     draw();
     el.addEventListener("change", (e) => { if (e.target.matches("[data-month]")) { m = e.target.value; draw(); } });
@@ -857,7 +993,7 @@
         try { await navigator.clipboard.writeText(data.subscribers.map((s) => s.email).join(", ")); toast("Emails copied — paste them into your email's To or Bcc field."); } catch (_) { toast("Couldn't copy. Select the emails and copy them instead.", true); }
       }
       const u = e.target.closest("[data-unsub]");
-      if (u && confirm(`Remove ${u.dataset.unsub} from the newsletter list?`)) {
+      if (u && !sample && confirm(`Remove ${u.dataset.unsub} from the newsletter list?`)) {
         try { data = await api("stats", { unsubscribe: u.dataset.unsub }, session.get()); draw(); } catch (x) { toast(x.message, true); }
       }
     });

@@ -87,7 +87,7 @@ Everyone is signed out. A longer password (a short phrase) is stronger.
 | **FAQ** | Questions and answers, in order. |
 | **Pages** | Every heading and message, the announcement banner, footer and the "Message us" button text. Wrap words in `*asterisks*` for gold italics. |
 | **Gallery** | Add, describe, reorder and remove photos. |
-| **Stats** | Anonymous counts per month (page views, pieces viewed, questions, saves, shares) and the newsletter list, which you can copy or remove addresses from. |
+| **Analytics** | Per month, compared with the month before: visits, page views, pieces viewed, questions and saves; visits per day; where visitors come from (Facebook, Instagram, Google, WhatsApp, typed in); phone, tablet or computer; the most viewed collections and pages; a table of every piece's views, questions, saves and shares; and the newsletter list, which you can copy or remove addresses from. Add `?demo` to the Studio address to see it with sample numbers. |
 | **History** | Every published version, with **Restore**, which loads it as unpublished changes. |
 | **Details** | Phone, WhatsApp, email, Messenger, Facebook, Instagram, location, and the hero videos (upload MP4 under 4 MB). |
 
@@ -98,11 +98,13 @@ content, removes photos nothing uses any more, and saves it all as one commit.
 The live site updates in about a minute. Add `?demo` to the Studio address to
 try it without publishing.
 
-### Stats and privacy
+### Analytics and privacy
 
-The site counts page views, piece views, saves, questions and shares per
-month. Nothing personal is stored: no cookies, IP addresses or
-names, and it respects "Do Not Track". Newsletter emails are stored privately
+The site counts page views, visits, piece views, saves, questions and shares,
+per day and month. For the first page of a visit it also records, in one word
+each, where the visitor came from (Facebook, Google, …) and the kind of device
+(phone, tablet, computer). Nothing personal is stored: no cookies, IP
+addresses or names, and it respects "Do Not Track". Newsletter emails are stored privately
 on Netlify (Blobs) and only the Studio can read them.
 
 ### How the pages are built
@@ -177,11 +179,11 @@ shared/render.mjs               HTML building blocks (browser + server)
 shared/pages.mjs                full page templates
 tools/build-pages.mjs           rebuilds the pages locally
 css/style.css                   design system, layout, night mode
-js/app.js                       quick view, saved pieces, search, forms, stats, preview
+js/app.js                       quick view, saved pieces, search, forms, analytics, preview
 studio/                         the admin (Studio)
-netlify/functions/              Studio API: login, github, publish, stats; public: track, subscribe
+netlify/functions/              Studio API: login, github, publish, stats (analytics); public: track, subscribe
 netlify/lib/studio.mjs          sessions, CORS, GitHub access rules
-netlify.toml, package.json      Netlify settings (API only); @netlify/blobs for stats and the newsletter
+netlify.toml, package.json      Netlify settings (API only); @netlify/blobs for analytics and the newsletter
 assets/                         images (each with a -sm phone copy), pieces, gallery, video, uploads/
 PROMPTS.md                      art direction and AI photo/video prompts
 CNAME / .nojekyll               GitHub Pages config
