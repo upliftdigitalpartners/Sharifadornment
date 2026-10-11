@@ -2,7 +2,7 @@
  * The pages arrive fully built (shared/pages.mjs); this adds the interactive
  * parts: quick view, saved pieces, asking about a piece, search and filters,
  * photo zoom, forms, night mode and the Studio's preview mode. */
-import { esc, rich, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, pieceUrl, waNumber } from "../shared/render.mjs";
+import { esc, rich, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, money, pieceUrl, waNumber } from "../shared/render.mjs";
 
 const API = "https://sharif-adornment-studio.netlify.app/api";
 const $ = (s, el = document) => el.querySelector(s);
@@ -202,7 +202,7 @@ function message(kind, pieces) {
   const it = pieces[0];
   if (kind === "notify") return `Hi! Please let me know when the ${it.name} is back in stock. ${absUrl(pieceUrl(it))}`;
   if (kind === "gift") return `Hi! I'd like to buy the ${it.name} as a gift. ${absUrl(pieceUrl(it))}`;
-  return `Hi! I'm interested in the ${it.name}${it.price ? ` (${it.price})` : ""}. ${absUrl(pieceUrl(it))}`;
+  return `Hi! I'm interested in the ${it.name}${it.price ? ` (${money(it.price)})` : ""}. ${absUrl(pieceUrl(it))}`;
 }
 async function sendMessage(text) {
   const b = site?.business || {};
@@ -424,7 +424,8 @@ $("[data-feed-load]")?.addEventListener("click", () => {
   const box = $("[data-feed-frame]");
   const page = encodeURIComponent(box.dataset.pageUrl);
   const w = Math.min(500, box.clientWidth || 500);
-  box.innerHTML = `<iframe title="Sharif Adornment on Facebook" src="https://www.facebook.com/plugins/page.php?href=${page}&tabs=timeline&width=${w}&height=720&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false" width="${w}" height="720" loading="lazy" allow="encrypted-media; picture-in-picture; web-share"></iframe>`;
+  box.innerHTML = `<iframe title="Sharif Adornment on Facebook" src="https://www.facebook.com/plugins/page.php?href=${page}&tabs=timeline&width=${w}&height=720&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false" width="${w}" height="720" loading="lazy" allow="encrypted-media; picture-in-picture; web-share"></iframe>
+    <p class="feed__fallback">Posts not showing? Some browsers block Facebook on other sites. <a href="${esc(box.dataset.pageUrl)}" target="_blank" rel="noopener">See them on Facebook</a></p>`;
   box.classList.add("is-loaded");
 });
 

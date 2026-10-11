@@ -49,9 +49,16 @@ export function badges(it) {
   return b.join("");
 }
 
+/** "40" and "40$" read as "$40"; anything else is shown as typed. */
+export const money = (v = "") => {
+  const t = String(v).trim();
+  const m = t.match(/^\$?\s*(\d[\d,]*(?:\.\d{1,2})?)\s*\$?$/);
+  return m ? `$${m[1]}` : t;
+};
+
 export function priceLine(it) {
-  const buy = it.price || "Price on request";
-  return it.rent && it.rentPrice ? `${buy} · Rent ${it.rentPrice}` : buy;
+  const buy = money(it.price) || "Price on request";
+  return it.rent && it.rentPrice ? `${buy} · Rent ${money(it.rentPrice)}` : buy;
 }
 
 /** A piece in a grid. The link goes to the piece's own page; on the Collections
@@ -121,7 +128,7 @@ export function pieceDetail(it, site, items, { heading = "h2" } = {}) {
       <a class="link" href="contact.html?piece=${encodeURIComponent(it.id)}">Enquiry form</a>
     </div>
     ${pairs.length ? `<div class="pairs"><p class="label">Complete the look</p><div class="pairs__row">${pairs.map((p) => `
-      <a class="pair" href="${pieceUrl(p)}" data-open="${esc(p.id)}">${img(p.image, p.name, { sizes: "120px" })}<span>${esc(p.name)}</span></a>`).join("")}</div></div>` : ""}
+      <a class="pair" href="${pieceUrl(p)}" data-open="${esc(p.id)}">${img(p.image, p.name, { sizes: "120px" })}<span>${esc(p.name)}</span><span class="pair__price">${esc(priceLine(p))}</span></a>`).join("")}</div></div>` : ""}
   </div>
 </div>`;
 }
@@ -153,7 +160,7 @@ export function lookHTML(look, items, i) {
     <h2>${rich(look.title)}</h2>
     <p>${esc(look.text)}</p>
     ${pieces.length ? `<p class="label">In this look</p><div class="pairs__row">${pieces.map((p) => `
-      <a class="pair" href="${pieceUrl(p)}">${img(p.image, p.name, { sizes: "120px" })}<span>${esc(p.name)}</span></a>`).join("")}</div>` : ""}
+      <a class="pair" href="${pieceUrl(p)}">${img(p.image, p.name, { sizes: "120px" })}<span>${esc(p.name)}</span><span class="pair__price">${esc(priceLine(p))}</span></a>`).join("")}</div>` : ""}
   </div>
 </article>`;
 }

@@ -173,7 +173,7 @@
     s.faq ||= { label: "Questions", title: "", intro: "", items: [] };
     s.faq.items ||= [];
     s.book ||= { label: "", title: "", intro: "", types: ["Video call", "Phone call"], button: "", note: "" };
-    s.nav ||= { book: "Book a call" };
+    s.nav ||= { book: "Message us" };
     return s;
   }
 
@@ -612,11 +612,11 @@
   const PAGES = [
     ["Announcement banner", [
       ["banner.on", "Show the banner at the top of every page", "check"], ["banner.text", "Banner text", "area"],
-      ["banner.linkText", "Link text (optional)"], ["banner.link", "Link — a page like book.html, or a full https:// address"],
+      ["banner.linkText", "Link text (optional)"], ["banner.link", "Link — a page like collections.html, or a full https:// address"],
     ]],
     ["Home", [
       ["home.label", "Small line above the headline"], ["home.title", "Headline", "area"], ["home.intro", "Intro", "area"],
-      ["home.button", "Main button"], ["nav.book", "“Book a call” button text (everywhere)"], ["home.heroImage", "Hero photo (shows before the video plays)", "image"],
+      ["home.button", "Main button"], ["nav.book", "Message button text — top bar and home page (opens Messenger)"], ["home.heroImage", "Hero photo (shows before the video plays)", "image"],
       ["home.collectionsLabel", "Collections — small label"], ["home.collectionsTitle", "Collections — heading"],
       ["home.featuredLabel", "Featured — small label"], ["home.featuredTitle", "Featured — heading"], ["home.storyLink", "Story link"],
     ]],
@@ -631,13 +631,9 @@
       ["gallery.label", "Small label"], ["gallery.title", "Heading"], ["gallery.link", "Facebook link text"],
       ["gallery.facebookFeed", "Offer to show our latest Facebook posts", "check"], ["gallery.feedTitle", "Facebook section heading"],
     ]],
-    ["Book a call page", [
-      ["book.label", "Small label"], ["book.title", "Heading"], ["book.intro", "Intro", "area"],
-      ["book.types", "Appointment types — one per line", "lines"], ["book.button", "Form button"], ["book.note", "Note under the heading", "area"],
-    ]],
     ["Enquire page", [["contact.label", "Small label"], ["contact.title", "Heading"], ["contact.text", "Text", "area"], ["contact.button", "Form button"]]],
     ["Footer", [
-      ["footer.hours", "Appointments line"], ["footer.newsletterTitle", "Newsletter heading"], ["footer.newsletterText", "Newsletter text", "area"],
+      ["footer.hours", "Short line under the logo"], ["footer.newsletterTitle", "Newsletter heading"], ["footer.newsletterText", "Newsletter text", "area"],
       ["reviews.label", "Reviews — small label"], ["reviews.title", "Reviews — heading"],
     ]],
   ];
@@ -720,7 +716,7 @@
     el.innerHTML = `
       <div class="view__head"><div><h2>Bridal</h2><p>The Bridal page: complete looks made from your pieces.</p></div></div>
       <section class="group"><h3>Page</h3><div class="group__fields">
-        ${[["bridal.label", "Small label"], ["bridal.title", "Heading"], ["bridal.intro", "Intro", "area"], ["bridal.button", "Button"]].map(fieldHTML).join("")}
+        ${[["bridal.label", "Small label"], ["bridal.title", "Heading"], ["bridal.intro", "Intro", "area"], ["bridal.button", "Button (opens the enquiry form)"]].map(fieldHTML).join("")}
       </div></section>
       ${looks.map((l, i) => `<section class="group card-block"><h3>Look ${i + 1}</h3><div class="group__fields">
         ${fieldHTML([`bridal.looks.${i}.image`, "Photo", "image"])}
@@ -788,7 +784,7 @@
     const months = Object.keys(data.months);
     let m = months[0];
     const name = (id) => state.items.find((i) => i.id === id)?.name || id;
-    const PAGE_NAMES = { "/index.html": "Home", "/collections.html": "Collections", "/bridal.html": "Bridal", "/story.html": "Our story", "/order.html": "How to order", "/gallery.html": "Gallery", "/faq.html": "FAQ", "/book.html": "Book a call", "/contact.html": "Enquire" };
+    const PAGE_NAMES = { "/index.html": "Home", "/collections.html": "Collections", "/bridal.html": "Bridal", "/story.html": "Our story", "/order.html": "How to order", "/gallery.html": "Gallery", "/faq.html": "FAQ", "/contact.html": "Enquire" };
     const pageName = (p) => PAGE_NAMES[p] || (p.startsWith("/p/") ? name(p.slice(3).replace(".html", "")) : p);
     const top = (obj = {}, label = (k) => k, n = 8) => {
       const rows = Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n);
@@ -805,7 +801,6 @@
           <div><b>${sum(d.view)}</b><span>Pieces viewed</span></div>
           <div><b>${sum(d.ask)}</b><span>Questions sent</span></div>
           <div><b>${sum(d.save)}</b><span>Pieces saved</span></div>
-          <div><b>${sum(d.book)}</b><span>Booking requests</span></div>
         </div>
         <div class="stat-grid">
           <section><h3>Most viewed pieces</h3>${top(d.view, name)}</section>

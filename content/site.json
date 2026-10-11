@@ -11,7 +11,7 @@
  },
  "home": {
   "label": "Jewelry & Accessories · Queens, NY",
-  "title": "Heirloom jewelry and accessories  for *every celebration.*",
+  "title": "Heirloom jewelry and accessories for *every celebration.*",
   "intro": "Bridal sets, kundan, pearls, bangles and potlis — chosen piece by piece and delivered to your door.",
   "button": "Explore the collections",
   "link": "Message to order",
@@ -207,15 +207,15 @@
   "link": ""
  },
  "footer": {
-  "hours": "Video & phone appointments · Delivery available",
+  "hours": "Delivery available · Message us anytime",
   "newsletterTitle": "New arrivals, *first.*",
   "newsletterText": "An occasional email when new pieces arrive. Nothing else."
  },
  "bridal": {
   "label": "Bridal",
   "title": "For the bride, *head to wrist.*",
-  "intro": "Complete looks styled from pieces we have now — necklace, tikka, earrings, bangles and a potli to carry. Book a video call to see them together, or ask about any piece.",
-  "button": "Book a bridal appointment",
+  "intro": "Complete looks styled from pieces we have now — necklace, tikka, earrings, bangles and a potli to carry. Ask us about any piece or the complete look.",
+  "button": "Ask about a bridal look",
   "looks": [
    {
     "title": "The temple bride",
@@ -270,7 +270,7 @@
    },
    {
     "q": "Can I see pieces before I order?",
-    "a": "Yes — book a video call and we'll show you each piece up close, or ask us on Messenger for more photos and videos."
+    "a": "Yes — message us on Messenger and we'll send more photos and videos of any piece."
    },
    {
     "q": "Why does it say “Price on request”?",
