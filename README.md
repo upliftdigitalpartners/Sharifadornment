@@ -1,44 +1,42 @@
 # Sharif Adornment — sharifadornment.com
 
-A single-page, animated site for **Sharif Adornment**, a jewelry and
-accessories boutique in Queens, NY. It's built with plain HTML, CSS and JS,
-plus [Three.js](https://threejs.org) for the 3D scene. It has **no build
-step**, and GitHub Pages serves it as is.
+A single-page site for **Sharif Adornment**, a jewelry and accessories
+boutique in Queens, NY. It's plain HTML, CSS and JS with **no build step and no
+dependencies**, and GitHub Pages serves it as is.
 
 ## What's in it
 
-- **3D centerpiece (Three.js):** a fanned stack of gold kangan bangles with
-  milgrain bead rims and a row of ruby and emerald stones. Around them drifts a
-  pearl mala with a ruby drop, plus gold orbit lines carrying gems, and gold
-  dust. It glides to a new pose for each section as you scroll. It reacts to
-  the mouse, spins faster when you scroll fast, and the gold reflections slowly
-  roll.
+- **Design:** minimal and editorial. Warm ivory background, near-black type,
+  Instrument Serif headings with Inter body text, full-colour product photos and
+  plenty of white space. Motion is limited to gentle fade-ins and slow image
+  zooms on hover.
 - **Sections:** Hero → Collections (6) → Our Story → How to Order → For the
-  Occasion → Gallery (photos and reels) → Enquire → Footer.
-- **Details:** monogram loader, custom gold cursor, magnetic buttons, 3D card
-  tilt with a light sheen, scroll reveals, parallax, shimmering gold type, a
-  film-grain overlay, and a marquee.
+  Occasion → Gallery → Enquire → Footer.
+- **Hero video (optional):** a short looping clip can replace the hero photo.
+  Set `heroVideo` (and optionally `heroVideoMobile`) in `js/config.js`. The
+  photo shows while the video loads, and to anyone who prefers reduced motion.
 - **Enquiry form:** opens a pre-filled **text message** on phones. On desktop
   it copies the note and opens **Messenger**, or opens email if an email
-  address is set in the config. It needs no backend.
-- **Accessible and fast:** honours *reduced motion*, falls back gracefully
-  without WebGL, uses lighter rendering on phones, includes SEO and
-  link-preview tags, and has `JewelryStore` structured data.
+  address is set in the config. It needs no backend. Clicking a collection
+  pre-selects it in the form.
+- **Accessible and fast:** honours *reduced motion*, works without JavaScript
+  for everything except the gallery and form, lazy-loads images, and includes
+  SEO and link-preview tags plus `JewelryStore` structured data.
 
 ## Editing content
 
 | What | Where |
 |---|---|
 | Phone, email, Facebook links, location line | `js/config.js` |
+| Hero video | put the file in `assets/video/`, set `heroVideo` in `js/config.js` |
 | Gallery photos and reels | drop files in `assets/gallery/`, list them in `js/config.js` |
-| Collection covers, story image, link-preview image | `assets/img/` (see the table in `PROMPTS.md`) |
+| Hero, collection covers, story image, link-preview image | `assets/img/` (see the table in `PROMPTS.md`) |
 | Wording | `index.html` |
 | Colours and fonts | top of `css/style.css` (`:root`) |
-| Where the 3D jewel sits in each section | `data-ring="x,y,scale,tilt"` on each `<section>` |
 
-**Reels:** export them from Facebook or your phone as `.mp4`. Keep each clip
-under about 8 MB and 10–15 seconds. They autoplay muted and loop while on
-screen.
+**Videos:** keep each clip under about 4 MB and 5–10 seconds, as `.mp4`
+(H.264). They play muted and loop. `PROMPTS.md` has prompts for generating
+them from your product photos.
 
 ## Preview locally
 
@@ -97,10 +95,8 @@ index.html          the page
 404.html            branded not-found page
 css/style.css       design system and layout
 js/config.js        business details and gallery list  ← edit me
-js/app.js           UI: loader, nav, reveals, cursor, tilt, gallery, form
-js/scene.js         Three.js scene
-vendor/three/       Three.js r169 (vendored; no CDN dependency)
-assets/             favicon, images, gallery
-PROMPTS.md          art direction and AI image prompts
+js/app.js           UI: nav, hero video, gallery, reveals, form
+assets/             favicon, images, gallery (and video/, when added)
+PROMPTS.md          art direction and AI photo/video prompts
 CNAME / .nojekyll   GitHub Pages config
 ```
