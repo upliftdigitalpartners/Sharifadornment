@@ -25,7 +25,7 @@
   "collection": "bridal",
   "image": "assets/img/col-bridal.jpg",
   "description": "Layered pearl strands with ruby beads and a carved temple-style pendant, with a matching tikka.",
-  "price": "",
+  "price": "40",
   "soldOut": false,
   "featured": true
  },
@@ -65,7 +65,7 @@
   "collection": "kundan",
   "image": "assets/gallery/fusion-hasli-ruby.jpg",
   "description": "A sculpted gold hasli with ruby flower details, paired with ruby jhumkas.",
-  "price": "",
+  "price": "45$",
   "soldOut": false,
   "featured": false
  },
@@ -75,7 +75,7 @@
   "collection": "kundan",
   "image": "assets/gallery/multistone-statement-set.jpg",
   "description": "Bold geometric stones in jewel tones, framed in gold, with a matching ring.",
-  "price": "",
+  "price": "48$",
   "soldOut": false,
   "featured": false
  },
@@ -115,7 +115,7 @@
   "collection": "oxidized",
   "image": "assets/gallery/oxidized-peacock-set.jpg",
   "description": "Oxidized silver necklace with peacock motifs and coloured stones, with a matching ring.",
-  "price": "",
+  "price": "40$",
   "soldOut": false,
   "featured": false
  },
