@@ -15,15 +15,24 @@ export default async (req) => {
   const e = String(d?.e || "");
   if (!EVENTS.has(e)) return new Response(null, { status: 400 });
   const key = e === "page" ? String(d.p || "") : String(d.id || "");
-  if (e === "page" ? !PAGE.test(key) : e !== "book" && !ID.test(key)) return new Response(null, { status: 400 });
+  if (e === "page" ? !PAGE.test(key) : !(e === "book" && !key) && !ID.test(key)) return new Response(null, { status: 400 });
 
   const month = new Date().toISOString().slice(0, 7);
   const store = getStore({ name: "stats", consistency: "strong" });
-  const data = (await store.get(month, { type: "json" })) || {};
-  const bucket = (data[e] ||= {});
   const k = key || "all";
-  if (bucket[k] != null || Object.keys(bucket).length < MAX_KEYS) bucket[k] = (bucket[k] || 0) + 1;
-  await store.setJSON(month, data);
+  // Read, add one, and write back only if nobody else wrote in between (otherwise retry),
+  // so visits arriving at the same moment are all counted
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const found = await store.getWithMetadata(month, { type: "json" });
+    const data = found?.data || {};
+    const bucket = Object.hasOwn(data, e) ? data[e] : (data[e] = {});
+    const known = Object.hasOwn(bucket, k);
+    if (!known && Object.keys(bucket).length >= MAX_KEYS) break;
+    bucket[k] = (known ? bucket[k] : 0) + 1;
+    const { modified } = await store.setJSON(month, data, found ? { onlyIfMatch: found.etag } : { onlyIfNew: true });
+    if (modified) break;
+    await new Promise((r) => setTimeout(r, 20 + Math.random() * 60));
+  }
   return new Response(null, { status: 204 });
 };
 

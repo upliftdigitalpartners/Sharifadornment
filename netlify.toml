@@ -5,8 +5,10 @@
   command = ""
   # Each Netlify deploy costs credits, and every Studio publish is a commit to
   # main. Only deploy when the API itself changed; skip everything else
-  # (content, pages, photos). Exit code 0 = skip this build.
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- netlify/ shared/ netlify.toml package.json package-lock.json"
+  # (content, pages, photos). Exit code 0 = skip this build. Always deploy when
+  # there's nothing to compare with (first deploy) or the same commit is
+  # redeployed (e.g. "Trigger deploy" after changing a secret).
+  ignore = 'if [ -z "$CACHED_COMMIT_REF" ] || [ "$CACHED_COMMIT_REF" = "$COMMIT_REF" ]; then exit 1; fi; git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- netlify/ shared/ netlify.toml package.json package-lock.json'
 
 # Netlify's secret scanner fails the build if a secret's value appears in any
 # file. The Studio password is a short word that also occurs inside ordinary

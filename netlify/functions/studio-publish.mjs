@@ -17,11 +17,23 @@ const LOCAL_FILE = /^assets\/[a-z0-9/._-]{1,140}$/i;
 class Bad extends Error {}
 
 /* ---------- Make sure links and file paths can't be abused ---------- */
-const isWebLink = (v) => /^https:\/\/[^\s"'<>]+$/i.test(v);
-const isLocalLink = (v) => /^(?![a-z][a-z0-9+.-]*:)(?!\/\/)[^\s"'<>]*$/i.test(v);
+// No spaces, quotes, angle brackets, backslashes or control characters anywhere: browsers skip
+// leading control characters (so "\u0001javascript:" would run) and read "/\\" as "//".
+const SAFE = `[^\\s"'<>\\\\\\x00-\\x1f\\x7f]`;
+const isWebLink = (v) => new RegExp(`^https://${SAFE}+$`, "i").test(v);
+const isLocalLink = (v) => new RegExp(`^(?![a-z][a-z0-9+.-]*:)(?:/(?![/\\\\])|[a-z0-9#?.])${SAFE}*$`, "i").test(v);
 function clean(site, items) {
   if (!site || typeof site !== "object" || Array.isArray(site)) throw new Bad("The site content is missing.");
   if (!Array.isArray(items)) throw new Bad("The pieces are missing.");
+  const list = (v, what) => {
+    if (v == null) return [];
+    if (!Array.isArray(v) || v.some((x) => !x || typeof x !== "object")) throw new Bad(`${what} isn't in the right format.`);
+    return v;
+  };
+  site.collections = list(site.collections, "The collections list");
+  if (site.gallery) site.gallery.images = list(site.gallery.images, "The gallery");
+  if (site.bridal) site.bridal.looks = list(site.bridal.looks, "The bridal looks");
+  if (site.reviews) site.reviews.items = list(site.reviews.items, "The reviews");
   if (JSON.stringify(site).length > 400_000 || JSON.stringify(items).length > 1_500_000) throw new Bad("The content is too large.");
 
   const file = (v, where) => {
@@ -40,7 +52,7 @@ function clean(site, items) {
   for (const k of ["phone", "email", "whatsapp", "location"]) if (b[k] != null && typeof b[k] !== "string") throw new Bad(`The ${k} must be text.`);
   site.business = b;
 
-  if (site.banner?.link && !(isLocalLink(site.banner.link) || isWebLink(site.banner.link))) throw new Bad("The banner link must be a page on the site or an https:// link.");
+  if (site.banner?.link && !(typeof site.banner.link === "string" && (isLocalLink(site.banner.link) || isWebLink(site.banner.link)))) throw new Bad("The banner link must be a page on the site or an https:// link.");
   if (site.home) {
     site.home.heroImage = file(site.home.heroImage, "Hero photo");
     site.home.heroVideo = file(site.home.heroVideo, "Hero video");
@@ -57,11 +69,13 @@ function clean(site, items) {
 
   const ids = new Set();
   for (const it of items) {
-    if (!it || !ID.test(it.id || "")) throw new Bad("A piece has an invalid id.");
+    if (!it || typeof it !== "object" || !ID.test(it.id || "")) throw new Bad("A piece has an invalid id.");
     if (ids.has(it.id)) throw new Bad(`Two pieces share the id “${it.id}”.`);
     ids.add(it.id);
     if (typeof it.name !== "string" || !it.name.trim()) throw new Bad("Every piece needs a name.");
     it.image = file(it.image, `“${it.name}”`);
+    if (it.images != null && !Array.isArray(it.images)) throw new Bad(`“${it.name}”: the extra photos aren't in the right format.`);
+    if (it.pairs != null && !Array.isArray(it.pairs)) it.pairs = [];
     it.images = (it.images || []).map((x) => file(x, `“${it.name}”`)).filter(Boolean);
     it.video = file(it.video, `“${it.name}” video`);
     it.pairs = (it.pairs || []).filter((x) => typeof x === "string" && ID.test(x));
@@ -109,29 +123,40 @@ export default async (req) => {
       ...uploads.map((u) => ({ path: u.path, mode: "100644", type: "blob", sha: u.sha })),
     ];
 
-    // Tidy up: pages of deleted pieces, and uploads nothing refers to any more
-    const used = siteText + itemsText;
-    const isUsed = (path) => used.includes(`"${path}"`) || used.includes(`"${path.replace(/-sm(\.\w+)$/, "$1")}"`);
+    // Every photo and video the content points at must exist (or be uploaded with this publish)
+    if (!tree.truncated) {
+      const missing = [...new Set((siteText + itemsText).match(/assets\/[a-z0-9/._-]+/gi) || [])]
+        .filter((path) => !now[path] && !uploads.some((u) => u.path === path));
+      if (missing.length) throw new Bad(`A photo or video is missing from the site (${missing[0]}). Replace it, then publish again.`);
+    }
+
+    // Tidy up pages of deleted pieces. Uploaded photos are kept, so restoring an
+    // older version from History never points at a deleted file.
     const removed = [];
     for (const path of tree.truncated ? [] : Object.keys(now)) {
-      const stalePage = /^p\/[^/]+\.html$/.test(path) && !pages[path];
-      const staleUpload = path.startsWith("assets/uploads/") && !path.endsWith(".gitkeep") && !isUsed(path) && !uploads.some((u) => u.path === path);
-      if (stalePage || staleUpload) { entries.push({ path, mode: "100644", type: "blob", sha: null }); removed.push(path); }
+      if (/^p\/[^/]+\.html$/.test(path) && !pages[path]) { entries.push({ path, mode: "100644", type: "blob", sha: null }); removed.push(path); }
     }
 
     const newTree = await github(`${BASE}/git/trees`, { method: "POST", body: { base_tree: head.tree.sha, tree: entries } });
     if (newTree.sha === head.tree.sha) return json(req, { ok: true, unchanged: true, shas: { site: now["content/site.json"], items: now["content/items.json"] } });
     const commit = await github(`${BASE}/git/commits`, {
       method: "POST",
-      body: { message: `Update site content from the Studio${removed.length ? ` (tidied ${removed.length} unused file${removed.length === 1 ? "" : "s"})` : ""}`, tree: newTree.sha, parents: [head.sha] },
+      body: { message: "Update site content from the Studio", tree: newTree.sha, parents: [head.sha] },
     });
-    await github(`${BASE}/git/refs/heads/${BRANCH}`, { method: "PATCH", body: { sha: commit.sha, force: false } });
+    try {
+      await github(`${BASE}/git/refs/heads/${BRANCH}`, { method: "PATCH", body: { sha: commit.sha, force: false } });
+    } catch (x) {
+      // Not a fast-forward: another publish landed between our read and this write
+      if (x.status === 422) return json(req, { error: "Someone published at the same moment. Reload, then publish again." }, 409);
+      throw x;
+    }
 
     return json(req, { ok: true, commit: commit.sha, removed, shas: { site: await blobSha(siteText), items: await blobSha(itemsText) } });
   } catch (x) {
     if (x instanceof Bad) return json(req, { error: x.message }, 400);
-    if (x.status === 422) return json(req, { error: "Someone published at the same moment. Please publish again." }, 409);
-    return json(req, { error: `GitHub refused the change (${x.message}).` }, 502);
+    if (x.status) return json(req, { error: `GitHub refused the change (${x.message}).` }, 502);
+    console.error(x);
+    return json(req, { error: "Something went wrong while publishing. Nothing was changed." }, 500);
   }
 };
 
