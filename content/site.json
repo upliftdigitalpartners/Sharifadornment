@@ -5,7 +5,9 @@
   "email": "",
   "facebook": "https://www.facebook.com/SharifAdornment/",
   "messenger": "https://m.me/SharifAdornment",
-  "location": "Queens, New York · Delivery available"
+  "location": "Queens, New York · Delivery available",
+  "whatsapp": "",
+  "instagram": ""
  },
  "home": {
   "label": "Jewelry & Accessories · Queens, NY",
@@ -20,7 +22,8 @@
   "collectionsTitle": "Worn close. *Remembered always.*",
   "featuredLabel": "Featured",
   "featuredTitle": "Pieces we *love right now.*",
-  "storyLink": "Read our story"
+  "storyLink": "Read our story",
+  "reviewsLink": "Read more"
  },
  "collectionsPage": {
   "label": "The collections",
@@ -169,12 +172,122 @@
     "src": "assets/gallery/gold-pendant-pearl-mala.jpg",
     "alt": "Gold pendant on pearl and ruby bead mala"
    }
-  ]
+  ],
+  "facebookFeed": true,
+  "feedTitle": "Latest from *Facebook.*"
  },
  "contact": {
   "label": "Enquire & order",
   "title": "Let's find *your piece.*",
   "text": "Questions about a set, availability or delivery? Send us a note and we'll get back to you.",
   "button": "Send enquiry"
+ },
+ "banner": {
+  "on": false,
+  "text": "Wedding season appointments are open.",
+  "linkText": "Book a visit",
+  "link": "book.html"
+ },
+ "footer": {
+  "hours": "Visits by appointment · Queens, New York",
+  "newsletterTitle": "New arrivals, *first.*",
+  "newsletterText": "An occasional email when new pieces arrive. Nothing else."
+ },
+ "bridal": {
+  "label": "Bridal",
+  "title": "For the bride, *head to wrist.*",
+  "intro": "Complete looks styled from pieces we have now — necklace, tikka, earrings, bangles and a potli to carry. Book a visit to try them together, or ask about any piece.",
+  "button": "Book a bridal appointment",
+  "looks": [
+   {
+    "title": "The temple bride",
+    "text": "Carved temple gold on layered pearls and ruby beads, finished with pearl jhumkas, a full kangan stack and a red potli.",
+    "image": "assets/img/col-bridal.jpg",
+    "pieces": [
+     "temple-pendant-rani-haar",
+     "pearl-cascade-jhumkas",
+     "antique-gold-kangan-stack",
+     "red-zardozi-potli"
+    ]
+   },
+   {
+    "title": "Jewel tones",
+    "text": "Multicolour kundan for a reception or walima — bright enough to carry a simple outfit, with a sculpted clutch.",
+    "image": "assets/img/col-kundan.jpg",
+    "pieces": [
+     "navratna-kundan-set",
+     "multistone-statement-set",
+     "taj-embroidered-clutch"
+    ]
+   },
+   {
+    "title": "Heirloom gold",
+    "text": "Antique gold coins and a pearl mala, softened with aqua drops and a black velvet potli.",
+    "image": "assets/gallery/gold-coin-temple-set.jpg",
+    "pieces": [
+     "gold-coin-temple-set",
+     "gold-pendant-pearl-mala",
+     "black-velvet-potli"
+    ]
+   }
+  ]
+ },
+ "reviews": {
+  "label": "Kind words",
+  "title": "From *our customers.*",
+  "items": []
+ },
+ "faq": {
+  "label": "Questions",
+  "title": "Good to *know.*",
+  "intro": "Can't find what you're looking for? Message us — we're happy to help.",
+  "items": [
+   {
+    "q": "How do I order?",
+    "a": "Tap “Ask about this piece” on anything you like, message us on Messenger, or call or text. We'll confirm availability, price and delivery with you directly."
+   },
+   {
+    "q": "Do you deliver?",
+    "a": "Yes. Delivery and contactless delivery are available. Ask us about timing for your area and your event date."
+   },
+   {
+    "q": "Can I see pieces in person?",
+    "a": "Yes — book a visit in Queens, or a video call if you're further away, and we'll have your pieces ready."
+   },
+   {
+    "q": "Why does it say “Price on request”?",
+    "a": "Many pieces are sets or one-of-a-kind. Message us and we'll share the price straight away."
+   },
+   {
+    "q": "Can I rent a piece?",
+    "a": "Some pieces can be rented for an event — they're marked “For rent”. Ask us about dates and terms."
+   },
+   {
+    "q": "Can I return or exchange a piece?",
+    "a": "Please ask us before you order and we'll explain the options for your piece."
+   },
+   {
+    "q": "How should I care for my jewelry?",
+    "a": "Keep it dry and away from perfume, lotion and hairspray. Put it on last and take it off first. Wipe gently with a soft, dry cloth after wearing, and store each piece separately in a pouch or box so stones and pearls don't scratch."
+   },
+   {
+    "q": "Can you help me style a look?",
+    "a": "Of course. Send us a photo of your outfit and the occasion, and we'll suggest a set, bangles and a potli to complete it."
+   }
+  ]
+ },
+ "book": {
+  "label": "Book a visit",
+  "title": "See the pieces *in person.*",
+  "intro": "Visit us in Queens, or book a video call if you're further away. Tell us the occasion and what you'd like to see, and we'll have it ready.",
+  "types": [
+   "Visit in Queens",
+   "Video call"
+  ],
+  "button": "Request appointment",
+  "note": "We'll confirm your time by text or Messenger."
+ },
+ "nav": {
+  "book": "Book a visit"
  }
 }

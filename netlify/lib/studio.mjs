@@ -20,6 +20,9 @@ const DEFAULT_ORIGINS = [
   "https://sharifadornment.com",
   "https://www.sharifadornment.com",
   "https://upliftdigitalpartners.github.io",
+  // Until HTTPS is switched on for the domain, the site is also served over http
+  "http://sharifadornment.com",
+  "http://www.sharifadornment.com",
 ];
 
 const enc = new TextEncoder();
@@ -86,44 +89,45 @@ export const configured = () => Boolean(env("STUDIO_PASSWORD") && env("GITHUB_TO
 export const password = () => env("STUDIO_PASSWORD");
 export const githubToken = () => env("GITHUB_TOKEN");
 
-/* ---------- What the Studio is allowed to ask GitHub for ---------- */
-const BASE = `/repos/${OWNER}/${REPO}`;
+/* ---------- GitHub calls made with the server's token ---------- */
+export async function github(path, { method = "GET", body } = {}) {
+  const res = await fetch(`https://api.github.com${path}`, {
+    method,
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${githubToken()}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "sharif-adornment-studio",
+      ...(body ? { "Content-Type": "application/json" } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const err = new Error(data?.message || `GitHub said ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+/* ---------- What the Studio may ask GitHub for directly ----------
+ * Only reading the content (and its history) and uploading photo/video data.
+ * Changing the site happens in studio-publish, which builds the pages itself. */
+export const BASE = `/repos/${OWNER}/${REPO}`;
 const SHA = "[0-9a-f]{40}";
-// Files the Studio may write: the two content files and uploaded photos. Nothing else
-// (not the pages, scripts, the Studio itself or the domain settings).
-const WRITABLE = /^(content\/(site|items)\.json|assets\/uploads\/[a-z0-9][a-z0-9._-]{0,90}\.(jpg|jpeg|png|webp))$/;
+export const SHA_RE = new RegExp(`^${SHA}$`);
 
 export function vet(method, path, body) {
   const [p, q = ""] = path.split("?");
   if (method === "GET") {
     if (p === BASE && !q) return null;
-    if (new RegExp(`^${BASE}/contents/content/(site|items)\\.json$`).test(p) && q === `ref=${BRANCH}`) return null;
-    if (p === `${BASE}/git/ref/heads/${BRANCH}` && !q) return null;
-    if (new RegExp(`^${BASE}/git/commits/${SHA}$`).test(p) && !q) return null;
+    if (new RegExp(`^${BASE}/contents/content/(site|items)\\.json$`).test(p) && new RegExp(`^ref=(${BRANCH}|${SHA})$`).test(q)) return null;
+    if (p === `${BASE}/commits` && new RegExp(`^path=content%2F(site|items)\\.json&sha=${BRANCH}&per_page=\\d{1,2}$`).test(q)) return null;
     return "This request isn't allowed.";
   }
-  if (q) return "This request isn't allowed.";
-  if (method === "POST" && p === `${BASE}/git/blobs`) {
-    if (!body || typeof body.content !== "string" || !["base64", "utf-8"].includes(body.encoding)) return "Bad blob.";
-    return null;
-  }
-  if (method === "POST" && p === `${BASE}/git/trees`) {
-    if (!body || !new RegExp(`^${SHA}$`).test(body.base_tree || "") || !Array.isArray(body.tree) || !body.tree.length) return "Bad tree.";
-    for (const t of body.tree) {
-      if (Object.keys(t).sort().join() !== "mode,path,sha,type" || t.mode !== "100644" || t.type !== "blob" ||
-          !new RegExp(`^${SHA}$`).test(t.sha) || !WRITABLE.test(t.path)) {
-        return `The Studio can't change ${t.path || "that file"}.`;
-      }
-    }
-    return null;
-  }
-  if (method === "POST" && p === `${BASE}/git/commits`) {
-    if (!body || !new RegExp(`^${SHA}$`).test(body.tree || "") || !Array.isArray(body.parents) || body.parents.length !== 1 ||
-        !new RegExp(`^${SHA}$`).test(body.parents[0]) || typeof body.message !== "string") return "Bad commit.";
-    return null;
-  }
-  if (method === "PATCH" && p === `${BASE}/git/refs/heads/${BRANCH}`) {
-    if (!body || !new RegExp(`^${SHA}$`).test(body.sha || "") || body.force) return "Bad update.";
+  if (method === "POST" && p === `${BASE}/git/blobs` && !q) {
+    if (!body || typeof body.content !== "string" || body.encoding !== "base64") return "Bad upload.";
     return null;
   }
   return "This request isn't allowed.";

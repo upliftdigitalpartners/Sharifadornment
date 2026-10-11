@@ -17,6 +17,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
 
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Sharif Adornment" />
   <meta property="og:title" content="Gallery — Sharif Adornment" />
   <meta property="og:description" content="Recent jewelry, bridal sets, potlis and clutches from Sharif Adornment in Queens, NY." />
   <meta property="og:url" content="https://sharifadornment.com/gallery.html" />
@@ -30,22 +31,25 @@
 </head>
 <body data-page="gallery">
   <a class="skip" href="#main">Skip to content</a>
-
+  
   <header class="nav">
     <a href="index.html" class="nav__brand" aria-label="Sharif Adornment home">Sharif Adornment</a>
     <nav class="nav__links" id="menu" aria-label="Primary">
       <a href="collections.html">Collections</a>
+      <a href="bridal.html">Bridal</a>
       <a href="story.html">Story</a>
-      <a href="order.html">How to order</a>
       <a href="gallery.html" aria-current="page">Gallery</a>
-      <a href="contact.html" class="nav__cta">Enquire</a>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Enquire</a>
+      <a href="book.html" class="nav__cta">Book a visit</a>
     </nav>
     <div class="nav__tools">
-      <button class="theme-toggle" data-theme-toggle aria-label="Switch to night mode" title="Night mode">
+      <button class="icon-btn saved-toggle" type="button" data-saved-open aria-label="Saved pieces"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.3 4.5 6.9 4.5c2.1 0 3.7 1.2 5.1 3 1.4-1.8 3-3 5.1-3 3.6 0 5.5 3.5 4.2 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg><span class="count" data-saved-count hidden>0</span></button>
+      <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch to night mode" title="Night mode">
         <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
         <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
       </button>
-      <button class="nav__toggle" aria-controls="menu" aria-expanded="false">Menu</button>
+      <button class="nav__toggle" type="button" aria-controls="menu" aria-expanded="false">Menu</button>
     </div>
   </header>
 
@@ -55,29 +59,80 @@
         <div>
           <p class="label reveal" data-t="gallery.label">Gallery</p>
           <h1 class="page__title reveal" data-t="gallery.title">Recent <em>pieces.</em></h1>
+          
         </div>
         <a class="link reveal" data-href="business.facebook" href="https://www.facebook.com/SharifAdornment/" target="_blank" rel="noopener" data-t="gallery.link">See more on Facebook</a>
       </header>
-      <div class="gallery gallery--grid" data-gallery></div>
+      <div class="gallery gallery--grid" data-gallery><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/gold-coin-temple-set.jpg" aria-label="View full screen"><img src="assets/gallery/gold-coin-temple-set.jpg" srcset="assets/gallery/gold-coin-temple-set-sm.jpg 640w, assets/gallery/gold-coin-temple-set.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Antique gold coin necklace set with aqua drops" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/fusion-hasli-ruby.jpg" aria-label="View full screen"><img src="assets/gallery/fusion-hasli-ruby.jpg" srcset="assets/gallery/fusion-hasli-ruby-sm.jpg 640w, assets/gallery/fusion-hasli-ruby.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Gold hasli necklace with ruby flower jhumkas" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/multistone-statement-set.jpg" aria-label="View full screen"><img src="assets/gallery/multistone-statement-set.jpg" srcset="assets/gallery/multistone-statement-set-sm.jpg 640w, assets/gallery/multistone-statement-set.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Multicolour stone statement necklace set" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/taj-embroidered-clutch.jpg" aria-label="View full screen"><img src="assets/gallery/taj-embroidered-clutch.jpg" srcset="assets/gallery/taj-embroidered-clutch-sm.jpg 640w, assets/gallery/taj-embroidered-clutch.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Ivory clutch embroidered with the Taj Mahal" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/black-velvet-potli.jpg" aria-label="View full screen"><img src="assets/gallery/black-velvet-potli.jpg" srcset="assets/gallery/black-velvet-potli-sm.jpg 640w, assets/gallery/black-velvet-potli.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Black velvet potli bag with pearl strands" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/silver-medallion-set.jpg" aria-label="View full screen"><img src="assets/gallery/silver-medallion-set.jpg" srcset="assets/gallery/silver-medallion-set-sm.jpg 640w, assets/gallery/silver-medallion-set.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Silver medallion pendant set on a display bust" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/pachi-kundan-choker.jpg" aria-label="View full screen"><img src="assets/gallery/pachi-kundan-choker.jpg" srcset="assets/gallery/pachi-kundan-choker-sm.jpg 640w, assets/gallery/pachi-kundan-choker.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Pachi kundan choker with pearl strands" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/pearl-tassel-bag.jpg" aria-label="View full screen"><img src="assets/gallery/pearl-tassel-bag.jpg" srcset="assets/gallery/pearl-tassel-bag-sm.jpg 640w, assets/gallery/pearl-tassel-bag.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Pearl-beaded bag with tassel fringe" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/polki-pearl-necklace.jpg" aria-label="View full screen"><img src="assets/gallery/polki-pearl-necklace.jpg" srcset="assets/gallery/polki-pearl-necklace-sm.jpg 640w, assets/gallery/polki-pearl-necklace.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Polki pendant on navy and pearl strands" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/mother-of-pearl-leaf-clutch.jpg" aria-label="View full screen"><img src="assets/gallery/mother-of-pearl-leaf-clutch.jpg" srcset="assets/gallery/mother-of-pearl-leaf-clutch-sm.jpg 640w, assets/gallery/mother-of-pearl-leaf-clutch.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Gold and mother-of-pearl leaf clutch" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/oxidized-peacock-set.jpg" aria-label="View full screen"><img src="assets/gallery/oxidized-peacock-set.jpg" srcset="assets/gallery/oxidized-peacock-set-sm.jpg 640w, assets/gallery/oxidized-peacock-set.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Oxidized silver peacock necklace set" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure><figure class="reveal"><button class="slide__zoom" type="button" data-zoom="assets/gallery/gold-pendant-pearl-mala.jpg" aria-label="View full screen"><img src="assets/gallery/gold-pendant-pearl-mala.jpg" srcset="assets/gallery/gold-pendant-pearl-mala-sm.jpg 640w, assets/gallery/gold-pendant-pearl-mala.jpg 1200w" sizes="(max-width: 860px) 50vw, 25vw" alt="Gold pendant on pearl and ruby bead mala" loading="lazy" decoding="async" onerror="this.removeAttribute('srcset');this.onerror=null" /></button></figure></div>
+    </section>
+    <section class="section feed" data-feed>
+      <header class="section__head"><p class="label reveal">Facebook</p><h2 class="reveal" data-t="gallery.feedTitle">Latest from <em>Facebook.</em></h2></header>
+      <div class="feed__frame reveal" data-feed-frame data-page-url="https://www.facebook.com/SharifAdornment/">
+        <p>See our newest posts and reels without leaving the site.</p>
+        <button class="btn btn--ghost" type="button" data-feed-load>Show Facebook posts</button>
+        <small>Loads content from Facebook.</small>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p class="footer__mark">Sharif <em>Adornment</em></p>
+    <div class="footer__top">
+      <div class="footer__about">
+        <p class="footer__mark">Sharif <em>Adornment</em></p>
+        <p class="footer__hours" data-t="footer.hours">Visits by appointment · Queens, New York</p>
+        <div class="socials"><a href="https://www.facebook.com/SharifAdornment/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8.5V6.8c0-.8.2-1.3 1.4-1.3H17V2.6C16.6 2.5 15.5 2.4 14.3 2.4c-2.6 0-4.3 1.6-4.3 4.4v1.7H7.2v3.2H10v9.9h4v-9.9h2.8l.4-3.2H14z"/></svg></a></div>
+      </div>
+      <form class="newsletter" data-newsletter novalidate>
+        <p class="label">Newsletter</p>
+        <h3 data-t="footer.newsletterTitle">New arrivals, <em>first.</em></h3>
+        <p class="newsletter__text" data-t="footer.newsletterText">An occasional email when new pieces arrive. Nothing else.</p>
+        <div class="newsletter__row">
+          <input type="email" name="email" required autocomplete="email" placeholder="Email address" aria-label="Email address" />
+          <button class="btn" type="submit">Sign up</button>
+        </div>
+        <p class="newsletter__note" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+    <nav class="footer__links" aria-label="More">
+      <a href="collections.html">Collections</a><a href="bridal.html">Bridal</a><a href="order.html">How to order</a>
+      <a href="faq.html">FAQ</a><a href="book.html">Book a visit</a><a href="contact.html">Enquire</a>
+    </nav>
     <div class="footer__row">
-      <span><a class="footer__c" href="studio/" aria-label="Studio">©</a> <span class="js-year"></span> Sharif Adornment</span>
-      <a href="collections.html">Collections</a>
-      <a href="contact.html">Enquire</a>
-      <a data-href="business.facebook" href="https://www.facebook.com/SharifAdornment/" target="_blank" rel="noopener">Facebook</a>
+      <span><a class="footer__c" href="studio/" aria-label="Studio">©</a> <span class="js-year">2026</span> Sharif Adornment</span>
+      <a href="#main">Back to top</a>
     </div>
   </footer>
 
   <!-- Phones: always-reachable order buttons -->
   <div class="dock" data-dock aria-label="Quick contact">
     <a class="dock__btn" data-href="business.messenger" href="https://m.me/SharifAdornment" target="_blank" rel="noopener">Message us</a>
-    <a class="dock__btn dock__btn--alt" data-tel="business.phone" href="#">Call</a>
+    <a class="dock__btn dock__btn--alt" data-tel="business.phone" href="tel:+13477059653">Call</a>
   </div>
 
-  <script src="js/app.js" defer></script>
+  <!-- Quick view, saved pieces and full-screen photos -->
+  <dialog class="sheet" data-sheet aria-label="Piece details">
+    <button class="sheet__close" type="button" data-sheet-close>Close</button>
+    <div data-sheet-body></div>
+  </dialog>
+  <dialog class="sheet saved" data-saved aria-labelledby="saved-title">
+    <button class="sheet__close" type="button" data-saved-close>Close</button>
+    <div class="saved__inner">
+      <p class="label">Your list</p>
+      <h2 id="saved-title">Saved <em>pieces</em></h2>
+      <p class="saved__empty" data-saved-empty>Tap the heart on any piece to save it here, then send us the whole list in one message.</p>
+      <div class="saved__list" data-saved-list></div>
+      <div class="saved__actions" data-saved-actions hidden>
+        <button class="btn" type="button" data-ask-saved>Ask about these pieces</button>
+        <a class="link" href="contact.html?saved=1">Use the enquiry form</a>
+      </div>
+    </div>
+  </dialog>
+  <dialog class="zoom" data-zoom-view aria-label="Photo">
+    <button class="sheet__close" type="button" data-zoom-close>Close</button>
+    <div class="zoom__stage"><img alt="" /></div>
+  </dialog>
+  <div class="toast" data-toast role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

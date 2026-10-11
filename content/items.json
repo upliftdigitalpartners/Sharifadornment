@@ -7,7 +7,19 @@
   "description": "A stack of carved antique-gold kangan bangles set with small ruby and emerald stones. Wear the full stack or split it between both wrists.",
   "price": "70$",
   "soldOut": false,
-  "featured": true
+  "featured": true,
+  "images": [],
+  "video": "assets/video/hero-mobile.mp4",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [
+   "pearl-cascade-jhumkas",
+   "temple-pendant-rani-haar",
+   "red-zardozi-potli"
+  ]
  },
  {
   "id": "pearl-cascade-jhumkas",
@@ -17,7 +29,35 @@
   "description": "Gold-finish earrings with tiers of pearl-studded jhumkas that sway as you move.",
   "price": "30$",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
+ },
+ {
+  "id": "pearl-gold-kada",
+  "name": "Pearl Gold Kada",
+  "collection": "bangles",
+  "image": "assets/pieces/pearl-gold-kada.jpg",
+  "description": "A slim open gold kada studded with pearls — easy to wear alone or with a stack.",
+  "price": "",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/pieces/pearl-gold-kada-2.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "temple-pendant-rani-haar",
@@ -27,7 +67,15 @@
   "description": "Layered pearl strands with ruby beads and a carved temple-style pendant, with a matching tikka.",
   "price": "40",
   "soldOut": false,
-  "featured": true
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "gold-coin-temple-set",
@@ -37,7 +85,15 @@
   "description": "Antique gold coin necklace with a filigree pendant and soft aqua drops, with matching earrings and tikka.",
   "price": "42$",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "gold-pendant-pearl-mala",
@@ -47,7 +103,15 @@
   "description": "Pearl and ruby bead strands finished with a gold pendant and pearl fringe, with a matching tikka.",
   "price": "40$",
   "soldOut": false,
-  "featured": true
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "navratna-kundan-set",
@@ -57,7 +121,18 @@
   "description": "Multicolour stones set kundan-style in gold, with a matching tikka — bright enough to carry a simple outfit.",
   "price": "",
   "soldOut": false,
-  "featured": true
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [
+   "taj-embroidered-clutch",
+   "antique-gold-kangan-stack"
+  ]
  },
  {
   "id": "ruby-fusion-hasli",
@@ -67,7 +142,15 @@
   "description": "A sculpted gold hasli with ruby flower details, paired with ruby jhumkas.",
   "price": "45$",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "multistone-statement-set",
@@ -77,7 +160,17 @@
   "description": "Bold geometric stones in jewel tones, framed in gold, with a matching ring.",
   "price": "48$",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [
+   "assets/pieces/multistone-statement-set-2.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "pachi-kundan-choker",
@@ -87,7 +180,33 @@
   "description": "A delicate kundan choker on layered pearl strands, with matching stud earrings.",
   "price": "38$",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
+ },
+ {
+  "id": "beaded-kundan-pendant-set",
+  "name": "Beaded Kundan Pendant Set",
+  "collection": "kundan",
+  "image": "assets/pieces/beaded-kundan-pendant-set.jpg",
+  "description": "Red and green bead strands with a kundan pendant and drops, with a matching tikka.",
+  "price": "",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "mint-oxidized-statement-set",
@@ -97,7 +216,15 @@
   "description": "Oxidized silver statement necklace with mint stones and pink accents, with matching earrings.",
   "price": "",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "silver-medallion-set",
@@ -107,7 +234,17 @@
   "description": "A long chain with a large silver medallion pendant and pearl drops, with a matching tikka.",
   "price": "37$",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [
+   "assets/pieces/silver-medallion-set-2.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "oxidized-peacock-set",
@@ -117,7 +254,53 @@
   "description": "Oxidized silver necklace with peacock motifs and coloured stones, with a matching ring.",
   "price": "40$",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
+ },
+ {
+  "id": "oxidized-stone-choker-set",
+  "name": "Oxidized Stone Choker Set",
+  "collection": "oxidized",
+  "image": "assets/pieces/oxidized-stone-choker-set.jpg",
+  "description": "An oxidized statement pendant set with coloured stones and pearl drops on layered strands, with matching earrings and ring.",
+  "price": "",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/pieces/oxidized-stone-choker-set-2.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
+ },
+ {
+  "id": "silver-ruby-pendant-set",
+  "name": "Silver Ruby Pendant Set",
+  "collection": "oxidized",
+  "image": "assets/pieces/silver-ruby-pendant-set.jpg",
+  "description": "A long silver-tone chain with a sculpted pendant set with pink stones, with a matching tikka and ring.",
+  "price": "",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "baroque-pearl-mala",
@@ -127,7 +310,15 @@
   "description": "Layered pearl strands finished with a sculptural baroque-pearl pendant and a matching tikka.",
   "price": "",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "polki-pearl-necklace",
@@ -137,7 +328,15 @@
   "description": "Navy and pearl bead strands with a polki pendant and pearl drops, with matching earrings.",
   "price": "",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "red-zardozi-potli",
@@ -147,7 +346,15 @@
   "description": "A red velvet potli with dense gold embroidery and a cascade of pearl strands.",
   "price": "",
   "soldOut": false,
-  "featured": true
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "black-velvet-potli",
@@ -157,7 +364,15 @@
   "description": "Black velvet potli with gold embroidery, a gold silk top and pearl strand handles.",
   "price": "",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "taj-embroidered-clutch",
@@ -167,7 +382,15 @@
   "description": "An ivory box clutch embroidered with the Taj Mahal in gold, with a chain strap.",
   "price": "",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "pearl-tassel-bag",
@@ -177,7 +400,15 @@
   "description": "A pearl-beaded handbag with a scalloped tassel fringe and green accents.",
   "price": "",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  },
  {
   "id": "mother-of-pearl-leaf-clutch",
@@ -187,6 +418,68 @@
   "description": "A sculpted gold leaf clutch inlaid with mother-of-pearl, with a chain strap.",
   "price": "",
   "soldOut": false,
-  "featured": false
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
+ },
+ {
+  "id": "red-rose-clutch",
+  "name": "Red Rose Clutch",
+  "collection": "potli",
+  "image": "assets/pieces/red-rose-clutch.jpg",
+  "description": "A sculpted box clutch in deep red with ivory floral work and a gold chain strap.",
+  "price": "",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
+ },
+ {
+  "id": "black-zardozi-round-clutch",
+  "name": "Black Zardozi Round Clutch",
+  "collection": "potli",
+  "image": "assets/pieces/black-zardozi-round-clutch.jpg",
+  "description": "A round black clutch with gold zardozi embroidery and a chain strap.",
+  "price": "",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
+ },
+ {
+  "id": "pearl-cascade-potli",
+  "name": "Pearl Cascade Potli",
+  "collection": "potli",
+  "image": "assets/pieces/pearl-cascade-potli.jpg",
+  "description": "An ivory potli covered in pearls, with a pearl fringe and drawstring.",
+  "price": "",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": []
  }
 ]

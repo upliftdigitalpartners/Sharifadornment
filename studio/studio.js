@@ -158,13 +158,32 @@
     location.reload();
   });
 
+  // Fill in anything older content is missing, so every editor has something to work with
+  const ITEM_DEFAULTS = { description: "", price: "", soldOut: false, featured: false, images: [], video: "", size: "", isNew: false, lastOne: false, rent: false, rentPrice: "", pairs: [] };
+  const normalizeItem = (it) => ({ ...ITEM_DEFAULTS, ...it });
+  function normalizeSite(s) {
+    s.business ||= {}; s.home ||= {}; s.collections ||= []; s.story ||= { paragraphs: [], pillars: [] };
+    s.order ||= { steps: [] }; s.occasion ||= {}; s.gallery ||= { images: [] }; s.contact ||= {};
+    s.banner ||= { on: false, text: "", linkText: "", link: "" };
+    s.footer ||= { hours: "", newsletterTitle: "", newsletterText: "" };
+    s.bridal ||= { label: "Bridal", title: "", intro: "", button: "", looks: [] };
+    s.bridal.looks ||= [];
+    s.reviews ||= { label: "Kind words", title: "", items: [] };
+    s.reviews.items ||= [];
+    s.faq ||= { label: "Questions", title: "", intro: "", items: [] };
+    s.faq.items ||= [];
+    s.book ||= { label: "", title: "", intro: "", types: ["Visit in Queens", "Video call"], button: "", note: "" };
+    s.nav ||= { book: "Book a visit" };
+    return s;
+  }
+
   async function start() {
     lock.hidden = true;
     app.hidden = false;
     $("[data-view]").innerHTML = '<p class="loading">Loading…</p>';
     const [site, items] = await Promise.all([readFile(FILES.site), readFile(FILES.items)]);
-    state.site = JSON.parse(site.text);
-    state.items = JSON.parse(items.text);
+    state.site = normalizeSite(JSON.parse(site.text));
+    state.items = JSON.parse(items.text).map(normalizeItem);
     state.saved = { site: JSON.stringify(state.site), items: JSON.stringify(state.items) };
     state.shas = { site: site.sha, items: items.sha };
     if (DEMO) toast("Demo mode — try anything; nothing will be published.");
@@ -175,7 +194,8 @@
   // Photos that are actually used (a photo picked and then cancelled is never uploaded)
   const usedUploads = () => {
     const all = JSON.stringify(state.site) + JSON.stringify(state.items);
-    return [...state.uploads].filter(([path]) => all.includes(`"${path}"`));
+    const used = (path) => all.includes(`"${path}"`) || all.includes(`"${path.replace(/-sm(\.\w+)$/, "$1")}"`);
+    return [...state.uploads].filter(([path]) => used(path));
   };
   const isDirty = () => state.site && (JSON.stringify(state.site) !== state.saved.site ||
     JSON.stringify(state.items) !== state.saved.items);
@@ -198,70 +218,88 @@
 
   $("[data-publish-btn]").addEventListener("click", publish);
 
-  async function publish() {
-    const btn = $("[data-publish-btn]");
-    const siteText = JSON.stringify(state.site, null, 1) + "\n";
-    const itemsText = JSON.stringify(state.items, null, 1) + "\n";
-    if (DEMO) { toast("Demo mode — nothing was published."); return; }
-    btn.disabled = true;
-    $("[data-status]").textContent = "Publishing…";
+  // Preview: open the real site, drawn from these unpublished changes
+  const PREVIEW_PAGE = { pieces: "collections.html", collections: "index.html", bridal: "bridal.html", reviews: "index.html", faq: "faq.html", gallery: "gallery.html" };
+  $("[data-preview-btn]").addEventListener("click", () => {
+    const previews = Object.fromEntries([...state.previews].filter(([path]) => state.uploads.has(path)));
     try {
-      // Stop if someone else changed the content since this page loaded
-      const [cs, ci] = await Promise.all([
-        gh(`${repoPath}/contents/${FILES.site}?ref=${REPO.branch}`),
-        gh(`${repoPath}/contents/${FILES.items}?ref=${REPO.branch}`),
-      ]);
-      if (cs.sha !== state.shas.site || ci.sha !== state.shas.items) {
-        throw new Error("The site was changed somewhere else since you opened the Studio. Reload to get the latest, then make your edits again.");
-      }
+      localStorage.setItem("sa-preview", JSON.stringify({ site: state.site, items: state.items, previews }));
+    } catch (_) { toast("Couldn't prepare the preview on this device.", true); return; }
+    open(`../${PREVIEW_PAGE[state.tab] || "index.html"}?preview=1`, "_blank");
+  });
 
-      // One commit with every changed file: photos first, then the content
-      const ref = await gh(`${repoPath}/git/ref/heads/${REPO.branch}`);
-      const head = await gh(`${repoPath}/git/commits/${ref.object.sha}`);
-      const tree = [];
-      for (const [path, blob] of usedUploads()) {
+  async function publish() {
+    if (DEMO) { toast("Demo mode — nothing was published."); return; }
+    const btn = $("[data-publish-btn]");
+    const status = $("[data-status]");
+    btn.disabled = true;
+    try {
+      // Upload new photos and videos first (each is just stored data until the commit uses it)
+      const ups = usedUploads();
+      const uploads = [];
+      for (const [i, [path, blob]] of ups.entries()) {
+        status.textContent = `Uploading ${i + 1} of ${ups.length}…`;
         const b = await gh(`${repoPath}/git/blobs`, { method: "POST", body: JSON.stringify({ content: await blobToB64(blob), encoding: "base64" }) });
-        tree.push({ path, mode: "100644", type: "blob", sha: b.sha });
+        uploads.push({ path, sha: b.sha });
       }
-      const blobShas = {};
-      for (const [key, text] of [["site", siteText], ["items", itemsText]]) {
-        if (JSON.stringify(state[key]) === state.saved[key]) continue;
-        const b = await gh(`${repoPath}/git/blobs`, { method: "POST", body: JSON.stringify({ content: text, encoding: "utf-8" }) });
-        tree.push({ path: FILES[key], mode: "100644", type: "blob", sha: b.sha });
-        blobShas[key] = b.sha;
-      }
-      const newTree = await gh(`${repoPath}/git/trees`, { method: "POST", body: JSON.stringify({ base_tree: head.tree.sha, tree }) });
-      const commit = await gh(`${repoPath}/git/commits`, {
-        method: "POST",
-        body: JSON.stringify({ message: "Update site content from the Studio", tree: newTree.sha, parents: [head.sha] }),
-      });
-      await gh(`${repoPath}/git/refs/heads/${REPO.branch}`, { method: "PATCH", body: JSON.stringify({ sha: commit.sha }) });
-
+      // The server checks the content, rebuilds every page and commits it all at once
+      status.textContent = "Publishing…";
+      const out = await api("publish", { site: state.site, items: state.items, uploads, base: state.shas }, session.get());
       state.saved = { site: JSON.stringify(state.site), items: JSON.stringify(state.items) };
-      Object.assign(state.shas, blobShas);
+      state.shas = out.shas;
       state.uploads.clear();
       changed();
-      toast("Published. The live site updates in about a minute.");
+      toast(out.unchanged ? "Nothing new to publish." : "Published. The live site updates in about a minute.");
     } catch (x) {
       changed();
-      toast(x.status === 401 ? "Your session ended. Sign in again, then publish." :
-        x.status === 403 || x.status === 404 ? `GitHub refused the change (${x.message}). The site's GitHub token may need Contents: Read and write.` :
-        x.message, true);
+      if (x.status === 401) lockOut("Your session ended. Sign in again — your changes are still here until you leave the page.");
+      else toast(x.message, true);
     }
   }
 
-  /* ---------- Photos: resize in the browser, publish later ---------- */
+  /* ---------- Photos and videos: prepared in the browser, published later ---------- */
+  async function decode(file) {
+    try { return await createImageBitmap(file); } catch (_) { /* try an <img> instead */ }
+    const url = URL.createObjectURL(file);
+    try {
+      const im = new Image();
+      im.src = url;
+      await im.decode();
+      return im;
+    } finally { setTimeout(() => URL.revokeObjectURL(url), 2000); }
+  }
   async function addPhoto(file, name) {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
-    const canvas = Object.assign(document.createElement("canvas"), {
-      width: Math.round(bitmap.width * scale), height: Math.round(bitmap.height * scale),
-    });
-    canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise((ok) => canvas.toBlob(ok, "image/jpeg", 0.82));
-    const path = `assets/uploads/${slug(name || file.name.replace(/\.\w+$/, ""))}-${Date.now().toString(36)}.jpg`;
-    state.uploads.set(path, blob);
-    state.previews.set(path, URL.createObjectURL(blob));
+    let pic;
+    try { pic = await decode(file); } catch (_) {
+      const heic = /hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
+      throw new Error(heic
+        ? "This is an iPhone HEIC photo, which this browser can't open. Use Safari, or on the iPhone choose Settings → Camera → Formats → Most Compatible."
+        : "That file couldn't be read as a photo. Try a JPG or PNG.");
+    }
+    const w = pic.naturalWidth || pic.width, h = pic.naturalHeight || pic.height;
+    const make = (max, quality) => {
+      const scale = Math.min(1, max / Math.max(w, h));
+      const canvas = Object.assign(document.createElement("canvas"), { width: Math.round(w * scale), height: Math.round(h * scale) });
+      canvas.getContext("2d").drawImage(pic, 0, 0, canvas.width, canvas.height);
+      return new Promise((ok) => canvas.toBlob(ok, "image/jpeg", quality));
+    };
+    // Every photo gets a 1600px copy and a 640px copy for phones
+    const base = `assets/uploads/${slug(name || file.name.replace(/\.\w+$/, ""))}-${Date.now().toString(36)}`;
+    for (const [path, blob] of [[`${base}.jpg`, await make(1600, 0.82)], [`${base}-sm.jpg`, await make(640, 0.78)]]) {
+      state.uploads.set(path, blob);
+      state.previews.set(path, URL.createObjectURL(blob));
+    }
+    return `${base}.jpg`;
+  }
+  async function addVideo(file, name) {
+    const ext = { "video/mp4": "mp4", "video/webm": "webm" }[file.type];
+    if (!ext) throw new Error("Please choose an MP4 or WebM video.");
+    if (file.size > 4 * 1024 * 1024) {
+      throw new Error(`This video is ${(file.size / 1048576).toFixed(1)} MB. Videos must be under 4 MB — shorten or compress it first (the free HandBrake app works well).`);
+    }
+    const path = `assets/uploads/${slug(name || "video")}-${Date.now().toString(36)}.${ext}`;
+    state.uploads.set(path, file);
+    state.previews.set(path, URL.createObjectURL(file));
     return path;
   }
 
@@ -308,7 +346,7 @@
       $("[data-grid]", el).innerHTML = list.map((i) => `
         <button class="tile" data-edit="${esc(i.id)}">
           <div class="tile__img"><img src="${esc(src(i.image))}" alt="" loading="lazy" />
-            <div class="tile__flags">${i.featured ? '<span class="flag flag--gold">Featured</span>' : ""}${i.soldOut ? '<span class="flag">Sold out</span>' : ""}</div>
+            <div class="tile__flags">${i.featured ? '<span class="flag flag--gold">Featured</span>' : ""}${i.isNew ? '<span class="flag">New</span>' : ""}${i.lastOne ? '<span class="flag">Last one</span>' : ""}${i.rent ? '<span class="flag">Rent</span>' : ""}${i.soldOut ? '<span class="flag">Sold out</span>' : ""}${i.video ? '<span class="flag">▶</span>' : ""}</div>
           </div>
           <span class="tile__col">${esc(colName(i.collection))}</span>
           <span class="tile__name">${esc(i.name)}</span>
@@ -324,16 +362,31 @@
     });
   };
 
+  // Small tiles of other pieces to tick, used for "Complete the look" and bridal looks
+  const pieceTicks = (selected, { exclude = "", name = "pairs" } = {}) => `<div class="ticks">${state.items.filter((x) => x.id !== exclude).map((x) => `
+    <label class="tick"><input type="checkbox" name="${name}" value="${esc(x.id)}" ${selected.includes(x.id) ? "checked" : ""} />
+      <img src="${esc(src(x.image))}" alt="" loading="lazy" /><span>${esc(x.name)}</span></label>`).join("")}</div>`;
+
   function editPiece(id) {
     const existing = state.items.find((i) => i.id === id);
-    const it = existing ? { ...existing } : { id: "", name: "", collection: state.filter !== "all" ? state.filter : state.site.collections[0]?.id, image: "", description: "", price: "", soldOut: false, featured: false };
+    const it = normalizeItem(existing ? structuredClone(existing) : { id: "", name: "", collection: state.filter !== "all" ? state.filter : state.site.collections[0]?.id, image: "" });
     const dlg = $("[data-editor]");
     dlg.innerHTML = `
       <form method="dialog" novalidate>
         <div class="editor__media">
           <img data-preview src="${esc(src(it.image))}" alt="" ${it.image ? "" : "hidden"} />
-          <label class="btn btn--ghost">${it.image ? "Replace photo" : "Choose photo"}<input type="file" accept="image/*" data-file /></label>
-          <small class="muted">Portrait photos (4:5) look best. Large photos are resized automatically.</small>
+          <label class="btn btn--ghost">${it.image ? "Replace main photo" : "Choose main photo"}<input type="file" accept="image/*" data-file /></label>
+          <div class="editor__more">
+            <span class="mini-label">More photos</span>
+            <div class="thumbs" data-thumbs></div>
+            <label class="add-link file-link">+ Add photos<input type="file" accept="image/*" multiple data-more /></label>
+          </div>
+          <div class="editor__more">
+            <span class="mini-label">Video <small>(MP4, under 4 MB)</small></span>
+            <div data-video-box></div>
+            <label class="add-link file-link">${it.video ? "Replace video" : "+ Add a video"}<input type="file" accept="video/mp4,video/webm" data-video /></label>
+          </div>
+          <small class="muted">Portrait photos (4:5) look best. Photos are resized automatically.</small>
         </div>
         <div class="editor__body">
           <h2>${existing ? "Edit piece" : "New piece"}</h2>
@@ -341,12 +394,23 @@
           <label class="field"><span>Collection</span>
             <select name="collection">${state.site.collections.map((c) => `<option value="${esc(c.id)}"${c.id === it.collection ? " selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
           </label>
-          <label class="field"><span>Price</span><input name="price" value="${esc(it.price)}" placeholder="Leave empty to show “Price on request”" /></label>
-          <label class="field"><span>Description</span><textarea name="description" rows="4">${esc(it.description)}</textarea></label>
-          <div class="editor__checks">
-            <label class="check"><input type="checkbox" name="featured" ${it.featured ? "checked" : ""} /> <span>Feature on the home page</span></label>
-            <label class="check"><input type="checkbox" name="soldOut" ${it.soldOut ? "checked" : ""} /> <span>Sold out</span></label>
+          <div class="field-pair">
+            <label class="field"><span>Price</span><input name="price" value="${esc(it.price)}" placeholder="Empty = “Price on request”" /></label>
+            <label class="field"><span>Size / length</span><input name="size" value="${esc(it.size)}" placeholder="e.g. Bangle 2.6, adjustable" /></label>
           </div>
+          <label class="field"><span>Description</span><textarea name="description" rows="3">${esc(it.description)}</textarea></label>
+          <div class="editor__checks">
+            <label class="check"><input type="checkbox" name="featured" ${it.featured ? "checked" : ""} /> <span>Feature on home page</span></label>
+            <label class="check"><input type="checkbox" name="isNew" ${it.isNew ? "checked" : ""} /> <span>New</span></label>
+            <label class="check"><input type="checkbox" name="lastOne" ${it.lastOne ? "checked" : ""} /> <span>Last one</span></label>
+            <label class="check"><input type="checkbox" name="soldOut" ${it.soldOut ? "checked" : ""} /> <span>Sold out</span></label>
+            <label class="check"><input type="checkbox" name="rent" ${it.rent ? "checked" : ""} /> <span>Available to rent</span></label>
+          </div>
+          <label class="field" data-rent-price ${it.rent ? "" : "hidden"}><span>Rental price</span><input name="rentPrice" value="${esc(it.rentPrice)}" placeholder="e.g. $40 for 3 days" /></label>
+          <details class="field picks" ${it.pairs.length ? "open" : ""}>
+            <summary><span>Complete the look</span> <small data-pick-count>${it.pairs.length ? `${it.pairs.length} chosen` : "Pick up to 3 — or leave empty and we'll suggest some"}</small></summary>
+            ${pieceTicks(it.pairs, { exclude: it.id })}
+          </details>
           <div class="editor__foot">
             ${existing ? '<button type="button" class="btn btn--danger" data-delete>Delete</button>' : ""}
             ${existing ? '<button type="button" class="btn btn--danger" data-top>Move to top</button>' : ""}
@@ -357,19 +421,54 @@
         </div>
       </form>`;
     let image = it.image;
+    let images = [...it.images];
+    let video = it.video;
+    const drawThumbs = () => {
+      $("[data-thumbs]", dlg).innerHTML = images.map((p, i) => `<figure><img src="${esc(src(p))}" alt="" />
+        <button type="button" data-thumb-left="${i}" aria-label="Move earlier" ${i ? "" : "disabled"}>←</button>
+        <button type="button" data-thumb-del="${i}" aria-label="Remove photo">×</button></figure>`).join("") || '<p class="muted">None yet.</p>';
+      $("[data-video-box]", dlg).innerHTML = video ? `<div class="video-row"><video src="${esc(src(video))}" muted playsinline></video><button type="button" class="add-link" data-video-del>Remove video</button></div>` : "";
+    };
+    drawThumbs();
+    $("form", dlg).addEventListener("click", (e) => {
+      const l = e.target.closest("[data-thumb-left]"), d = e.target.closest("[data-thumb-del]");
+      if (l) { const i = +l.dataset.thumbLeft; [images[i - 1], images[i]] = [images[i], images[i - 1]]; drawThumbs(); }
+      if (d) { images.splice(+d.dataset.thumbDel, 1); drawThumbs(); }
+      if (e.target.closest("[data-video-del]")) { video = ""; drawThumbs(); }
+    });
+    const nameNow = () => $("[name=name]", dlg).value || "piece";
     $("[data-file]", dlg).addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
       try {
-        image = await addPhoto(file, $("[name=name]", dlg).value || "piece");
+        image = await addPhoto(file, nameNow());
         const img = $("[data-preview]", dlg);
         img.src = src(image); img.hidden = false;
-      } catch (_) { toast("That file couldn't be read as a photo. Try a JPG or PNG.", true); }
+      } catch (x) { toast(x.message, true); }
+    });
+    $("[data-more]", dlg).addEventListener("change", async (e) => {
+      for (const file of e.target.files) { try { images.push(await addPhoto(file, nameNow())); } catch (x) { toast(x.message, true); } }
+      e.target.value = "";
+      drawThumbs();
+    });
+    $("[data-video]", dlg).addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try { video = await addVideo(file, nameNow()); drawThumbs(); } catch (x) { toast(x.message, true); }
+    });
+    $("[name=rent]", dlg).addEventListener("change", (e) => { $("[data-rent-price]", dlg).hidden = !e.target.checked; });
+    $(".ticks", dlg).addEventListener("change", (e) => {
+      const ticked = $$("[name=pairs]:checked", dlg);
+      if (ticked.length > 3) { e.target.checked = false; toast("Choose up to 3 pieces."); }
+      const n = $$("[name=pairs]:checked", dlg).length;
+      $("[data-pick-count]", dlg).textContent = n ? `${n} chosen` : "Pick up to 3 — or leave empty and we'll suggest some";
     });
     $("[data-cancel]", dlg).addEventListener("click", () => dlg.close());
     $("[data-delete]", dlg)?.addEventListener("click", () => {
       if (!confirm(`Delete “${it.name}”?`)) return;
       state.items = state.items.filter((i) => i.id !== id);
+      for (const x of state.items) x.pairs = x.pairs.filter((p) => p !== id);
+      for (const l of state.site.bridal.looks) l.pieces = (l.pieces || []).filter((p) => p !== id);
       dlg.close(); render();
     });
     $("[data-top]", dlg)?.addEventListener("click", () => {
@@ -381,14 +480,20 @@
       const f = e.target;
       const name = f.name.value.trim();
       if (!name) { e.preventDefault(); f.name.focus(); return; }
-      if (!image) { e.preventDefault(); toast("Add a photo for this piece.", true); return; }
+      if (!image) { e.preventDefault(); toast("Add a main photo for this piece.", true); return; }
       const data = {
-        ...it, name, image,
+        ...it, name, image, images, video,
         collection: f.collection.value,
         price: f.price.value.trim(),
+        size: f.size.value.trim(),
         description: f.description.value.trim(),
         featured: f.featured.checked,
+        isNew: f.isNew.checked,
+        lastOne: f.lastOne.checked,
         soldOut: f.soldOut.checked,
+        rent: f.rent.checked,
+        rentPrice: f.rent.checked ? f.rentPrice.value.trim() : "",
+        pairs: $$("[name=pairs]:checked", dlg).map((x) => x.value),
       };
       if (existing) {
         state.items[state.items.indexOf(existing)] = data;
@@ -459,7 +564,7 @@
         image = await addPhoto(file, `collection-${$("[name=name]", dlg).value || "cover"}`);
         const img = $("[data-preview]", dlg);
         img.src = src(image); img.hidden = false;
-      } catch (_) { toast("That file couldn't be read as a photo. Try a JPG or PNG.", true); }
+      } catch (x) { toast(x.message, true); }
     });
     $("[data-cancel]", dlg).addEventListener("click", () => dlg.close());
     $("[data-delete]", dlg)?.addEventListener("click", () => {
@@ -490,9 +595,13 @@
 
   /* ---------- Pages (all wording) ---------- */
   const PAGES = [
+    ["Announcement banner", [
+      ["banner.on", "Show the banner at the top of every page", "check"], ["banner.text", "Banner text", "area"],
+      ["banner.linkText", "Link text (optional)"], ["banner.link", "Link — a page like book.html, or a full https:// address"],
+    ]],
     ["Home", [
       ["home.label", "Small line above the headline"], ["home.title", "Headline", "area"], ["home.intro", "Intro", "area"],
-      ["home.button", "Main button"], ["home.link", "Second link"], ["home.heroImage", "Hero photo (shows before the video plays)", "image"],
+      ["home.button", "Main button"], ["nav.book", "“Book a visit” button text (everywhere)"], ["home.heroImage", "Hero photo (shows before the video plays)", "image"],
       ["home.collectionsLabel", "Collections — small label"], ["home.collectionsTitle", "Collections — heading"],
       ["home.featuredLabel", "Featured — small label"], ["home.featuredTitle", "Featured — heading"], ["home.storyLink", "Story link"],
     ]],
@@ -503,23 +612,41 @@
     ]],
     ["How to order", [["order.label", "Small label"], ["order.title", "Heading"], ["order.steps", "Steps", "pairs"]]],
     ["Occasion band", [["occasion.label", "Small label"], ["occasion.title", "Heading", "area"], ["occasion.text", "Text", "area"], ["occasion.button", "Button"]]],
-    ["Gallery page", [["gallery.label", "Small label"], ["gallery.title", "Heading"], ["gallery.link", "Facebook link text"]]],
+    ["Gallery page", [
+      ["gallery.label", "Small label"], ["gallery.title", "Heading"], ["gallery.link", "Facebook link text"],
+      ["gallery.facebookFeed", "Offer to show our latest Facebook posts", "check"], ["gallery.feedTitle", "Facebook section heading"],
+    ]],
+    ["Book a visit page", [
+      ["book.label", "Small label"], ["book.title", "Heading"], ["book.intro", "Intro", "area"],
+      ["book.types", "Appointment types — one per line", "lines"], ["book.button", "Form button"], ["book.note", "Note under the heading", "area"],
+    ]],
     ["Enquire page", [["contact.label", "Small label"], ["contact.title", "Heading"], ["contact.text", "Text", "area"], ["contact.button", "Form button"]]],
+    ["Footer", [
+      ["footer.hours", "Visiting line"], ["footer.newsletterTitle", "Newsletter heading"], ["footer.newsletterText", "Newsletter text", "area"],
+      ["reviews.label", "Reviews — small label"], ["reviews.title", "Reviews — heading"],
+    ]],
   ];
 
-  function fieldHTML([path, label, type = "text"]) {
+  function fieldHTML([path, label, type = "text", hint = ""]) {
     const v = get(state.site, path);
-    if (type === "area") return `<label class="field"><span>${label}</span><textarea data-path="${path}" rows="2">${esc(v)}</textarea></label>`;
-    if (type === "paras") return `<label class="field"><span>${label}</span><textarea data-paras="${path}" rows="7">${esc((v || []).join("\n\n"))}</textarea></label>`;
-    if (type === "image") return `<div class="field"><span>${label}</span><div class="picker"><img src="${esc(src(v))}" alt="" data-img="${path}" />
-      <label class="btn btn--ghost">Replace photo<input type="file" accept="image/*" data-image="${path}" /></label></div></div>`;
+    const h = hint ? `<small>${hint}</small>` : "";
+    if (type === "check") return `<label class="check"><input type="checkbox" data-check="${path}" ${v ? "checked" : ""} /> <span>${label}</span></label>`;
+    if (type === "area") return `<label class="field"><span>${label}</span><textarea data-path="${path}" rows="2">${esc(v)}</textarea>${h}</label>`;
+    if (type === "lines") return `<label class="field"><span>${label}</span><textarea data-lines="${path}" rows="3">${esc((v || []).join("\n"))}</textarea>${h}</label>`;
+    if (type === "paras") return `<label class="field"><span>${label}</span><textarea data-paras="${path}" rows="7">${esc((v || []).join("\n\n"))}</textarea>${h}</label>`;
+    if (type === "image") return `<div class="field"><span>${label}</span><div class="picker"><img src="${esc(src(v))}" alt="" data-img="${path}" ${v ? "" : 'class="is-empty"'} />
+      <span><label class="btn btn--ghost">${v ? "Replace photo" : "Choose photo"}<input type="file" accept="image/*" data-image="${path}" /></label>
+      ${hint.includes("optional") && v ? `<button type="button" class="add-link" data-clear="${path}">Remove photo</button>` : ""}</span></div>${h}</div>`;
+    if (type === "video") return `<div class="field"><span>${label}</span><div class="picker">${v ? `<video src="${esc(src(v))}" muted playsinline></video>` : '<span class="muted">No video</span>'}
+      <span><label class="btn btn--ghost">${v ? "Replace video" : "Upload video"}<input type="file" accept="video/mp4,video/webm" data-video-path="${path}" /></label>
+      ${v ? `<button type="button" class="add-link" data-clear="${path}">Remove</button>` : ""}</span></div>${h}</div>`;
     if (type === "pairs") return `<div class="field"><span>${label}</span><div class="group__fields" data-pairs="${path}">
       ${(v || []).map((p, i) => `<div class="pair">
         <label class="field"><span>Title</span><input data-path="${path}.${i}.title" value="${esc(p.title)}" /></label>
         <label class="field"><span>Text</span><input data-path="${path}.${i}.text" value="${esc(p.text)}" /></label>
         <button type="button" class="btn btn--danger" data-remove-pair="${path}" data-i="${i}">Remove</button></div>`).join("")}
       <button type="button" class="add-link" data-add-pair="${path}">+ Add</button></div></div>`;
-    return `<label class="field"><span>${label}</span><input data-path="${path}" value="${esc(v)}" /></label>`;
+    return `<label class="field"><span>${label}</span><input data-path="${path}" value="${esc(v)}" />${h}</label>`;
   }
 
   views.pages = (el) => {
@@ -530,29 +657,201 @@
     bindFields(el);
   };
 
+  // One set of listeners for every text, photo, list and checkbox field in a view
   function bindFields(el) {
     el.addEventListener("input", (e) => {
       const t = e.target;
       if (t.dataset.path) { set(state.site, t.dataset.path, t.value); changed(); }
       if (t.dataset.paras) { set(state.site, t.dataset.paras, t.value.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)); changed(); }
+      if (t.dataset.lines) { set(state.site, t.dataset.lines, t.value.split("\n").map((p) => p.trim()).filter(Boolean)); changed(); }
     });
     el.addEventListener("change", async (e) => {
       const t = e.target;
-      if (!t.dataset.image || !t.files[0]) return;
+      if (t.dataset.check) { set(state.site, t.dataset.check, t.checked); changed(); return; }
       try {
-        const path = await addPhoto(t.files[0], t.dataset.image.split(".")[0]);
-        set(state.site, t.dataset.image, path);
-        $(`[data-img="${t.dataset.image}"]`, el).src = src(path);
-        changed();
-      } catch (_) { toast("That file couldn't be read as a photo. Try a JPG or PNG.", true); }
+        if (t.dataset.image && t.files[0]) { set(state.site, t.dataset.image, await addPhoto(t.files[0], t.dataset.image.split(".")[0])); render(); }
+        if (t.dataset.videoPath && t.files[0]) { set(state.site, t.dataset.videoPath, await addVideo(t.files[0], "video")); render(); }
+      } catch (x) { toast(x.message, true); }
     });
     el.addEventListener("click", (e) => {
       const add = e.target.closest("[data-add-pair]");
       const rm = e.target.closest("[data-remove-pair]");
+      const clear = e.target.closest("[data-clear]");
       if (add) { get(state.site, add.dataset.addPair).push({ title: "", text: "" }); render(); }
       if (rm) { get(state.site, rm.dataset.removePair).splice(+rm.dataset.i, 1); render(); }
+      if (clear) { set(state.site, clear.dataset.clear, ""); render(); }
     });
   }
+
+  // Move or remove an entry in a list (looks, reviews, questions)
+  function listTools(path, i, len) {
+    return `<div class="list-tools">
+      <button type="button" data-list-move="${path}" data-i="${i}" data-dir="-1" ${i ? "" : "disabled"} aria-label="Move up">↑</button>
+      <button type="button" data-list-move="${path}" data-i="${i}" data-dir="1" ${i < len - 1 ? "" : "disabled"} aria-label="Move down">↓</button>
+      <button type="button" class="del" data-list-del="${path}" data-i="${i}">Remove</button></div>`;
+  }
+  function bindList(el) {
+    el.addEventListener("click", (e) => {
+      const m = e.target.closest("[data-list-move]"), d = e.target.closest("[data-list-del]"), a = e.target.closest("[data-list-add]");
+      if (m) { const list = get(state.site, m.dataset.listMove), i = +m.dataset.i, j = i + +m.dataset.dir; [list[i], list[j]] = [list[j], list[i]]; render(); }
+      if (d && confirm("Remove this?")) { get(state.site, d.dataset.listDel).splice(+d.dataset.i, 1); render(); }
+      if (a) { get(state.site, a.dataset.listAdd).push(JSON.parse(a.dataset.blank)); render(); }
+    });
+  }
+
+  /* ---------- Bridal ---------- */
+  views.bridal = (el) => {
+    const looks = state.site.bridal.looks;
+    el.innerHTML = `
+      <div class="view__head"><div><h2>Bridal</h2><p>The Bridal page: complete looks made from your pieces.</p></div></div>
+      <section class="group"><h3>Page</h3><div class="group__fields">
+        ${[["bridal.label", "Small label"], ["bridal.title", "Heading"], ["bridal.intro", "Intro", "area"], ["bridal.button", "Button"]].map(fieldHTML).join("")}
+      </div></section>
+      ${looks.map((l, i) => `<section class="group card-block"><h3>Look ${i + 1}</h3><div class="group__fields">
+        ${fieldHTML([`bridal.looks.${i}.image`, "Photo", "image"])}
+        ${fieldHTML([`bridal.looks.${i}.title`, "Title"])}
+        ${fieldHTML([`bridal.looks.${i}.text`, "Description", "area"])}
+        <details class="field picks" open><summary><span>Pieces in this look</span></summary>${pieceTicks(l.pieces || [], { name: `look-${i}` })}</details>
+        ${listTools("bridal.looks", i, looks.length)}
+      </div></section>`).join("")}
+      <button type="button" class="btn btn--ghost" data-list-add="bridal.looks" data-blank='{"title":"","text":"","image":"","pieces":[]}'>+ Add a look</button>`;
+    bindFields(el);
+    bindList(el);
+    el.addEventListener("change", (e) => {
+      const m = /^look-(\d+)$/.exec(e.target.name || "");
+      if (!m) return;
+      looks[+m[1]].pieces = $$(`[name="look-${m[1]}"]:checked`, el).map((x) => x.value);
+      changed();
+    });
+  };
+
+  /* ---------- Reviews ---------- */
+  views.reviews = (el) => {
+    const list = state.site.reviews.items;
+    el.innerHTML = `
+      <div class="view__head"><div><h2>Reviews</h2><p>Shown on the home and Bridal pages. The section stays hidden until you add one.</p></div></div>
+      <p class="hint">Only add real reviews from customers — ideally with their permission to show their name and photo.</p>
+      ${list.map((r, i) => `<section class="group card-block"><h3>Review ${i + 1}</h3><div class="group__fields">
+        ${fieldHTML([`reviews.items.${i}.text`, "What they said", "area"])}
+        <div class="field-pair">${fieldHTML([`reviews.items.${i}.name`, "Name", "text"])}${fieldHTML([`reviews.items.${i}.occasion`, "Occasion (optional)"])}</div>
+        ${fieldHTML([`reviews.items.${i}.image`, "Photo", "image", "optional"])}
+        ${listTools("reviews.items", i, list.length)}
+      </div></section>`).join("")}
+      <button type="button" class="btn btn--ghost" data-list-add="reviews.items" data-blank='{"name":"","occasion":"","text":"","image":""}'>+ Add a review</button>`;
+    bindFields(el);
+    bindList(el);
+  };
+
+  /* ---------- FAQ ---------- */
+  views.faq = (el) => {
+    const list = state.site.faq.items;
+    el.innerHTML = `
+      <div class="view__head"><div><h2>FAQ</h2><p>Questions and answers on the FAQ page. Google can show these in search results.</p></div></div>
+      <section class="group"><h3>Page</h3><div class="group__fields">
+        ${[["faq.label", "Small label"], ["faq.title", "Heading"], ["faq.intro", "Intro", "area"]].map(fieldHTML).join("")}
+      </div></section>
+      ${list.map((q, i) => `<section class="group card-block"><h3>Q${i + 1}</h3><div class="group__fields">
+        ${fieldHTML([`faq.items.${i}.q`, "Question"])}
+        ${fieldHTML([`faq.items.${i}.a`, "Answer", "area"])}
+        ${listTools("faq.items", i, list.length)}
+      </div></section>`).join("")}
+      <button type="button" class="btn btn--ghost" data-list-add="faq.items" data-blank='{"q":"","a":""}'>+ Add a question</button>`;
+    bindFields(el);
+    bindList(el);
+  };
+
+  /* ---------- Stats ---------- */
+  views.stats = (el) => {
+    el.innerHTML = `<div class="view__head"><div><h2>Stats</h2><p>Anonymous counts from the site: no names, no tracking cookies.</p></div></div><p class="loading">Loading…</p>`;
+    if (DEMO) { $(".loading", el).textContent = "Stats appear here once the site is live."; return; }
+    api("stats", {}, session.get()).then((data) => drawStats(el, data)).catch((x) => {
+      if (x.status === 401) lockOut("Please sign in again.");
+      else $(".loading", el).textContent = `Couldn't load stats (${x.message}).`;
+    });
+  };
+  function drawStats(el, data) {
+    const months = Object.keys(data.months);
+    let m = months[0];
+    const name = (id) => state.items.find((i) => i.id === id)?.name || id;
+    const PAGE_NAMES = { "/index.html": "Home", "/collections.html": "Collections", "/bridal.html": "Bridal", "/story.html": "Our story", "/order.html": "How to order", "/gallery.html": "Gallery", "/faq.html": "FAQ", "/book.html": "Book a visit", "/contact.html": "Enquire" };
+    const pageName = (p) => PAGE_NAMES[p] || (p.startsWith("/p/") ? name(p.slice(3).replace(".html", "")) : p);
+    const top = (obj = {}, label = (k) => k, n = 8) => {
+      const rows = Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n);
+      return rows.length ? `<ol class="stat-list">${rows.map(([k, v]) => `<li><span>${esc(label(k))}</span><b>${v}</b></li>`).join("")}</ol>` : '<p class="muted">Nothing yet.</p>';
+    };
+    const sum = (obj = {}) => Object.values(obj).reduce((a, b) => a + b, 0);
+    const draw = () => {
+      const d = data.months[m] || {};
+      el.innerHTML = `
+        <div class="view__head"><div><h2>Stats</h2><p>Anonymous counts from the site: no names, no tracking cookies.</p></div>
+          <select class="select" data-month>${months.map((x) => `<option ${x === m ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+        <div class="stat-cards">
+          <div><b>${sum(d.page)}</b><span>Page views</span></div>
+          <div><b>${sum(d.view)}</b><span>Pieces viewed</span></div>
+          <div><b>${sum(d.ask)}</b><span>Questions sent</span></div>
+          <div><b>${sum(d.save)}</b><span>Pieces saved</span></div>
+          <div><b>${sum(d.book)}</b><span>Booking requests</span></div>
+        </div>
+        <div class="stat-grid">
+          <section><h3>Most viewed pieces</h3>${top(d.view, name)}</section>
+          <section><h3>Most asked about</h3>${top(d.ask, name)}</section>
+          <section><h3>Most saved</h3>${top(d.save, name)}</section>
+          <section><h3>Most shared</h3>${top(d.share, name)}</section>
+          <section><h3>Pages</h3>${top(d.page, pageName, 12)}</section>
+        </div>
+        <section class="group"><h3>Newsletter <small>${data.subscribers.length}</small></h3><div class="group__fields">
+          ${data.subscribers.length ? `<button type="button" class="btn btn--ghost" data-copy-emails>Copy all emails</button>
+          <ol class="stat-list">${data.subscribers.map((s) => `<li><span>${esc(s.email)}</span><small class="muted">${new Date(s.date).toLocaleDateString()}</small>
+            <button type="button" class="add-link" data-unsub="${esc(s.email)}">Remove</button></li>`).join("")}</ol>` : '<p class="muted">No sign-ups yet.</p>'}
+        </div></section>`;
+    };
+    draw();
+    el.addEventListener("change", (e) => { if (e.target.matches("[data-month]")) { m = e.target.value; draw(); } });
+    el.addEventListener("click", async (e) => {
+      if (e.target.closest("[data-copy-emails]")) {
+        try { await navigator.clipboard.writeText(data.subscribers.map((s) => s.email).join(", ")); toast("Emails copied — paste them into your email's To or Bcc field."); } catch (_) { toast("Couldn't copy. Select the emails and copy them instead.", true); }
+      }
+      const u = e.target.closest("[data-unsub]");
+      if (u && confirm(`Remove ${u.dataset.unsub} from the newsletter list?`)) {
+        try { data = await api("stats", { unsubscribe: u.dataset.unsub }, session.get()); draw(); } catch (x) { toast(x.message, true); }
+      }
+    });
+  }
+
+  /* ---------- History: bring back an earlier version ---------- */
+  views.history = (el) => {
+    el.innerHTML = `<div class="view__head"><div><h2>History</h2><p>Every published version. Restoring one loads it here as unpublished changes, so you can check it and then publish.</p></div></div><p class="loading">Loading…</p>`;
+    if (DEMO) { $(".loading", el).textContent = "History appears here once the site is live."; return; }
+    const q = (file) => gh(`${repoPath}/commits?path=${encodeURIComponent(file)}&sha=${REPO.branch}&per_page=30`);
+    Promise.all([q(FILES.site), q(FILES.items)]).then(([a, b]) => {
+      const seen = new Set();
+      const list = [...a, ...b].filter((c) => !seen.has(c.sha) && seen.add(c.sha))
+        .sort((x, y) => y.commit.committer.date.localeCompare(x.commit.committer.date)).slice(0, 30);
+      el.innerHTML = el.innerHTML.replace(/<p class="loading">.*<\/p>/, "") + `<ol class="history">${list.map((c, i) => `<li>
+        <div><b>${new Date(c.commit.committer.date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</b>
+        <span class="muted">${esc(c.commit.message.split("\n")[0])}</span></div>
+        ${i ? `<button type="button" class="btn btn--ghost" data-restore="${c.sha}">Restore</button>` : '<span class="flag flag--gold">Live now</span>'}</li>`).join("")}</ol>`;
+    }).catch((x) => { $(".loading", el).textContent = `Couldn't load the history (${x.message}).`; });
+    el.addEventListener("click", async (e) => {
+      const r = e.target.closest("[data-restore]");
+      if (!r) return;
+      if (isDirty() && !confirm("This replaces your unpublished changes. Continue?")) return;
+      r.disabled = true;
+      try {
+        const at = async (file) => {
+          try { const f = await gh(`${repoPath}/contents/${file}?ref=${r.dataset.restore}`); return JSON.parse(fromB64(f.content)); } catch (_) { return null; }
+        };
+        const [site, items] = await Promise.all([at(FILES.site), at(FILES.items)]);
+        if (!site || !items) throw new Error("That version can't be restored.");
+        state.site = normalizeSite(site);
+        state.items = items.map(normalizeItem);
+        state.tab = "pieces";
+        $$("[data-tab]").forEach((x) => x.setAttribute("aria-selected", x.dataset.tab === "pieces"));
+        render();
+        toast("Restored as unpublished changes. Check it over, then press Publish.");
+      } catch (x) { r.disabled = false; toast(x.message, true); }
+    });
+  };
 
   /* ---------- Gallery ---------- */
   views.gallery = (el) => {
@@ -586,21 +885,22 @@
 
   /* ---------- Details ---------- */
   views.details = (el) => {
-    const f = (path, label, hint = "") => `<label class="field"><span>${label}</span><input data-path="${path}" value="${esc(get(state.site, path))}" />${hint ? `<small>${hint}</small>` : ""}</label>`;
     el.innerHTML = `
-      <div class="view__head"><div><h2>Details</h2><p>Contact details used across the site, the phone bar and the enquiry form.</p></div></div>
+      <div class="view__head"><div><h2>Details</h2><p>Contact details used across the site, the phone bar and every “Ask” button.</p></div></div>
       <section class="group"><h3>Contact</h3><div class="group__fields">
-        ${f("business.phone", "Phone", "Used for the Call button and for enquiries sent from phones.")}
-        ${f("business.email", "Email", "Optional. If set, desktop enquiries open an email instead of Messenger.")}
-        ${f("business.location", "Location line")}
+        ${fieldHTML(["business.phone", "Phone", "text", "Used for the Call button and for messages sent from phones."])}
+        ${fieldHTML(["business.whatsapp", "WhatsApp number", "text", "Optional. When set, “Ask about this piece” opens WhatsApp, and WhatsApp buttons appear."])}
+        ${fieldHTML(["business.email", "Email", "text", "Optional. If set, desktop enquiries open an email."])}
+        ${fieldHTML(["business.location", "Location line"])}
       </div></section>
       <section class="group"><h3>Links</h3><div class="group__fields">
-        ${f("business.messenger", "Messenger link")}
-        ${f("business.facebook", "Facebook page")}
+        ${fieldHTML(["business.messenger", "Messenger link", "text", "Full address starting with https://"])}
+        ${fieldHTML(["business.facebook", "Facebook page", "text", "Full address starting with https://"])}
+        ${fieldHTML(["business.instagram", "Instagram page", "text", "Optional. Full address, e.g. https://www.instagram.com/yourname/"])}
       </div></section>
       <section class="group"><h3>Hero video</h3><div class="group__fields">
-        ${f("home.heroVideo", "Video file (desktop)", "Leave empty to show the hero photo only.")}
-        ${f("home.heroVideoMobile", "Video file (phones)")}
+        ${fieldHTML(["home.heroVideo", "Video (computers)", "video", "MP4 under 4 MB. Leave empty to show the hero photo only."])}
+        ${fieldHTML(["home.heroVideoMobile", "Video (phones)", "video", "A smaller copy for phones. Optional — the computer video is used if empty."])}
       </div></section>`;
     bindFields(el);
   };

@@ -1,0 +1,8 @@
+{
+  "name": "sharifadornment",
+  "private": true,
+  "description": "Sharif Adornment website. The site itself has no build step; this file only lists what the Studio API (netlify/functions) needs.",
+  "dependencies": {
+    "@netlify/blobs": "11.1.1"
+  }
+}
