@@ -6,20 +6,29 @@ dependencies**, and GitHub Pages serves it as is.
 
 ## What's in it
 
-- **Pages:** Home, Collections, Our Story, How to Order, Gallery and Enquire,
-  each its own page with a shared header, footer and phone bar.
-- **Design:** minimal and editorial. Warm ivory, near-black type, Instrument
-  Serif with Inter, antique-gold accents and a small lotus ornament.
-  **Night mode** follows the visitor's phone or computer setting, and the
-  moon/sun button in the header switches it (the choice is remembered).
-- **Collections page:** every piece with a photo, collection and price (or
-  "Price on request"). Visitors can filter by collection and tap a piece to see
-  it up close, then "Ask about this piece", which pre-fills the enquiry form.
-- **Phones first:** hero photo/video leads, swipeable rows, a fixed
-  **Message us / Call** bar, 44px tap targets, safe-area padding.
-- **Enquiry form:** opens a pre-filled **text message** on phones. On desktop
-  it copies the note and opens **Messenger**, or opens email if an email
-  address is set. No backend needed.
+- **Pages:** Home, Collections, Bridal, Our Story, How to Order, Gallery, FAQ,
+  Book a visit and Enquire, plus **a page for every piece** (`p/<piece>.html`)
+  with its own photo, title and description, for Google and for link previews.
+- **Collections:** search, filters by collection (and "For rent"), badges (New,
+  Last one, Sold out, For rent), and a quick view with every photo and video,
+  full-screen zoom, size and rental details, "Complete the look" suggestions,
+  Share, "Buying as a gift?" and "Tell me when it's back".
+- **Ask about a piece:** opens WhatsApp (when a number is set), a text message
+  on phones, or Messenger on computers, with the piece's name and link already
+  written.
+- **Saved pieces:** a heart on every piece. The list is kept on the visitor's
+  device and can be sent in one message, used in the enquiry form, or added to
+  a booking.
+- **Bridal lookbook**, **reviews** (hidden until you add real ones), **FAQ**,
+  **booking requests** (visit in Queens or video call), an **announcement
+  banner**, a **newsletter** sign-up, and **Facebook posts** that load only when
+  asked.
+- **Design:** minimal and editorial, with warm ivory, antique-gold accents and a
+  lotus ornament. **Night mode** follows the device setting and can be toggled.
+  Photos come in phone and full sizes. The hero video is skipped with Data
+  Saver or reduced motion.
+- **Accessible:** keyboard-friendly menus and dialogs, reduced-motion support,
+  descriptive alt text and structured data (store, products, FAQ).
 
 ## Editing the site: the Studio
 
@@ -71,23 +80,43 @@ Everyone is signed out. A longer password (a short phrase) is stronger.
 
 ### In the Studio
 
-- **Pieces:** add, edit, delete and reorder pieces; set the price, mark
-  **Sold out** or **Feature on the home page**; upload photos (resized
-  automatically in the browser).
-- **Collections:** rename, describe, change cover photos, add or reorder.
-- **Pages:** every heading and message on every page. Wrap words in
-  `*asterisks*` to show them in gold italics.
-- **Gallery:** add, describe, reorder and remove photos.
-- **Details:** phone, email, Messenger and Facebook links, location line,
-  hero video files.
+| Tab | What you can do |
+|---|---|
+| **Pieces** | Add, edit, delete and reorder. Main photo plus more photos and a short video; price, size, description; Featured / New / Last one / Sold out / Available to rent (with a rental price); pick up to 3 pieces to "complete the look". |
+| **Collections** | Rename, describe, change covers, add, reorder. |
+| **Bridal** | The Bridal page text and its looks: photo, title, description, and which pieces are in each look. |
+| **Reviews** | Add real customer reviews (text, name, occasion, optional photo). |
+| **FAQ** | Questions and answers, in order. |
+| **Pages** | Every heading and message, the announcement banner, footer and booking text. Wrap words in `*asterisks*` for gold italics. |
+| **Gallery** | Add, describe, reorder and remove photos. |
+| **Stats** | Anonymous counts per month (page views, pieces viewed, questions, saves, shares, booking requests) and the newsletter list, which you can copy or remove addresses from. |
+| **History** | Every published version, with **Restore**, which loads it as unpublished changes. |
+| **Details** | Phone, WhatsApp, email, Messenger, Facebook, Instagram, location, and the hero videos (upload MP4 under 4 MB). |
 
-Changes stay on the device until **Publish**, which saves everything to GitHub
-in one commit. The live site updates in about a minute. Add `?demo` to the
-Studio address to try it without publishing.
+**Preview** shows the real site with your unpublished changes. **Publish**
+uploads new photos and videos (each saved in a phone-sized and a full-sized
+copy), then the Studio API checks everything, **rebuilds every page** from the
+content, removes photos nothing uses any more, and saves it all as one commit.
+The live site updates in about a minute. Add `?demo` to the Studio address to
+try it without publishing.
 
-To change the hero **video**, upload the new file to `assets/video/` on GitHub
-and enter its path in **Studio → Details**. Keep it under about 4 MB; see
-`PROMPTS.md`.
+### Stats and privacy
+
+The site counts page views, piece views, saves, questions, shares and booking
+requests per month. Nothing personal is stored: no cookies, IP addresses or
+names, and it respects "Do Not Track". Newsletter emails are stored privately
+on Netlify (Blobs) and only the Studio can read them.
+
+### How the pages are built
+
+The HTML pages are generated from `content/*.json` by `shared/pages.mjs`, using
+the building blocks in `shared/render.mjs`, which the browser also uses for quick
+view and preview. The Studio's publish step runs this on Netlify. If you change
+the templates by hand, rebuild locally with:
+
+```bash
+node tools/build-pages.mjs
+```
 
 ## Preview locally
 
@@ -126,11 +155,12 @@ Go to Squarespace **Domains → sharifadornment.com → DNS → DNS Settings**:
 | A | @ | 185.199.109.153 |
 | A | @ | 185.199.110.153 |
 | A | @ | 185.199.111.153 |
-| AAAA | @ | 2606:50c0:8000::153 |
-| AAAA | @ | 2606:50c0:8001::153 |
-| AAAA | @ | 2606:50c0:8002::153 |
-| AAAA | @ | 2606:50c0:8003::153 |
 | CNAME | www | upliftdigitalpartners.github.io |
+
+Don't add the optional `AAAA` (IPv6) records. With them, GitHub's domain
+check kept failing for this domain (`NotServedByPagesError`), and the owner's
+other GitHub Pages domains work with just the four `A` records and the `www`
+CNAME.
 
 ### 3. Turn on HTTPS
 DNS can take from a few minutes up to 24 hours to update. Once GitHub's Pages
@@ -142,16 +172,19 @@ settings → Pages → Add a verified domain**, so nobody else can claim it.
 ## Project layout
 
 ```
-index.html, collections.html, story.html,
-order.html, gallery.html, contact.html    the pages
-404.html                                   branded not-found page
-content/site.json                          all wording, collections, gallery, contact details
-content/items.json                         the pieces
-css/style.css                              design system, layout, night mode
-js/app.js                                  loads content, renders lists, nav, form, night mode
-studio/                                    the admin (Studio)
-netlify/, netlify.toml                     the Studio API (Netlify Functions)
-assets/                                    favicon, images, gallery, video, uploads/
-PROMPTS.md                                 art direction and AI photo/video prompts
-CNAME / .nojekyll                          GitHub Pages config
+*.html, p/*.html, sitemap.xml   generated pages (don't edit by hand — see above)
+content/site.json               all wording, collections, bridal looks, reviews, FAQ, contact details
+content/items.json              the pieces
+shared/render.mjs               HTML building blocks (browser + server)
+shared/pages.mjs                full page templates
+tools/build-pages.mjs           rebuilds the pages locally
+css/style.css                   design system, layout, night mode
+js/app.js                       quick view, saved pieces, search, forms, stats, preview
+studio/                         the admin (Studio)
+netlify/functions/              Studio API: login, github, publish, stats; public: track, subscribe
+netlify/lib/studio.mjs          sessions, CORS, GitHub access rules
+netlify.toml, package.json      Netlify settings (API only); @netlify/blobs for stats and the newsletter
+assets/                         images (each with a -sm phone copy), pieces, gallery, video, uploads/
+PROMPTS.md                      art direction and AI photo/video prompts
+CNAME / .nojekyll               GitHub Pages config
 ```
