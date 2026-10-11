@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$65",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "parrots-and-beads-pachi-set",
+  "name": "Parrots and Beads Pachi Set",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mv410e272.jpg"
+ },
+ {
+  "description": "",
   "price": "$70",
   "soldOut": false,
   "featured": false,
