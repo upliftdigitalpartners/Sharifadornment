@@ -6,7 +6,9 @@
   --ink: #1b1917;
   --muted: #6e6860;
   --line: rgba(27, 25, 23, 0.14);
-  --accent: #8a6a3b;      /* antique gold, used sparingly */
+  --gold: #8a6a3b;        /* antique gold: headings' italic words, ornaments */
+  --gold-text: #7d5f33;   /* deeper gold for small text, keeps AA contrast on ivory */
+  --gold-light: #d4b47a;  /* gold on the dark band */
 
   --serif: "Instrument Serif", "Times New Roman", serif;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -36,13 +38,14 @@ body {
 img, video { display: block; max-width: 100%; }
 [hidden] { display: none !important; }
 a { color: inherit; text-decoration: none; }
-::selection { background: var(--ink); color: var(--bg); }
+::selection { background: var(--gold); color: var(--bg); }
 :focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
 
 h1, h2, h3 { font-family: var(--serif); font-weight: 400; margin: 0; line-height: 1.04; letter-spacing: -0.01em; }
 h2 { font-size: clamp(2.3rem, 5vw, 4.25rem); }
 h3 { font-size: 1.6rem; }
 em { font-style: italic; }
+h1 em, h2 em, .footer__mark em { color: var(--gold); }
 p { margin: 0; }
 
 .label {
@@ -50,7 +53,7 @@ p { margin: 0; }
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--gold-text);
   margin-bottom: 1.4rem;
 }
 
@@ -72,9 +75,9 @@ p { margin: 0; }
   cursor: pointer;
   transition: background 0.4s var(--ease), color 0.4s var(--ease);
 }
-.btn:hover { background: transparent; color: var(--ink); }
+.btn:hover { background: var(--gold); border-color: var(--gold); color: var(--bg); }
 .btn--light { background: var(--bg); color: var(--ink); border-color: var(--bg); }
-.btn--light:hover { background: transparent; color: var(--bg); }
+.btn--light:hover { background: var(--gold-light); border-color: var(--gold-light); color: var(--ink); }
 .btn--block { width: 100%; }
 
 .link {
@@ -95,6 +98,7 @@ p { margin: 0; }
   transform-origin: right;
   transition: transform 0.5s var(--ease);
 }
+.link:hover { color: var(--gold-text); }
 .link:hover::after { transform: scaleX(0); }
 
 /* ---------- Nav ---------- */
@@ -121,8 +125,8 @@ p { margin: 0; }
 .nav__brand { position: relative; z-index: 2; font-family: var(--serif); font-size: 1.55rem; line-height: 1; letter-spacing: -0.01em; }
 .nav__links { display: flex; align-items: center; gap: clamp(20px, 3vw, 40px); }
 .nav__links a { font-size: 0.78rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; transition: color 0.3s; }
-.nav__links a:hover { color: var(--muted); }
-.nav__cta { border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
+.nav__links a:hover { color: var(--gold-text); }
+.nav__cta { border-bottom: 1px solid var(--gold); padding-bottom: 2px; }
 .nav__toggle {
   display: none;
   background: none;
@@ -185,7 +189,22 @@ p { margin: 0; }
   .hero__lede { font-size: 1rem; margin-top: 1.2rem; }
   .hero__actions { flex-direction: column; align-items: stretch; gap: 18px; margin-top: 2rem; }
   .hero__actions .link { align-self: center; }
+  .hero + .motif { margin-top: 56px; }
 }
+
+/* ---------- Ornament: a small gold lotus between two hairlines ---------- */
+.motif {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  color: var(--gold);
+}
+.motif::before, .motif::after { content: ""; flex: 1; height: 1px; background: currentColor; opacity: 0.35; }
+.motif svg { width: 44px; height: 24px; flex: none; }
+.motif--short { max-width: 220px; padding: 0; margin-bottom: 2rem; color: var(--gold-light); }
 
 /* ---------- Sections ---------- */
 .section { max-width: var(--max); margin: 0 auto; padding: var(--section) var(--gutter) 0; }
@@ -199,7 +218,9 @@ p { margin: 0; }
 .piece__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--ease); }
 .piece:hover .piece__img img { transform: scale(1.04); }
 .piece__meta { display: flex; align-items: baseline; gap: 14px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
-.piece__meta span { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em; color: var(--muted); }
+.piece__meta span { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em; color: var(--gold-text); }
+.piece:hover h3 { color: var(--gold-text); }
+.piece h3 { transition: color 0.4s; }
 .piece p { margin-top: 8px; color: var(--muted); font-size: 0.95rem; max-width: 26rem; }
 
 @media (max-width: 960px) { .collections { grid-template-columns: repeat(2, 1fr); } }
@@ -227,7 +248,7 @@ p { margin: 0; }
 /* ---------- Steps ---------- */
 .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(24px, 3vw, 40px); }
 .steps li { border-top: 1px solid var(--ink); padding-top: 22px; }
-.steps span { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em; color: var(--muted); }
+.steps span { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em; color: var(--gold-text); }
 .steps h3 { margin: 18px 0 10px; }
 .steps p { color: var(--muted); font-size: 0.95rem; }
 
@@ -237,7 +258,8 @@ p { margin: 0; }
 /* ---------- Occasion band ---------- */
 .occasion { margin-top: var(--section); background: var(--ink); color: var(--bg); padding: clamp(88px, 12vw, 160px) var(--gutter); text-align: center; }
 .occasion__inner { max-width: 52rem; margin: 0 auto; }
-.occasion .label { color: rgba(246, 243, 238, 0.6); }
+.occasion .label { color: var(--gold-light); }
+.occasion h2 em { color: var(--gold-light); }
 .occasion h2 { font-size: clamp(2.2rem, 5vw, 4rem); }
 .occasion p:not(.label) { margin: 1.8rem auto 2.6rem; max-width: 32rem; color: rgba(246, 243, 238, 0.7); }
 
@@ -275,7 +297,7 @@ p { margin: 0; }
 .channels dt { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
 .channels dd { margin: 0; overflow-wrap: anywhere; }
 .channels a { border-bottom: 1px solid var(--line); transition: border-color 0.3s; }
-.channels a:hover { border-color: var(--ink); }
+.channels a:hover { border-color: var(--gold); color: var(--gold-text); }
 
 .enquiry { display: grid; gap: 28px; background: var(--surface); padding: clamp(28px, 4vw, 48px); }
 .field { display: grid; gap: 8px; }
@@ -300,7 +322,7 @@ p { margin: 0; }
 }
 .field textarea { resize: vertical; min-height: 104px; }
 .field textarea::placeholder { color: #a39c92; }
-.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-bottom-color: var(--ink); }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-bottom-color: var(--gold); }
 .field.is-invalid input, .field.is-invalid textarea { border-bottom-color: #a33a2c; }
 .enquiry__note { min-height: 1.4em; font-size: 0.9rem; color: var(--muted); margin-top: -8px; }
 
