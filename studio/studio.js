@@ -172,8 +172,8 @@
     s.reviews.items ||= [];
     s.faq ||= { label: "Questions", title: "", intro: "", items: [] };
     s.faq.items ||= [];
-    s.book ||= { label: "", title: "", intro: "", types: ["Visit in Queens", "Video call"], button: "", note: "" };
-    s.nav ||= { book: "Book a visit" };
+    s.book ||= { label: "", title: "", intro: "", types: ["Video call", "Phone call"], button: "", note: "" };
+    s.nav ||= { book: "Book a call" };
     return s;
   }
 
@@ -616,7 +616,7 @@
     ]],
     ["Home", [
       ["home.label", "Small line above the headline"], ["home.title", "Headline", "area"], ["home.intro", "Intro", "area"],
-      ["home.button", "Main button"], ["nav.book", "“Book a visit” button text (everywhere)"], ["home.heroImage", "Hero photo (shows before the video plays)", "image"],
+      ["home.button", "Main button"], ["nav.book", "“Book a call” button text (everywhere)"], ["home.heroImage", "Hero photo (shows before the video plays)", "image"],
       ["home.collectionsLabel", "Collections — small label"], ["home.collectionsTitle", "Collections — heading"],
       ["home.featuredLabel", "Featured — small label"], ["home.featuredTitle", "Featured — heading"], ["home.storyLink", "Story link"],
     ]],
@@ -631,13 +631,13 @@
       ["gallery.label", "Small label"], ["gallery.title", "Heading"], ["gallery.link", "Facebook link text"],
       ["gallery.facebookFeed", "Offer to show our latest Facebook posts", "check"], ["gallery.feedTitle", "Facebook section heading"],
     ]],
-    ["Book a visit page", [
+    ["Book a call page", [
       ["book.label", "Small label"], ["book.title", "Heading"], ["book.intro", "Intro", "area"],
       ["book.types", "Appointment types — one per line", "lines"], ["book.button", "Form button"], ["book.note", "Note under the heading", "area"],
     ]],
     ["Enquire page", [["contact.label", "Small label"], ["contact.title", "Heading"], ["contact.text", "Text", "area"], ["contact.button", "Form button"]]],
     ["Footer", [
-      ["footer.hours", "Visiting line"], ["footer.newsletterTitle", "Newsletter heading"], ["footer.newsletterText", "Newsletter text", "area"],
+      ["footer.hours", "Appointments line"], ["footer.newsletterTitle", "Newsletter heading"], ["footer.newsletterText", "Newsletter text", "area"],
       ["reviews.label", "Reviews — small label"], ["reviews.title", "Reviews — heading"],
     ]],
   ];
@@ -788,7 +788,7 @@
     const months = Object.keys(data.months);
     let m = months[0];
     const name = (id) => state.items.find((i) => i.id === id)?.name || id;
-    const PAGE_NAMES = { "/index.html": "Home", "/collections.html": "Collections", "/bridal.html": "Bridal", "/story.html": "Our story", "/order.html": "How to order", "/gallery.html": "Gallery", "/faq.html": "FAQ", "/book.html": "Book a visit", "/contact.html": "Enquire" };
+    const PAGE_NAMES = { "/index.html": "Home", "/collections.html": "Collections", "/bridal.html": "Bridal", "/story.html": "Our story", "/order.html": "How to order", "/gallery.html": "Gallery", "/faq.html": "FAQ", "/book.html": "Book a call", "/contact.html": "Enquire" };
     const pageName = (p) => PAGE_NAMES[p] || (p.startsWith("/p/") ? name(p.slice(3).replace(".html", "")) : p);
     const top = (obj = {}, label = (k) => k, n = 8) => {
       const rows = Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n);

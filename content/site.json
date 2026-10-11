@@ -185,18 +185,18 @@
  "banner": {
   "on": false,
   "text": "Wedding season appointments are open.",
-  "linkText": "Book a visit",
+  "linkText": "Book a call",
   "link": "book.html"
  },
  "footer": {
-  "hours": "Visits by appointment · Queens, New York",
+  "hours": "Video & phone appointments · Delivery available",
   "newsletterTitle": "New arrivals, *first.*",
   "newsletterText": "An occasional email when new pieces arrive. Nothing else."
  },
  "bridal": {
   "label": "Bridal",
   "title": "For the bride, *head to wrist.*",
-  "intro": "Complete looks styled from pieces we have now — necklace, tikka, earrings, bangles and a potli to carry. Book a visit to try them together, or ask about any piece.",
+  "intro": "Complete looks styled from pieces we have now — necklace, tikka, earrings, bangles and a potli to carry. Book a video call to see them together, or ask about any piece.",
   "button": "Book a bridal appointment",
   "looks": [
    {
@@ -251,8 +251,8 @@
     "a": "Yes. Delivery and contactless delivery are available. Ask us about timing for your area and your event date."
    },
    {
-    "q": "Can I see pieces in person?",
-    "a": "Yes — book a visit in Queens, or a video call if you're further away, and we'll have your pieces ready."
+    "q": "Can I see pieces before I order?",
+    "a": "Yes — book a video call and we'll show you each piece up close, or ask us on Messenger for more photos and videos."
    },
    {
     "q": "Why does it say “Price on request”?",
@@ -277,17 +277,17 @@
   ]
  },
  "book": {
-  "label": "Book a visit",
-  "title": "See the pieces *in person.*",
-  "intro": "Visit us in Queens, or book a video call if you're further away. Tell us the occasion and what you'd like to see, and we'll have it ready.",
+  "label": "Book a call",
+  "title": "See the pieces *up close.*",
+  "intro": "Book a video call and we'll show you each piece up close, or a phone call to talk it through. Tell us the occasion and what you'd like to see, and we'll have it ready.",
   "types": [
-   "Visit in Queens",
-   "Video call"
+   "Video call",
+   "Phone call"
   ],
   "button": "Request appointment",
   "note": "We'll confirm your time by text or Messenger."
  },
  "nav": {
-  "book": "Book a visit"
+  "book": "Book a call"
  }
 }

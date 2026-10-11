@@ -7,7 +7,7 @@ dependencies**, and GitHub Pages serves it as is.
 ## What's in it
 
 - **Pages:** Home, Collections, Bridal, Our Story, How to Order, Gallery, FAQ,
-  Book a visit and Enquire, plus **a page for every piece** (`p/<piece>.html`)
+  Book a call and Enquire, plus **a page for every piece** (`p/<piece>.html`)
   with its own photo, title and description, for Google and for link previews.
 - **Collections:** search, filters by collection (and "For rent"), badges (New,
   Last one, Sold out, For rent), and a quick view with every photo and video,
@@ -20,7 +20,7 @@ dependencies**, and GitHub Pages serves it as is.
   device and can be sent in one message, used in the enquiry form, or added to
   a booking.
 - **Bridal lookbook**, **reviews** (hidden until you add real ones), **FAQ**,
-  **booking requests** (visit in Queens or video call), an **announcement
+  **booking requests** (video or phone call), an **announcement
   banner**, a **newsletter** sign-up, and **Facebook posts** that load only when
   asked.
 - **Design:** minimal and editorial, with warm ivory, antique-gold accents and a
