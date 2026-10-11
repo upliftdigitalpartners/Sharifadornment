@@ -304,3 +304,4 @@ p { margin: 0; }
   .publish__status { flex: 1 1 100%; }
   .publish .btn { flex: 1; }
 }
+.caps { letter-spacing: 0.04em; }

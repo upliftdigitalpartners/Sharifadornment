@@ -740,3 +740,6 @@ body:has(.banner) .nav:not(.is-scrolled) { top: var(--banner-h, 41px); }
   .reveal { opacity: 1; transform: none; transition: none; }
   .piece__img img, .gallery img { transition: none; }
 }
+
+/* Wordmark: SHARIF in capitals, opened up slightly so it sits evenly beside "Adornment" */
+.caps { letter-spacing: 0.04em; }

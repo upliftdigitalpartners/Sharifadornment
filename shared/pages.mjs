@@ -74,7 +74,7 @@ function shell(site, { file, title, desc, body, base = "", ogImage = "assets/img
   <a class="skip" href="#main">Skip to content</a>
   ${bannerHTML(site.banner)}
   <header class="nav">
-    <a href="index.html" class="nav__brand" aria-label="Sharif Adornment home">Sharif Adornment</a>
+    <a href="index.html" class="nav__brand" aria-label="Sharif Adornment home"><span class="caps">SHARIF</span> Adornment</a>
     <nav class="nav__links" id="menu" aria-label="Primary">
 ${nav}
       <a href="book.html" class="nav__cta"${file === "book.html" ? ' aria-current="page"' : ""}>${bookLabel}</a>
@@ -96,7 +96,7 @@ ${body}
   <footer class="footer">
     <div class="footer__top">
       <div class="footer__about">
-        <p class="footer__mark">Sharif <em>Adornment</em></p>
+        <p class="footer__mark"><span class="caps">SHARIF</span> <em>Adornment</em></p>
         <p class="footer__hours" data-t="footer.hours">${esc(f.hours || "")}</p>
         ${social ? `<div class="socials">${social}</div>` : ""}
       </div>
