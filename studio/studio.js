@@ -1,14 +1,18 @@
 /* Sharif Adornment — Studio.
  * Edits content/site.json and content/items.json (and uploads photos) and
  * publishes them to the GitHub repo in a single commit. GitHub Pages then
- * rebuilds the site, usually within a minute. No server needed.
- * Add ?demo to the URL to try it without a token (nothing is published). */
+ * rebuilds the site, usually within a minute.
+ *
+ * Sign-in is password only. The password is checked by the Studio API, a small
+ * Netlify Function (netlify/functions/), which also holds the GitHub token, so
+ * neither ever reaches the browser. See netlify/lib/studio.mjs.
+ * Add ?demo to the URL to try the Studio without publishing. */
 (() => {
   const REPO = { owner: "upliftdigitalpartners", name: "Sharifadornment", branch: "main" };
   const FILES = { site: "content/site.json", items: "content/items.json" };
-  const API = "https://api.github.com";
+  const API = "https://sharif-adornment-studio.netlify.app/api/studio";
   const DEMO = new URLSearchParams(location.search).has("demo");
-  const TOKEN_KEY = "sa-studio-token";
+  const SESSION_KEY = "sa-studio-session";
 
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -22,7 +26,6 @@
   };
 
   const state = {
-    token: "",
     site: null, items: null,
     saved: { site: "", items: "" },   // JSON as last published, to detect changes
     shas: { site: "", items: "" },    // blob shas as loaded, to detect edits made elsewhere
@@ -50,23 +53,45 @@
     toastTimer = setTimeout(() => t.classList.remove("is-on"), error ? 7000 : 4000);
   };
 
-  /* ---------- GitHub API ---------- */
-  async function gh(path, opts = {}) {
-    const res = await fetch(`${API}${path}`, {
-      ...opts,
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${state.token}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-        ...(opts.body ? { "Content-Type": "application/json" } : {}),
-      },
-    });
+  /* ---------- Studio API ---------- */
+  async function api(endpoint, body, session) {
+    let res;
+    try {
+      res = await fetch(`${API}/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(session ? { Authorization: `Bearer ${session}` } : {}) },
+        body: JSON.stringify(body),
+      });
+    } catch (_) {
+      const err = new Error("Couldn't reach the Studio service. Check your connection and try again.");
+      err.status = 0;
+      throw err;
+    }
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const err = new Error((await res.json().catch(() => ({}))).message || res.statusText);
+      const err = new Error(res.status === 429 ? "Too many tries. Wait a few minutes, then try again." :
+        res.status === 404 ? "The Studio service isn't set up yet." : data.error || res.statusText);
       err.status = res.status;
       throw err;
     }
-    return res.status === 204 ? null : res.json();
+    return data;
+  }
+
+  // A GitHub API call, made by the Studio API on our behalf
+  async function gh(path, opts = {}) {
+    let out;
+    try {
+      out = await api("github", { method: opts.method || "GET", path, body: opts.body ? JSON.parse(opts.body) : undefined }, session.get());
+    } catch (x) {
+      if (x.status === 401) lockOut("Your session ended. Please sign in again.");
+      throw x;
+    }
+    if (out.status >= 400) {
+      const err = new Error(out.data?.message || `GitHub said ${out.status}`);
+      err.status = out.status;
+      throw err;
+    }
+    return out.data;
   }
   const repoPath = `/repos/${REPO.owner}/${REPO.name}`;
   const fromB64 = (b64) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, "")), (c) => c.charCodeAt(0)));
@@ -86,41 +111,55 @@
     return { text: fromB64(f.content), sha: f.sha };
   }
 
-  /* ---------- Sign in ---------- */
-  const gate = $("[data-gate]");
+  /* ---------- Sign in (password only) ---------- */
+  const lock = $("[data-lock]");
   const app = $("[data-app]");
-  const storedToken = () => { try { return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || ""; } catch (_) { return ""; } };
+  const session = {
+    get: () => { try { return localStorage.getItem(SESSION_KEY) || ""; } catch (_) { return ""; } },
+    set: (t) => { try { localStorage.setItem(SESSION_KEY, t); } catch (_) { /* blocked */ } },
+    clear: () => { try { localStorage.removeItem(SESSION_KEY); } catch (_) { /* blocked */ } },
+  };
+  function lockOut(message = "") {
+    session.clear();
+    app.hidden = true;
+    lock.hidden = false;
+    $("[data-unlock-error]").textContent = message;
+    lock.querySelector("[name=password]").focus();
+  }
 
-  $("[data-signin]").addEventListener("submit", async (e) => {
+  $("[data-unlock]").addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = e.target;
-    const err = $("[data-signin-error]");
-    err.textContent = "";
-    state.token = f.token.value.trim();
-    f.querySelector("button").disabled = true;
+    const btn = f.querySelector("button");
+    $("[data-unlock-error]").textContent = "";
+    btn.disabled = true;
+    btn.textContent = "Checking…";
     try {
-      await gh(repoPath);
-      try {
-        (f.remember.checked ? localStorage : sessionStorage).setItem(TOKEN_KEY, state.token);
-      } catch (_) { /* storage blocked: stay signed in for this visit only */ }
+      if (DEMO) {
+        await new Promise((r) => setTimeout(r, 300));
+      } else {
+        const { session: s } = await api("login", { password: f.password.value });
+        session.set(s);
+      }
+      f.reset();
       await start();
     } catch (x) {
-      err.textContent = x.status === 401 ? "That token wasn't accepted. Check it was copied in full." :
-        x.status === 404 ? "This token can't see the Sharifadornment repository. Check its repository access." :
-        `Couldn't sign in (${x.message}).`;
+      $("[data-unlock-error]").textContent = x.message;
+      f.password.select();
     } finally {
-      f.querySelector("button").disabled = false;
+      btn.disabled = false;
+      btn.textContent = "Enter";
     }
   });
 
   $("[data-signout]").addEventListener("click", () => {
     if (isDirty() && !confirm("You have unpublished changes. Sign out and lose them?")) return;
-    try { localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(TOKEN_KEY); } catch (_) { /* ignore */ }
+    session.clear();
     location.reload();
   });
 
   async function start() {
-    gate.hidden = true;
+    lock.hidden = true;
     app.hidden = false;
     $("[data-view]").innerHTML = '<p class="loading">Loading…</p>';
     const [site, items] = await Promise.all([readFile(FILES.site), readFile(FILES.items)]);
@@ -205,9 +244,9 @@
       toast("Published. The live site updates in about a minute.");
     } catch (x) {
       changed();
-      toast(x.status === 403 || x.status === 404
-        ? "This token can't publish. Give it Contents: Read and write on the Sharifadornment repository."
-        : x.message, true);
+      toast(x.status === 401 ? "Your session ended. Sign in again, then publish." :
+        x.status === 403 || x.status === 404 ? `GitHub refused the change (${x.message}). The site's GitHub token may need Contents: Read and write.` :
+        x.message, true);
     }
   }
 
@@ -566,15 +605,11 @@
     bindFields(el);
   };
 
-  /* ---------- Boot ---------- */
-  if (DEMO) { state.token = "demo"; start(); return; }
-  state.token = storedToken();
-  if (state.token) {
-    start().catch((x) => {
-      app.hidden = true; gate.hidden = false;
-      $("[data-signin-error]").textContent = x.status === 401 ? "Your saved token has expired. Paste a new one." : `Couldn't load the site content (${x.message}).`;
-    });
+  /* ---------- Boot: go straight in with a valid session, else ask for the password ---------- */
+  if (!DEMO && session.get()) {
+    start().catch((x) => { if (x.status !== 401) lockOut(`Couldn't load the site content (${x.message}).`); });
   } else {
-    gate.hidden = false;
+    lock.hidden = false;
+    lock.querySelector("[name=password]").focus();
   }
 })();
