@@ -133,7 +133,7 @@
  },
  {
   "description": "Pearl and ruby bead strands finished with a gold pendant and pearl fringe, with a matching tikka.",
-  "price": "40$",
+  "price": "$40",
   "soldOut": false,
   "featured": true,
   "images": [],
@@ -228,7 +228,7 @@
  },
  {
   "description": "Red and green bead strands with a kundan pendant and drops, with a matching tikka.",
-  "price": "",
+  "price": "$35",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -302,7 +302,7 @@
  },
  {
   "description": "An oxidized statement pendant set with coloured stones and pearl drops on layered strands, with matching earrings and ring.",
-  "price": "",
+  "price": "$42",
   "soldOut": false,
   "featured": false,
   "images": [
@@ -358,7 +358,7 @@
  },
  {
   "description": "Navy and pearl bead strands with a polki pendant and pearl drops, with matching earrings.",
-  "price": "45$",
+  "price": "$45",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -376,7 +376,7 @@
  },
  {
   "description": "A red velvet potli with dense gold embroidery and a cascade of pearl strands.",
-  "price": "38$",
+  "price": "$38",
   "soldOut": false,
   "featured": true,
   "images": [],
@@ -394,7 +394,7 @@
  },
  {
   "description": "Black velvet potli with gold embroidery, a gold silk top and pearl strand handles.",
-  "price": "38$",
+  "price": "$38",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -412,7 +412,7 @@
  },
  {
   "description": "An ivory box clutch embroidered with the Taj Mahal in gold, with a chain strap.",
-  "price": "42$",
+  "price": "$42",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -430,7 +430,7 @@
  },
  {
   "description": "A pearl-beaded handbag with a scalloped tassel fringe and green accents.",
-  "price": "45$",
+  "price": "$45",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -448,7 +448,7 @@
  },
  {
   "description": "A sculpted gold leaf clutch inlaid with mother-of-pearl, with a chain strap.",
-  "price": "100$",
+  "price": "$100",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -466,7 +466,7 @@
  },
  {
   "description": "A sculpted box clutch in deep red with ivory floral work and a gold chain strap.",
-  "price": "",
+  "price": "$42",
   "soldOut": false,
   "featured": false,
   "images": [],
@@ -484,7 +484,7 @@
  },
  {
   "description": "An ivory potli covered in pearls, with a pearl fringe and drawstring.",
-  "price": "",
+  "price": "42$",
   "soldOut": false,
   "featured": false,
   "images": [],
