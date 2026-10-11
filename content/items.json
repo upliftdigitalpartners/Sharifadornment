@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$30",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mv4hgk8t7.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "the-pearl-cascade-jhumkas",
+  "name": "The Pearl Cascade Jhumkas",
+  "collection": "earings",
+  "image": "assets/uploads/piece-mv4hgk9q8.jpg"
+ },
+ {
+  "description": "",
   "price": "$45",
   "soldOut": false,
   "featured": false,
