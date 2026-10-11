@@ -1,5 +1,15 @@
 [
  {
+  "id": "off-white-floral-embroidered-bird-clutch",
+  "name": "Off-White Floral Embroidered Bird Clutch",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mv3c7ecq.jpg",
+  "description": "",
+  "price": "42$",
+  "soldOut": false,
+  "featured": false
+ },
+ {
   "id": "black-circular-clutch-bag",
   "name": "Black Circular Clutch Bag",
   "collection": "potli",
