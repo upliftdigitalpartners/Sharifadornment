@@ -528,6 +528,7 @@ p { margin: 0; }
 .heart svg, .save-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
 .heart.is-on, .save-btn.is-on { color: var(--gold); }
 .heart.is-on svg, .save-btn.is-on svg { fill: currentColor; }
+.save-btn.is-on:hover { color: var(--bg); } /* gold heart on the gold hover background would vanish */
 @media (max-width: 960px) { .items { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 680px) { .items { grid-template-columns: repeat(2, 1fr); gap: 32px 12px; } .item__name { font-size: 1.15rem; } }
 @media (max-width: 860px) {
@@ -542,7 +543,7 @@ p { margin: 0; }
 
 /* Search + filters, kept in reach while scrolling */
 .toolbar {
-  position: sticky; top: 64px; z-index: 5;
+  position: sticky; top: 74px; z-index: 5;
   display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
   margin: 0 calc(var(--gutter) * -1) clamp(20px, 3vw, 32px); padding: 12px var(--gutter);
   background: var(--glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
@@ -554,7 +555,7 @@ p { margin: 0; }
 .search input { flex: 1; min-width: 0; min-height: 44px; border: 0; background: transparent; color: var(--ink); font: 400 1rem/1 var(--sans); }
 .search input:focus { outline: none; }
 .results { min-height: 1.2em; margin-bottom: 20px; color: var(--muted); font-size: 0.9rem; }
-@media (max-width: 860px) { .toolbar { top: 56px; } .search { flex: 1 1 100%; } }
+@media (max-width: 860px) { .toolbar { top: 74px; } .search { flex: 1 1 100%; } }
 
 /* A piece in detail: its own page, or the quick view */
 .detail { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
@@ -655,6 +656,7 @@ p { margin: 0; }
   font-size: 0.84rem; text-align: center;
 }
 .banner em { color: var(--gold-light); }
+:root[data-theme="dark"] .banner em { color: #7d5f33; }
 .banner a { border-bottom: 1px solid currentColor; margin-left: 6px; }
 .banner__close { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: none; border: 0; color: inherit; font-size: 1.3rem; cursor: pointer; }
 body:has(.banner) .nav:not(.is-scrolled) { top: var(--banner-h, 41px); }
@@ -726,7 +728,8 @@ body:has(.banner) .nav:not(.is-scrolled) { top: var(--banner-h, 41px); }
 /* ---------- Small helpers ---------- */
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .toast {
-  position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 70;
+  position: fixed; inset: auto auto calc(96px + env(safe-area-inset-bottom)) 50%; z-index: 70;
+  margin: 0; border: 0; overflow: visible;
   transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
   max-width: min(520px, calc(100% - 32px)); padding: 14px 20px;
   background: var(--ink); color: var(--bg); font-size: 0.9rem; text-align: center;

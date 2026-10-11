@@ -2,7 +2,7 @@
  * The pages arrive fully built (shared/pages.mjs); this adds the interactive
  * parts: quick view, saved pieces, asking about a piece, search and filters,
  * photo zoom, forms, night mode and the Studio's preview mode. */
-import { esc, rich, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, money, pieceUrl, waNumber } from "../shared/render.mjs";
+import { esc, rich, withPieces, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, money, pieceUrl, waNumber } from "../shared/render.mjs";
 
 const API = "https://sharif-adornment-studio.netlify.app/api";
 const $ = (s, el = document) => el.querySelector(s);
@@ -30,9 +30,14 @@ function toast(msg) {
   const t = $("[data-toast]");
   if (!t) return;
   t.textContent = msg;
-  t.classList.add("is-on");
+  // A popover sits in the top layer, so the message shows above an open quick view too
+  if (t.showPopover) { try { t.hidePopover(); t.showPopover(); } catch (_) { /* not supported */ } }
+  requestAnimationFrame(() => t.classList.add("is-on"));
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("is-on"), 4200);
+  toastTimer = setTimeout(() => {
+    t.classList.remove("is-on");
+    toastTimer = setTimeout(() => { try { t.hidePopover?.(); } catch (_) { /* ignore */ } }, 400);
+  }, 4200);
 }
 
 /* ---------- Stats (anonymous counts, no cookies) ---------- */
@@ -61,8 +66,9 @@ themeBtn?.addEventListener("click", () => {
 });
 
 /* ---------- Banner ---------- */
-const banner = $("[data-banner]");
-if (banner) {
+function setupBanner() {
+  const banner = $("[data-banner]");
+  if (!banner) { root.style.setProperty("--banner-h", "0px"); return; }
   const key = `sa-banner:${banner.textContent.trim().slice(0, 80)}`;
   const setH = () => root.style.setProperty("--banner-h", `${banner.isConnected ? banner.offsetHeight : 0}px`);
   try { if (sessionStorage.getItem(key)) banner.remove(); } catch (_) { /* ignore */ }
@@ -74,6 +80,7 @@ if (banner) {
     try { sessionStorage.setItem(key, "1"); } catch (_) { /* ignore */ }
   });
 }
+setupBanner();
 
 /* ---------- Nav (menu keeps keyboard focus inside while open) ---------- */
 const nav = $(".nav");
@@ -91,6 +98,7 @@ function setMenu(open) {
   else if (document.activeElement && menu.contains(document.activeElement)) toggle.focus();
 }
 toggle.addEventListener("click", () => setMenu(!nav.classList.contains("is-open")));
+matchMedia("(max-width: 1100px)").addEventListener("change", (e) => { if (!e.matches && nav.classList.contains("is-open")) setMenu(false); });
 $$("a", menu).forEach((a) => a.addEventListener("click", () => setMenu(false)));
 addEventListener("keydown", (e) => {
   if (!nav.classList.contains("is-open")) return;
@@ -316,7 +324,8 @@ function setupCollections() {
   if (!grid) return;
   const search = $("[data-search]");
   const results = $("[data-results]");
-  let active = params.get("c") && (site.collections || []).some((c) => c.id === params.get("c")) ? params.get("c") : (params.get("c") === "rent" ? "rent" : "all");
+  const wanted = params.get("c");
+  let active = wanted && $(`[data-filter="${CSS.escape(wanted)}"]`) ? wanted : "all";
   if (params.get("q")) search.value = params.get("q");
   const text = (it) => `${it.name} ${it.description} ${(site.collections || []).find((c) => c.id === it.collection)?.name || ""} ${it.size}`.toLowerCase();
   const apply = () => {
@@ -452,8 +461,9 @@ function rerender() {
   $$("[data-src]").forEach((el) => { const v = get(site, el.dataset.src); if (v) { el.src = v; el.removeAttribute("srcset"); } });
   $$("[data-paragraphs]").forEach((el) => { el.innerHTML = paragraphsHTML(get(site, el.dataset.paragraphs)); });
   const set = (sel, html) => { const el = $(sel); if (el) el.innerHTML = html; };
-  set("[data-collections]", (site.collections || []).map(collectionCard).join(""));
+  set("[data-collections]", withPieces(site, items).map(collectionCard).join(""));
   set("[data-featured]", items.filter((i) => i.featured).map((it) => itemCard(it, site)).join(""));
+  $$("[data-featured-section]").forEach((s) => { s.hidden = !items.some((i) => i.featured); });
   set("[data-items]", items.map((it) => itemCard(it, site)).join(""));
   set("[data-steps]", stepsHTML(site.order?.steps));
   set("[data-pillars]", pillarsHTML(site.story?.pillars));
@@ -469,7 +479,8 @@ function rerender() {
     d.outerHTML = pieceDetail(byId(piece.dataset.piece), site, items, { heading: "h1" });
   }
   $("[data-banner]")?.remove();
-  if (site.banner?.on) $(".skip").insertAdjacentHTML("afterend", bannerHTML(site.banner));
+  $(".skip").insertAdjacentHTML("afterend", bannerHTML(site.banner));
+  setupBanner();
   const bar = document.createElement("div");
   bar.className = "preview-bar";
   bar.innerHTML = 'Preview — not published yet. <button type="button">Close preview</button>';
@@ -489,7 +500,7 @@ loadContent()
     setupCollections();
     setupForms();
     if (onPiecePage) track("view", $("[data-piece]")?.dataset.piece);
-    else if (params.get("piece") && $("[data-items]")) openPiece(params.get("piece"), { push: false });
+    else if (params.get("piece") && !$('[data-form="enquiry"]')) openPiece(params.get("piece"), { push: false });
   })
   .catch((err) => {
     console.warn("Content failed to load", err);

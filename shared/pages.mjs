@@ -8,7 +8,7 @@
 import {
   esc, rich, img, motif, itemCard, collectionCard, pieceDetail, stepsHTML, pillarsHTML,
   paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, bannerHTML, collectionName,
-  priceLine, pieceUrl, waNumber, HEART,
+  priceLine, pieceUrl, waNumber, HEART, withPieces,
 } from "./render.mjs";
 
 export const SITE_URL = "https://sharifadornment.com/";
@@ -71,7 +71,7 @@ function shell(site, { file, title, desc, body, base = "", ogImage = "assets/img
   <link rel="stylesheet" href="css/style.css" />${preload}${jsonld ? `\n  <script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, "\\u003c")}</script>` : ""}
 </head>
 <body data-page="${page || file.replace(/\.html$/, "")}">
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip" href="${base ? file : ""}#main">Skip to content</a>
   ${bannerHTML(site.banner)}
   <header class="nav">
     <a href="index.html" class="nav__brand" aria-label="Sharif Adornment home"><span class="caps">SHARIF</span> <span class="glitter">Adornment</span></a>
@@ -97,13 +97,13 @@ ${body}
     <div class="footer__top">
       <div class="footer__about">
         <p class="footer__mark"><span class="caps">SHARIF</span> <em class="glitter">Adornment</em></p>
-        <p class="footer__hours" data-t="footer.hours">${esc(f.hours || "")}</p>
+        <p class="footer__hours" data-t="footer.hours">${rich(f.hours || "")}</p>
         ${social ? `<div class="socials">${social}</div>` : ""}
       </div>
       <form class="newsletter" data-newsletter novalidate>
         <p class="label">Newsletter</p>
         <h3 data-t="footer.newsletterTitle">${rich(f.newsletterTitle || "")}</h3>
-        <p class="newsletter__text" data-t="footer.newsletterText">${esc(f.newsletterText || "")}</p>
+        <p class="newsletter__text" data-t="footer.newsletterText">${rich(f.newsletterText || "")}</p>
         <div class="newsletter__row">
           <input type="email" name="email" required autocomplete="email" placeholder="Email address" aria-label="Email address" />
           <button class="btn" type="submit">Sign up</button>
@@ -117,7 +117,7 @@ ${body}
     </nav>
     <div class="footer__row">
       <span><a class="footer__c" href="studio/" aria-label="Studio">©</a> <span class="js-year">${new Date().getFullYear()}</span> Sharif Adornment</span>
-      <a href="#main">Back to top</a>
+      <a href="${base ? file : ""}#main">Back to top</a>
     </div>
   </footer>
 
@@ -149,7 +149,7 @@ ${body}
     <button class="sheet__close" type="button" data-zoom-close>Close</button>
     <div class="zoom__stage"><img alt="" /></div>
   </dialog>
-  <div class="toast" data-toast role="status" aria-live="polite"></div>
+  <div class="toast" data-toast role="status" aria-live="polite" popover="manual"></div>
 
   <script type="module" src="js/app.js"></script>
 </body>
@@ -161,9 +161,9 @@ const head = (prefix, site, { tag = "h2", row = "", intro = false } = {}) => {
   const s = prefix.split(".").reduce((v, k) => v?.[k], site) || {};
   return `      <header class="section__head${row ? " section__head--row" : ""}">
         <div>
-          <p class="label reveal" data-t="${prefix}.label">${esc(s.label || "")}</p>
+          <p class="label reveal" data-t="${prefix}.label">${rich(s.label || "")}</p>
           <${tag} class="${tag === "h1" ? "page__title " : ""}reveal" data-t="${prefix}.title">${rich(s.title || "")}</${tag}>
-          ${intro && s.intro ? `<p class="page__intro reveal" data-t="${prefix}.intro">${esc(s.intro)}</p>` : ""}
+          ${intro && s.intro ? `<p class="page__intro reveal" data-t="${prefix}.intro">${rich(s.intro)}</p>` : ""}
         </div>${row}
       </header>`;
 };
@@ -173,9 +173,9 @@ const occasion = (site) => {
   return `    <section class="occasion">
       <div class="occasion__inner reveal">
         ${motif("motif--short")}
-        <p class="label" data-t="occasion.label">${esc(o.label)}</p>
+        <p class="label" data-t="occasion.label">${rich(o.label)}</p>
         <h2 data-t="occasion.title">${rich(o.title)}</h2>
-        <p data-t="occasion.text">${esc(o.text)}</p>
+        <p data-t="occasion.text">${rich(o.text)}</p>
         <a href="contact.html" class="btn btn--light" data-t="occasion.button">${rich(o.button)}</a>
       </div>
     </section>`;
@@ -218,9 +218,9 @@ export function buildSite(site, items) {
     },
     body: `    <section class="hero">
       <div class="hero__copy">
-        <p class="label reveal" data-t="home.label">${esc(h.label)}</p>
+        <p class="label reveal" data-t="home.label">${rich(h.label)}</p>
         <h1 class="hero__title reveal" data-t="home.title">${rich(h.title)}</h1>
-        <p class="hero__lede reveal" data-t="home.intro">${esc(h.intro)}</p>
+        <p class="hero__lede reveal" data-t="home.intro">${rich(h.intro)}</p>
         <div class="hero__actions reveal">
           <a href="collections.html" class="btn" data-t="home.button">${rich(h.button)}</a>
           ${messageLink(site, "link", esc(site.nav?.book || "Message us"), ' data-t="nav.book"')}
@@ -235,16 +235,16 @@ export function buildSite(site, items) {
 
     <section class="section">
       <header class="section__head">
-        <p class="label reveal" data-t="home.collectionsLabel">${esc(h.collectionsLabel)}</p>
+        <p class="label reveal" data-t="home.collectionsLabel">${rich(h.collectionsLabel)}</p>
         <h2 class="reveal" data-t="home.collectionsTitle">${rich(h.collectionsTitle)}</h2>
       </header>
-      <div class="collections" data-collections>${(site.collections || []).map(collectionCard).join("")}</div>
+      <div class="collections" data-collections>${withPieces(site, items).map(collectionCard).join("")}</div>
     </section>
 
     <section class="section" data-featured-section${visible.some((i) => i.featured) ? "" : " hidden"}>
       <header class="section__head section__head--row">
         <div>
-          <p class="label reveal" data-t="home.featuredLabel">${esc(h.featuredLabel)}</p>
+          <p class="label reveal" data-t="home.featuredLabel">${rich(h.featuredLabel)}</p>
           <h2 class="reveal" data-t="home.featuredTitle">${rich(h.featuredTitle)}</h2>
         </div>
         <a class="link reveal" href="collections.html">View all pieces</a>
@@ -255,9 +255,9 @@ export function buildSite(site, items) {
     <section class="section story">
       <figure class="story__img reveal">${img(site.story?.image, "Gold and ruby bead necklace set displayed with flowers", { sizes: "(max-width: 860px) 100vw, 45vw", attrs: 'data-src="story.image"' })}</figure>
       <div class="story__copy">
-        <p class="label reveal" data-t="story.label">${esc(site.story?.label)}</p>
+        <p class="label reveal" data-t="story.label">${rich(site.story?.label)}</p>
         <h2 class="reveal" data-t="story.title">${rich(site.story?.title)}</h2>
-        <p class="reveal" data-t="story.paragraphs.0">${esc(site.story?.paragraphs?.[0] || "")}</p>
+        <p class="reveal" data-t="story.paragraphs.0">${rich(site.story?.paragraphs?.[0] || "")}</p>
         <a class="link reveal story__more" href="story.html" data-t="home.storyLink">${rich(h.storyLink)}</a>
       </div>
     </section>
@@ -311,7 +311,7 @@ ${occasion(site)}`,
     body: `    <section class="section section--first story">
       <figure class="story__img reveal">${img(st.image, "Gold and ruby bead necklace set displayed with flowers", { sizes: "(max-width: 860px) 100vw, 45vw", lazy: false, attrs: 'data-src="story.image"' })}</figure>
       <div class="story__copy">
-        <p class="label reveal" data-t="story.label">${esc(st.label)}</p>
+        <p class="label reveal" data-t="story.label">${rich(st.label)}</p>
         <h1 class="page__title reveal" data-t="story.title">${rich(st.title)}</h1>
         <div class="story__text reveal" data-paragraphs="story.paragraphs">${paragraphsHTML(st.paragraphs)}</div>
         <dl class="pillars reveal" data-pillars>${pillarsHTML(st.pillars)}</dl>
@@ -390,9 +390,9 @@ ${head("faq", site, { tag: "h1", intro: true })}
     desc: "Ask about a piece, availability or delivery. Message Sharif Adornment on Messenger, call or text, or send an enquiry.",
     body: `    <section class="section section--first contact">
       <div class="contact__copy">
-        <p class="label reveal" data-t="contact.label">${esc(ct.label)}</p>
+        <p class="label reveal" data-t="contact.label">${rich(ct.label)}</p>
         <h1 class="page__title reveal" data-t="contact.title">${rich(ct.title)}</h1>
-        <p class="reveal" data-t="contact.text">${esc(ct.text)}</p>
+        <p class="reveal" data-t="contact.text">${rich(ct.text)}</p>
         <dl class="channels reveal">
           ${b.messenger ? `<div><dt>Message</dt><dd><a href="${esc(b.messenger)}" target="_blank" rel="noopener">Facebook Messenger</a></dd></div>` : ""}
           ${b.whatsapp ? `<div><dt>WhatsApp</dt><dd><a href="https://wa.me/${waNumber(b.whatsapp)}" target="_blank" rel="noopener">${esc(b.whatsapp)}</a></dd></div>` : ""}
@@ -422,7 +422,7 @@ ${head("faq", site, { tag: "h1", intro: true })}
     const desc = `${it.description || it.name} ${priceLine(it)}. Sharif Adornment, Queens NY.`.trim();
     pages[pieceUrl(it)] = shell(site, {
       file: pieceUrl(it), base: "../", page: "piece",
-      title: `${it.name} — Sharif Adornment`, desc, ogImage: it.image,
+      title: `${it.name} — Sharif Adornment`, desc, ogImage: it.image || undefined,
       jsonld: {
         "@context": "https://schema.org", "@type": "Product", name: it.name, description: it.description || undefined,
         image: [it.image, ...(it.images || [])].filter(Boolean).map(abs), category: col || undefined,
