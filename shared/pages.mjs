@@ -38,7 +38,7 @@ function shell(site, { file, title, desc, body, base = "", ogImage = "assets/img
   const b = site.business || {};
   const nav = NAV.map(([href, label]) =>
     `      <a href="${href}"${href === file ? ' aria-current="page"' : ""}>${label}</a>`).join("\n");
-  const bookLabel = esc(site.nav?.book || "Book a visit");
+  const bookLabel = esc(site.nav?.book || "Book a call");
   const social = [
     b.facebook && `<a href="${esc(b.facebook)}" target="_blank" rel="noopener" aria-label="Facebook">${ICONS.facebook}</a>`,
     b.instagram && `<a href="${esc(b.instagram)}" target="_blank" rel="noopener" aria-label="Instagram">${ICONS.instagram}</a>`,
@@ -203,9 +203,9 @@ export function buildSite(site, items) {
     desc: "South Asian jewelry and accessories in Queens, New York. Bridal sets, kundan, oxidized silver, pearl malas, bangles, jhumkas, potli bags and clutches. Delivery available.",
     preload: `\n  <link rel="preload" as="image" href="${esc(h.heroImage)}" />`,
     jsonld: {
-      "@context": "https://schema.org", "@type": "JewelryStore", name: "Sharif Adornment", url: SITE_URL,
+      "@context": "https://schema.org", "@type": "OnlineStore", name: "Sharif Adornment", url: SITE_URL,
       image: abs("assets/img/og-image.jpg"), telephone: site.business?.phone ? `+1-${String(site.business.phone).replace(/[^\d]/g, "").slice(-10).replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3")}` : undefined,
-      priceRange: "$$", address: { "@type": "PostalAddress", addressLocality: "Queens", addressRegion: "NY", addressCountry: "US" },
+      priceRange: "$$", areaServed: "US",
       sameAs: [site.business?.facebook, site.business?.instagram].filter(Boolean),
     },
     body: `    <section class="hero">
@@ -215,7 +215,7 @@ export function buildSite(site, items) {
         <p class="hero__lede reveal" data-t="home.intro">${esc(h.intro)}</p>
         <div class="hero__actions reveal">
           <a href="collections.html" class="btn" data-t="home.button">${rich(h.button)}</a>
-          <a href="book.html" class="link" data-t="nav.book">${esc(site.nav?.book || "Book a visit")}</a>
+          <a href="book.html" class="link" data-t="nav.book">${esc(site.nav?.book || "Book a call")}</a>
         </div>
       </div>
       <figure class="hero__media reveal" data-hero data-video="${esc(h.heroVideo || "")}" data-video-mobile="${esc(h.heroVideoMobile || "")}">
@@ -348,7 +348,7 @@ ${head("gallery", site, { tag: "h1", row: `
   const fq = site.faq || {};
   pages["faq.html"] = shell(site, {
     file: "faq.html", title: "FAQ — Sharif Adornment",
-    desc: "Ordering, delivery, visits, rentals and jewelry care — answers to common questions about Sharif Adornment in Queens, NY.",
+    desc: "Ordering, delivery, video calls, rentals and jewelry care — answers to common questions about Sharif Adornment in Queens, NY.",
     jsonld: {
       "@context": "https://schema.org", "@type": "FAQPage",
       mainEntity: (fq.items || []).map((x) => ({ "@type": "Question", name: x.q, acceptedAnswer: { "@type": "Answer", text: x.a } })),
@@ -362,15 +362,15 @@ ${head("faq", site, { tag: "h1", intro: true })}
       <h2 class="reveal">Still wondering about <em>something?</em></h2>
       <div class="cta__actions reveal">
         <a href="contact.html" class="btn">Message us</a>
-        <a href="book.html" class="link">${esc(site.nav?.book || "Book a visit")}</a>
+        <a href="book.html" class="link">${esc(site.nav?.book || "Book a call")}</a>
       </div>
     </section>`,
   });
 
   const bk = site.book || {};
   pages["book.html"] = shell(site, {
-    file: "book.html", title: "Book a Visit — Sharif Adornment",
-    desc: "Book a visit in Queens or a video call to see Sharif Adornment pieces — bridal sets, kundan, pearls, bangles and potlis.",
+    file: "book.html", title: "Book a Call — Sharif Adornment",
+    desc: "Book a video or phone call to see Sharif Adornment pieces — bridal sets, kundan, pearls, bangles and potlis.",
     body: `    <section class="section section--first contact">
       <div class="contact__copy">
         <p class="label reveal" data-t="book.label">${esc(bk.label)}</p>
