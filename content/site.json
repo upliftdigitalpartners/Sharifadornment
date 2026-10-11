@@ -45,7 +45,7 @@
   },
   {
    "id": "oxidized",
-   "name": "Oxidized Silver",
+   "name": "Silver Look-Alike",
    "text": "Antique silver finishes and bold, tribal-inspired forms with a quiet, old-world edge.",
    "image": "assets/img/col-oxidized.jpg"
   },
@@ -57,8 +57,8 @@
   },
   {
    "id": "bangles",
-   "name": "Bangles & Jhumkas",
-   "text": "Stacks of carved kangan and swaying jhumkas — the finishing notes of every look.",
+   "name": "Bangles",
+   "text": "",
    "image": "assets/img/col-bangles.jpg"
   },
   {
@@ -66,6 +66,12 @@
    "name": "Potlis & Clutches",
    "text": "Embroidered potli bags draped in pearls, and sculpted clutches made to be noticed.",
    "image": "assets/img/col-potli.jpg"
+  },
+  {
+   "id": "earings",
+   "name": "Earrings",
+   "text": "",
+   "image": "assets/uploads/collection-earings-mv3vmshz0.jpg"
   }
  ],
  "story": {
