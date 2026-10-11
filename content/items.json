@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$45",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "gold-combo-set-with-tikli",
+  "name": "Gold Combo Set With Tikli",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mv4he3sl6.jpg"
+ },
+ {
+  "description": "",
   "price": "$75",
   "soldOut": false,
   "featured": false,
