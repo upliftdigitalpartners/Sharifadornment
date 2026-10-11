@@ -252,6 +252,9 @@ p { margin: 0; }
 .thumbs button[data-thumb-left] { left: 4px; }
 .thumbs button[data-thumb-del] { right: 4px; }
 .thumbs button:disabled { display: none; }
+.thumbs .thumb-main { top: auto; bottom: 4px; left: 4px; right: 4px; width: auto; height: 24px; border-radius: 12px; font-size: 0.7rem; letter-spacing: 0.04em; opacity: 0.92; }
+.editor__more label.btn { position: relative; overflow: hidden; width: 100%; }
+.photo-status { margin: 8px 0 0; font-size: 0.85rem; }
 .thumbs .muted { grid-column: 1 / -1; font-size: 0.85rem; }
 .file-link { position: relative; overflow: hidden; display: inline-block; }
 .file-link input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }

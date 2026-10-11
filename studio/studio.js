@@ -268,6 +268,9 @@
       return im;
     } finally { setTimeout(() => URL.revokeObjectURL(url), 2000); }
   }
+  // Unique even when several photos finish in the same millisecond
+  let uploadCount = 0;
+  const uid = () => `${Date.now().toString(36)}${(uploadCount++).toString(36)}`;
   async function addPhoto(file, name) {
     let pic;
     try { pic = await decode(file); } catch (_) {
@@ -284,7 +287,7 @@
       return new Promise((ok) => canvas.toBlob(ok, "image/jpeg", quality));
     };
     // Every photo gets a 1600px copy and a 640px copy for phones
-    const base = `assets/uploads/${slug(name || file.name.replace(/\.\w+$/, ""))}-${Date.now().toString(36)}`;
+    const base = `assets/uploads/${slug(name || file.name.replace(/\.\w+$/, ""))}-${uid()}`;
     for (const [path, blob] of [[`${base}.jpg`, await make(1600, 0.82)], [`${base}-sm.jpg`, await make(640, 0.78)]]) {
       state.uploads.set(path, blob);
       state.previews.set(path, URL.createObjectURL(blob));
@@ -297,7 +300,7 @@
     if (file.size > 4 * 1024 * 1024) {
       throw new Error(`This video is ${(file.size / 1048576).toFixed(1)} MB. Videos must be under 4 MB — shorten or compress it first (the free HandBrake app works well).`);
     }
-    const path = `assets/uploads/${slug(name || "video")}-${Date.now().toString(36)}.${ext}`;
+    const path = `assets/uploads/${slug(name || "video")}-${uid()}.${ext}`;
     state.uploads.set(path, file);
     state.previews.set(path, URL.createObjectURL(file));
     return path;
@@ -375,11 +378,12 @@
       <form method="dialog" novalidate>
         <div class="editor__media">
           <img data-preview src="${esc(src(it.image))}" alt="" ${it.image ? "" : "hidden"} />
-          <label class="btn btn--ghost">${it.image ? "Replace main photo" : "Choose main photo"}<input type="file" accept="image/*" data-file /></label>
+          <label class="btn btn--ghost">${it.image ? "Replace main photo" : "Choose photos"}<input type="file" accept="image/*" ${it.image ? "" : "multiple"} data-file /></label>
           <div class="editor__more">
-            <span class="mini-label">More photos</span>
+            <span class="mini-label">More photos <small>— pick several at once</small></span>
             <div class="thumbs" data-thumbs></div>
-            <label class="add-link file-link">+ Add photos<input type="file" accept="image/*" multiple data-more /></label>
+            <label class="btn btn--ghost">+ Add more photos<input type="file" accept="image/*" multiple data-more /></label>
+            <p class="muted photo-status" data-photo-status hidden></p>
           </div>
           <div class="editor__more">
             <span class="mini-label">Video <small>(MP4, under 4 MB)</small></span>
@@ -391,7 +395,7 @@
         <div class="editor__body">
           <h2>${existing ? "Edit piece" : "New piece"}</h2>
           <label class="field"><span>Name</span><input name="name" required value="${esc(it.name)}" /></label>
-          <label class="field"><span>Collection</span>
+          <label class="field"><span>Collection (category)</span>
             <select name="collection">${state.site.collections.map((c) => `<option value="${esc(c.id)}"${c.id === it.collection ? " selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
           </label>
           <div class="field-pair">
@@ -426,6 +430,7 @@
     const drawThumbs = () => {
       $("[data-thumbs]", dlg).innerHTML = images.map((p, i) => `<figure><img src="${esc(src(p))}" alt="" />
         <button type="button" data-thumb-left="${i}" aria-label="Move earlier" ${i ? "" : "disabled"}>←</button>
+        <button type="button" class="thumb-main" data-thumb-main="${i}">Make main</button>
         <button type="button" data-thumb-del="${i}" aria-label="Remove photo">×</button></figure>`).join("") || '<p class="muted">None yet.</p>';
       $("[data-video-box]", dlg).innerHTML = video ? `<div class="video-row"><video src="${esc(src(video))}" muted playsinline></video><button type="button" class="add-link" data-video-del>Remove video</button></div>` : "";
     };
@@ -434,23 +439,32 @@
       const l = e.target.closest("[data-thumb-left]"), d = e.target.closest("[data-thumb-del]");
       if (l) { const i = +l.dataset.thumbLeft; [images[i - 1], images[i]] = [images[i], images[i - 1]]; drawThumbs(); }
       if (d) { images.splice(+d.dataset.thumbDel, 1); drawThumbs(); }
+      const m = e.target.closest("[data-thumb-main]");
+      if (m) { const i = +m.dataset.thumbMain; [image, images[i]] = [images[i], image]; images = images.filter(Boolean); showMain(); drawThumbs(); }
       if (e.target.closest("[data-video-del]")) { video = ""; drawThumbs(); }
     });
     const nameNow = () => $("[name=name]", dlg).value || "piece";
-    $("[data-file]", dlg).addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      try {
-        image = await addPhoto(file, nameNow());
-        const img = $("[data-preview]", dlg);
-        img.src = src(image); img.hidden = false;
-      } catch (x) { toast(x.message, true); }
-    });
-    $("[data-more]", dlg).addEventListener("change", async (e) => {
-      for (const file of e.target.files) { try { images.push(await addPhoto(file, nameNow())); } catch (x) { toast(x.message, true); } }
-      e.target.value = "";
-      drawThumbs();
-    });
+    const showMain = () => { const img = $("[data-preview]", dlg); img.src = src(image); img.hidden = !image; };
+    // Phone photos take a moment each, so show progress and hold "Done" until they're ready
+    let busy = 0;
+    const done = $("[type=submit]", dlg);
+    async function takePhotos(files, first) {
+      files = [...files];
+      if (!files.length) return;
+      busy++; done.disabled = true;
+      const status = $("[data-photo-status]", dlg);
+      status.hidden = false;
+      for (const [n, file] of files.entries()) {
+        status.textContent = `Preparing photo ${n + 1} of ${files.length}…`;
+        try {
+          const path = await addPhoto(file, nameNow());
+          if (first && n === 0) { image = path; showMain(); } else { images.push(path); drawThumbs(); }
+        } catch (x) { toast(x.message, true); }
+      }
+      if (--busy === 0) { done.disabled = false; status.hidden = true; }
+    }
+    $("[data-file]", dlg).addEventListener("change", async (e) => { await takePhotos(e.target.files, true); e.target.value = ""; });
+    $("[data-more]", dlg).addEventListener("change", async (e) => { await takePhotos(e.target.files, false); e.target.value = ""; });
     $("[data-video]", dlg).addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -478,6 +492,7 @@
     });
     $("form", dlg).addEventListener("submit", (e) => {
       const f = e.target;
+      if (busy) { e.preventDefault(); toast("One moment — still preparing your photos."); return; }
       const name = f.name.value.trim();
       if (!name) { e.preventDefault(); f.name.focus(); return; }
       if (!image) { e.preventDefault(); toast("Add a main photo for this piece.", true); return; }
