@@ -201,8 +201,8 @@
   "button": "Send enquiry"
  },
  "banner": {
-  "on": false,
-  "text": "Wedding season appointments are open.",
+  "on": true,
+  "text": "Inbox Us On Facebook To Place An Order ! ",
   "linkText": "",
   "link": ""
  },
@@ -295,14 +295,11 @@
   ]
  },
  "book": {
-  "label": "Book a call",
-  "title": "See the pieces *up close.*",
-  "intro": "Book a video call and we'll show you each piece up close, or a phone call to talk it through. Tell us the occasion and what you'd like to see, and we'll have it ready.",
-  "types": [
-   "Video call",
-   "Phone call"
-  ],
-  "button": "Request appointment",
+  "label": "",
+  "title": "",
+  "intro": "",
+  "types": [],
+  "button": "",
   "note": "We'll confirm your time by text or Messenger."
  },
  "nav": {

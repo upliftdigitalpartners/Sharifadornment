@@ -31,7 +31,7 @@
 </head>
 <body data-page="book">
   <a class="skip" href="#main">Skip to content</a>
-  
+  <div class="banner" data-banner><p>Inbox Us On Facebook To Place An Order ! </p><button type="button" class="banner__close" data-banner-close aria-label="Dismiss">×</button></div>
   <header class="nav">
     <a href="index.html" class="nav__brand" aria-label="Sharif Adornment home"><span class="caps">SHARIF</span> Adornment</a>
     <nav class="nav__links" id="menu" aria-label="Primary">
@@ -56,23 +56,23 @@
   <main id="main">
     <section class="section section--first contact">
       <div class="contact__copy">
-        <p class="label reveal" data-t="book.label">Book a call</p>
-        <h1 class="page__title reveal" data-t="book.title">See the pieces <em>up close.</em></h1>
-        <p class="reveal" data-t="book.intro">Book a video call and we&#39;ll show you each piece up close, or a phone call to talk it through. Tell us the occasion and what you&#39;d like to see, and we&#39;ll have it ready.</p>
+        <p class="label reveal" data-t="book.label"></p>
+        <h1 class="page__title reveal" data-t="book.title"></h1>
+        <p class="reveal" data-t="book.intro"></p>
         <div class="motif motif--left reveal" aria-hidden="true"><svg viewBox="0 0 44 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M22 2.5c3.2 4.2 3.2 9.6 0 14c-3.2-4.4-3.2-9.8 0-14z"/><path d="M21.6 16.5c-2-5-7-7.6-12.6-6.6c2.3 4.5 7.5 7.4 12.6 6.6z"/><path d="M22.4 16.5c2-5 7-7.6 12.6-6.6c-2.3 4.5-7.5 7.4-12.6 6.6z"/><path d="M14 20.5h16"/><circle cx="6" cy="20.5" r=".9" fill="currentColor" stroke="none"/><circle cx="38" cy="20.5" r=".9" fill="currentColor" stroke="none"/></svg></div>
         <p class="book__note reveal" data-t="book.note">We&#39;ll confirm your time by text or Messenger.</p>
       </div>
       <form class="enquiry reveal" data-form="book" novalidate>
         <div class="field"><label for="b-name">Your name</label><input id="b-name" name="name" type="text" required autocomplete="name" /></div>
         <div class="field"><label for="b-contact">Phone or email</label><input id="b-contact" name="contact" type="text" required autocomplete="tel" /></div>
-        <div class="field"><label for="b-type">Appointment</label><select id="b-type" name="type"><option>Video call</option><option>Phone call</option></select></div>
+        <div class="field"><label for="b-type">Appointment</label><select id="b-type" name="type"></select></div>
         <div class="field-row">
           <div class="field"><label for="b-date">Preferred date</label><input id="b-date" name="date" type="date" required /></div>
           <div class="field"><label for="b-time">Time of day</label><select id="b-time" name="time"><option>Morning</option><option selected>Afternoon</option><option>Evening</option></select></div>
         </div>
         <div class="field"><label for="b-occasion">Occasion and event date</label><input id="b-occasion" name="occasion" type="text" placeholder="e.g. Mehndi on 14 March" /></div>
         <div class="field"><label for="b-notes">What would you like to see?</label><textarea id="b-notes" name="notes" rows="3" placeholder="Pieces you saved, colours, your outfit…"></textarea></div>
-        <button type="submit" class="btn btn--block" data-t="book.button">Request appointment</button>
+        <button type="submit" class="btn btn--block" data-t="book.button"></button>
         <p class="enquiry__note" role="status" aria-live="polite"></p>
       </form>
     </section>
