@@ -290,6 +290,8 @@
 
   $("[data-discard]").addEventListener("click", () => {
     if (!confirm("Discard all unpublished changes?")) return;
+    draft.clear();
+    state.approved = new Map(); // approved reviews go back to "waiting"
     state.site = JSON.parse(state.saved.site);
     state.items = JSON.parse(state.saved.items);
     state.uploads.clear();
@@ -332,6 +334,11 @@
       state.saved = snap;
       state.shas = out.shas;
       for (const u of uploads) state.uploads.delete(u.path);
+      // Approved reviews that just went live leave the waiting list
+      const live = JSON.parse(snap.site).reviews?.items || [];
+      for (const [id, text] of state.approved) {
+        if (live.some((x) => x.text === text)) { shopApi({ reviews: { remove: id } }).catch(() => {}); state.approved.delete(id); }
+      }
       publishing = false;
       changed();
       toast(out.unchanged ? "Nothing new to publish."
@@ -913,14 +920,21 @@
     drawPending(el);
   };
 
-  // Reviews customers sent from their order link
+  // Reviews customers sent from their order link. Approving adds the review to your
+  // unpublished changes; it leaves the waiting list on the server only once you Publish.
+  state.approved = new Map(); // review id → its text
   async function drawPending(el) {
     const box = $("[data-pending]", el), listEl = $("[data-pending-list]", el);
     let pending = DEMO ? [{ id: "SA-261003-EF56", date: new Date().toISOString(), rating: 5, text: "Beautiful set, everyone asked where it was from!", name: "Sample", pieces: ["Bridal set"] }] : [];
     if (!DEMO) { try { pending = (await shopApi({ reviews: "list" })).reviews; } catch (_) { return; } }
+    const published = JSON.parse(state.saved.site || "{}").reviews?.items || [];
+    const onSite = (p) => published.some((x) => x.text === p.text);
+    // Ones already published (e.g. approved on another device): tidy them off the server
+    if (!DEMO) for (const p of pending.filter(onSite)) shopApi({ reviews: { remove: p.id } }).catch(() => {});
     const draw = () => {
-      box.hidden = !pending.length;
-      listEl.innerHTML = pending.map((p) => `<div class="pending" data-pid="${esc(p.id)}">
+      const show = pending.filter((p) => !onSite(p) && !state.approved.has(p.id) && !state.site.reviews.items.some((x) => x.text === p.text));
+      box.hidden = !show.length;
+      listEl.innerHTML = show.map((p) => `<div class="pending" data-pid="${esc(p.id)}">
         <p class="review__stars">${"★".repeat(p.rating)}</p><blockquote>“${esc(p.text)}”</blockquote>
         <p class="muted">${esc(p.name)} · ${esc(p.pieces.join(", "))} · ${new Date(p.date).toLocaleDateString()}</p>
         <div class="order__actions"><button type="button" class="btn" data-approve>Approve</button><button type="button" class="btn btn--ghost" data-reject>Delete</button></div></div>`).join("");
@@ -928,15 +942,21 @@
     draw();
     listEl.onclick = async (e) => {
       const card = e.target.closest("[data-pid]");
-      if (!card) return;
-      const p = pending.find((x) => x.id === card.dataset.pid);
-      const approve = e.target.closest("[data-approve]"), reject = e.target.closest("[data-reject]");
-      if (!approve && !reject) return;
-      if (reject && !confirm("Delete this review? It won't be shown.")) return;
-      if (approve) state.site.reviews.items.unshift({ text: p.text, name: p.name, occasion: p.pieces[0] || "", image: "", rating: p.rating });
-      if (!DEMO) { try { await shopApi({ reviews: { remove: p.id } }); } catch (x) { toast(x.message, true); return; } }
-      pending = pending.filter((x) => x !== p);
-      if (approve) { render(); toast("Added to your reviews. Press Publish to show it on the site."); } else draw();
+      const p = card && pending.find((x) => x.id === card.dataset.pid);
+      if (!p || card.dataset.busy) return;
+      if (e.target.closest("[data-approve]")) {
+        card.dataset.busy = "1";
+        state.approved.set(p.id, p.text);
+        state.site.reviews.items.unshift({ text: p.text, name: p.name, occasion: p.pieces[0] || "", image: "", rating: p.rating });
+        render();
+        toast("Added to your reviews. Press Publish to show it on the site.");
+      }
+      if (e.target.closest("[data-reject]") && confirm("Delete this review? It won't be shown.")) {
+        card.dataset.busy = "1";
+        if (!DEMO) { try { await shopApi({ reviews: { remove: p.id } }); } catch (x) { delete card.dataset.busy; toast(x.message, true); return; } }
+        pending = pending.filter((x) => x !== p);
+        draw();
+      }
     };
   }
 
@@ -1007,12 +1027,12 @@
            <button type="button" class="btn btn--ghost" data-tg-find>Find my chat</button>
            ${found ? (found.length ? `<ul class="tg-list">${found.filter((f) => !t.chats.some((c) => c.id === f.id)).map((f) => `<li><span>${esc(f.name)}</span><button type="button" class="btn" data-tg-add="${esc(f.id)}" data-name="${esc(f.name)}">Connect</button></li>`).join("") || "<li>Already connected.</li>"}</ul>` : '<p class="muted">No messages found yet. Send your bot a message, then try again.</p>') : ""}`;
     };
-    const run = async (body) => { try { const t = await shopApi({ telegram: body }); show(t, t.found || null); } catch (x) { toast(x.message, true); } };
+    const run = async (body) => { try { const t = await shopApi({ telegram: body }); show(t, t.found || null); return true; } catch (x) { toast(x.message, true); return false; } };
     box.onclick = (e) => {
       if (e.target.closest("[data-tg-find]")) run("find");
-      if (e.target.closest("[data-tg-test]")) run("test").then(() => toast("Test alert sent. Check Telegram."));
+      if (e.target.closest("[data-tg-test]")) run("test").then((ok) => ok && toast("Test alert sent. Check Telegram."));
       const a = e.target.closest("[data-tg-add]");
-      if (a) run({ add: { id: a.dataset.tgAdd, name: a.dataset.name } }).then(() => toast("Connected. A welcome message was sent."));
+      if (a) run({ add: { id: a.dataset.tgAdd, name: a.dataset.name } }).then((ok) => ok && toast("Connected. A welcome message was sent."));
       const r = e.target.closest("[data-tg-remove]");
       if (r && confirm("Stop alerts to this chat?")) run({ remove: r.dataset.tgRemove });
     };
@@ -1044,14 +1064,14 @@
         </form>`;
     };
     const save = async (body) => {
-      if (DEMO) { toast("Demo mode — codes aren't saved."); return; }
-      try { codes = (await shopApi({ codes: body })).codes; draw(); } catch (x) { toast(x.message, true); }
+      if (DEMO) { toast("Demo mode — codes aren't saved."); return false; }
+      try { codes = (await shopApi({ codes: body })).codes; draw(); return true; } catch (x) { toast(x.message, true); return false; }
     };
     box.addEventListener("submit", (e) => {
       if (!e.target.matches("[data-code-new]")) return;
       e.preventDefault();
       const d = Object.fromEntries(new FormData(e.target));
-      save({ set: { ...d, active: true } }).then(() => toast(`Code ${d.code.toUpperCase()} added.`));
+      save({ set: { ...d, active: true } }).then((ok) => ok && toast(`Code ${d.code.toUpperCase()} added.`));
     });
     box.addEventListener("click", (e) => {
       const t = e.target.closest("[data-code-toggle]");
@@ -1067,7 +1087,8 @@
   state.stock = {};
   const loadStock = () => { if (!DEMO) shopApi({ stock: "get" }).then((d) => { state.stock = d.stock || {}; if (state.tab === "pieces") render(); }).catch(() => {}); };
   async function saveStock(id, value) {
-    const n = value === "" ? null : Math.max(0, Math.floor(Number(value) || 0));
+    if (!/^\d{0,4}$/.test(value)) { toast("“In stock” must be a whole number, like 3 (or empty if you don't count it). Not saved.", true); return; }
+    const n = value === "" ? null : Number(value);
     if (n === null) delete state.stock[id]; else state.stock[id] = n;
     if (DEMO) return;
     try { state.stock = (await shopApi({ stock: { set: { [id]: n } } })).stock; toast("Stock count saved — it's live straight away."); }
@@ -1120,7 +1141,7 @@
     const when = (d) => new Date(d).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
     const payState = (o) => {
       if (o.pay !== "later" && !o.amountPaid) return '<span class="flag">Card — waiting for payment</span>';
-      if (o.paid) return `<span class="flag flag--gold">Paid${o.pay === "later" ? "" : " by card"} ✓</span>`;
+      if (o.paid) return `<span class="flag flag--gold">Paid${o.pay === "card" ? " by card" : o.pay === "deposit" ? " (deposit by card, rest by hand)" : ""} ✓</span>`;
       if (o.amountPaid) return `<span class="flag flag--gold">Deposit paid ${money(o.amountPaid)}</span> <span class="muted">Balance ${money(o.total - o.amountPaid)}</span>`;
       return "";
     };
@@ -1172,7 +1193,7 @@
                   ${o.tax ? `<div><dt>Tax</dt><dd>${money(o.tax)}</dd></div>` : ""}
                   <div class="is-total"><dt>Total</dt><dd>${money(o.total)}</dd></div></dl>
                 <div class="order__pay">${payState(o)}
-                  ${o.pay === "later" || (o.amountPaid && !o.paid) ? `<label class="check"><input type="checkbox" data-opaid ${o.paid ? "checked" : ""} /> <span>Paid in full (${esc(state.site.checkout?.payMethods || "Zelle / Cash App / PayPal")})</span></label>` : ""}
+                  ${o.pay !== "card" && (o.pay === "later" || o.cardPaid || o.amountPaid) ? `<label class="check"><input type="checkbox" data-opaid ${o.paid ? "checked" : ""} /> <span>Paid in full (${esc(state.site.checkout?.payMethods || "Zelle / Cash App / PayPal")})</span></label>` : ""}
                 </div>
                 ${o.lines.some((l) => l.kind === "buy") ? '<button type="button" class="add-link" data-osold>Mark these pieces sold out</button>' : ""}
               </div>
@@ -1182,15 +1203,19 @@
         }).join("") : '<p class="muted">No orders here yet.</p>'}`;
     };
     draw();
-    const update = async (id, change) => {
-      if (sample) { Object.assign(list.find((o) => o.id === id), change); draw(); return; }
-      try { list = ordersCache = (await api("orders", { update: { id, ...change } }, session.get())).orders; draw(); toast("Saved."); loadStock(); }
-      catch (x) { toast(x.message, true); }
+    // Notes and tracking numbers save quietly, without redrawing the fields being typed in
+    const update = async (id, change, { redraw = true } = {}) => {
+      if (sample) { Object.assign(list.find((o) => o.id === id), change); if (redraw) draw(); return; }
+      try {
+        const fresh = (await api("orders", { update: { id, ...change } }, session.get())).orders;
+        if (redraw) { list = ordersCache = fresh; draw(); } else { const o = fresh.find((x) => x.id === id); Object.assign(list.find((x) => x.id === id), o); ordersCache = list; }
+        toast("Saved."); loadStock();
+      } catch (x) { toast(x.message, true); if (redraw) draw(); }
     };
     el.addEventListener("click", async (e) => {
       const f = e.target.closest("[data-ofilter]");
       if (f) { ordersFilter = f.dataset.ofilter; draw(); return; }
-      if (e.target.closest("[data-orders-refresh]")) { views.orders(el); return; }
+      if (e.target.closest("[data-orders-refresh]")) { render(); return; } // a fresh view, so listeners don't stack
       if (e.target.closest("[data-orders-csv]")) { downloadOrders(list); return; }
       const card = e.target.closest("[data-order]");
       const o = card && list.find((x) => x.id === card.dataset.order);
@@ -1212,14 +1237,20 @@
         update(id, { status: e.target.value });
       }
       if (e.target.matches("[data-opaid]")) update(id, { paid: e.target.checked });
-      if (e.target.matches("[data-onote]")) update(id, { note: e.target.value });
-      if (e.target.matches("[data-ocarrier], [data-otrack]")) update(id, { tracking: { carrier: $("[data-ocarrier]", card).value, number: $("[data-otrack]", card).value.trim() } });
+      if (e.target.matches("[data-onote]")) update(id, { note: e.target.value }, { redraw: false });
+      if (e.target.matches("[data-ocarrier], [data-otrack]")) update(id, { tracking: { carrier: $("[data-ocarrier]", card).value, number: $("[data-otrack]", card).value.trim() } }, { redraw: false });
     });
   }
 
   // A spreadsheet of orders for bookkeeping (opens in Excel, Numbers or Google Sheets)
   function downloadOrders(list) {
-    const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    // Text that starts like a formula (=, +, -, @) is kept as plain text, so a customer's
+    // name can't run anything when the spreadsheet is opened
+    const cell = (v) => {
+      let t = String(v ?? "");
+      if (typeof v === "string" && /^[=+\-@\t\r]/.test(t)) t = `'${t}`;
+      return `"${t.replace(/"/g, '""')}"`;
+    };
     const head = ["Order", "Date", "Status", "Customer", "Phone", "Email", "Delivery", "Address", "Pieces", "Subtotal", "Discount", "Code", "Delivery fee", "Rental deposit", "Tax", "Total", "Paid", "Payment", "Note"];
     const rows = list.map((o) => [o.id, new Date(o.created).toLocaleString(), STATUS[o.status] || o.status, o.customer.name, o.customer.phone, o.customer.email,
       o.methodLabel, [o.customer.address, o.customer.city, o.customer.state, o.customer.zip].filter(Boolean).join(", "),

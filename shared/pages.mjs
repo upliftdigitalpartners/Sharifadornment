@@ -455,7 +455,7 @@ ${head("faq", site, { tag: "h1", intro: true })}
       <h1 class="page__title">How did we <em>do?</em></h1>
       <form class="enquiry review-form" data-form="review" novalidate>
         <fieldset class="stars" data-stars><legend class="label">Your rating</legend>
-          ${[1, 2, 3, 4, 5].map((n) => `<label><input type="radio" name="rating" value="${n}"${n === 5 ? " checked" : ""} /><span aria-label="${n} star${n > 1 ? "s" : ""}">★</span></label>`).join("")}
+          ${[5, 4, 3, 2, 1].map((n) => `<label><input type="radio" name="rating" value="${n}"${n === 5 ? " checked" : ""} /><span aria-label="${n} star${n > 1 ? "s" : ""}">★</span></label>`).join("")}
         </fieldset>
         <div class="field"><label for="r-text">Your review</label><textarea id="r-text" name="text" rows="4" required placeholder="How did it look on the day? How was ordering?"></textarea></div>
         <div class="field"><label for="r-name">Name to show</label><input id="r-name" name="name" autocomplete="given-name" placeholder="e.g. Ayesha, Queens" /></div>

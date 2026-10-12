@@ -8,7 +8,7 @@
  * Public: every price comes from the published content, and an order can only be
  * looked up with the secret token it was created with. */
 import { cors, json } from "../lib/studio.mjs";
-import { Bad, catalogue, orders, place, publicQuote, publicView, quote, refreshPayment, stockLevels } from "../lib/orders.mjs";
+import { Bad, cancelOrder, catalogue, orders, place, publicQuote, publicView, quote, refreshPayment, stockLevels } from "../lib/orders.mjs";
 
 const ORDER_ID = /^SA-\d{6}-[A-Z0-9]{4}$/;
 
@@ -31,6 +31,17 @@ export default async (req) => {
         ({ order } = await refreshPayment(order));
         const { site } = await catalogue();
         return json(req, { order: publicView(order, site) });
+      }
+      case "abandon": {
+        // The customer cancelled on Stripe's page: free the held pieces straight away
+        if (!ORDER_ID.test(String(body.id)) || typeof body.token !== "string") throw new Bad("Order not found.");
+        const order = await orders().get(body.id, { type: "json" });
+        if (!order || order.token !== body.token) return json(req, { error: "Order not found." }, 404);
+        const { order: now, checked } = await refreshPayment(order);
+        if (checked && now.pay !== "later" && !now.amountPaid && now.status === "new") {
+          await cancelOrder(now.id, "Customer cancelled the card payment.");
+        }
+        return json(req, { ok: true });
       }
       case "place": {
         const order = await place(body);

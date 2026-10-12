@@ -38,8 +38,9 @@ export default async (req) => {
     await changeOrder(u.id, (o) => {
       if (u.status != null) { o.status = u.status; (o.times ||= {})[u.status] ||= new Date().toISOString(); }
       if (u.paid != null) {
-        o.paid = Boolean(u.paid);
-        o.amountPaid = o.paid ? o.total : (o.pay === "later" ? 0 : Math.min(o.amountPaid || 0, o.due));
+        // Ticking "Paid in full" records the rest as paid by hand; unticking goes back to what came by card
+        o.amountPaid = u.paid ? o.total : o.cardPaid || 0;
+        o.paid = o.amountPaid >= o.total - 0.005;
         o.paidAt = o.paid ? new Date().toISOString() : null;
       }
       if (u.note != null) o.note = clip(u.note, 1000);

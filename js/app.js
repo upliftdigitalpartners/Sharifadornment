@@ -335,6 +335,7 @@ document.addEventListener("click", (e) => {
   if (!items.length) return; // content not loaded: follow the link to the piece's page
   e.preventDefault();
   $("[data-saved]")?.open && $("[data-saved]").close();
+  $("[data-bag]")?.open && $("[data-bag]").close();
   openPiece(o.dataset.open);
 });
 
@@ -438,7 +439,7 @@ function drawBag() {
     <button type="button" class="link" data-unbag="${esc(l.key)}">Remove</button></div>`).join("");
 }
 const openBag = () => { drawBag(); const d = $("[data-bag]"); if (!d.open) d.showModal(); };
-const bagChanged = () => { syncBag(); drawBag(); refreshCheckout(); };
+const bagChanged = () => { const keep = focusKey(); syncBag(); drawBag(); refocus(keep); refreshCheckout(); };
 document.addEventListener("click", (e) => {
   const add = e.target.closest("[data-add]");
   if (add) {
@@ -460,8 +461,10 @@ document.addEventListener("click", (e) => {
   }
   const ra = e.target.closest("[data-rent-add]");
   if (ra) {
-    const date = $("[data-rent-date]", ra.closest("[data-rent]")).value;
+    const input = $("[data-rent-date]", ra.closest("[data-rent]"));
+    const date = input.value;
     if (!date) { toast("Pick the date of your event first."); return; }
+    if (input.min && date < input.min) { toast("Please pick a date from today on."); return; }
     const id = ra.dataset.rentAdd;
     if (!bag.some((b) => b.kind === "rent" && b.id === id && b.date === date)) { bag.push({ id, kind: "rent", date }); track("bag", id); }
     syncBag();
@@ -501,7 +504,20 @@ function refreshCheckout() {
   clearTimeout(checkout.timer);
   checkout.timer = setTimeout(drawCheckout, 150);
 }
+// Redraws replace the radios and buttons; put keyboard focus back on the same one
+const focusKey = () => {
+  const a = document.activeElement;
+  if (a?.name === "method" || a?.name === "pay") return `[name="${a.name}"][value="${CSS.escape(a.value)}"]`;
+  if (a?.dataset?.qty) return `[data-qty="${CSS.escape(a.dataset.qty)}"][data-step="${a.dataset.step}"]`;
+  return "";
+};
+const refocus = (key) => { if (key) { const el = $(key); if (el && !el.disabled) el.focus(); } };
 async function drawCheckout() {
+  const keep = focusKey();
+  await drawCheckoutInner();
+  refocus(keep);
+}
+async function drawCheckoutInner() {
   const box = $("[data-checkout-summary]");
   const form = $('[data-form="checkout"]');
   if (!box) return;
@@ -529,7 +545,7 @@ async function drawCheckout() {
     // keep the bag in step with what's really available
     bag = q.lines.map((l) => (l.kind === "rent" ? { id: l.id, kind: "rent", date: l.date } : { id: l.id, qty: l.qty }));
     syncBag();
-    if (!q.lines.length) return drawCheckout();
+    if (!q.lines.length) return drawCheckoutInner();
   }
   box.innerHTML = `<div class="checkout__lines">${q.lines.map((l) => `<div class="checkout__line">
       <img src="${esc(sm(l.image))}" alt="" /><span>${lineName(l)}${l.qty > 1 ? ` <small>× ${l.qty}</small>` : ""}</span><b>${dollars(l.price * l.qty)}</b></div>`).join("")}</div>
@@ -551,7 +567,7 @@ async function drawCheckout() {
     <span><b>${esc(m.label)} <em class="pay__price">${m.id === "pickup" || (!m.fee && m.feeSet) ? "Free" : m.fee ? (m.freeOver ? `${dollars(m.fee)} · free over ${dollars(m.freeOver)}` : dollars(m.fee)) : "We'll confirm"}</em></b>${m.note ? `<small>${esc(m.note)}</small>` : ""}</span></label>`).join("");
   const pickup = q.method === "pickup";
   $("[data-address]", form).hidden = pickup;
-  $$("[data-address] [required]", form).forEach((i) => { i.required = !pickup; });
+  ["#c-address", "#c-city", "#c-zip"].forEach((sel) => { const i = $(sel, form); i.required = !pickup; if (pickup) i.closest(".field")?.classList.remove("is-invalid"); });
 
   // Ways to pay
   const payText = {
@@ -563,12 +579,20 @@ async function drawCheckout() {
     <span><b>${esc(payText[p][0])}</b><small>${esc(payText[p][1])}</small></span></label>`).join("");
   $("[data-place]", form).textContent = q.pay === "later" ? `Place order — ${dollars(q.total)}` : `Continue to payment — ${dollars(q.pay === "deposit" ? q.depositAmount : q.total)}`;
 }
+async function releaseCancelled() {
+  const id = params.get("cancelled"), token = params.get("t");
+  if (!id || !token || !$('[data-form="checkout"]')) return;
+  try { await orderApi({ action: "abandon", id, token }); } catch (_) { /* the hold expires by itself */ }
+  history.replaceState(null, "", "checkout.html?cancelled=1"); // the link can't be reused
+}
 function setupCheckout() {
   const form = $('[data-form="checkout"]');
   if (!form) return;
   drawCheckout();
   const note = $(".enquiry__note", form);
-  if (params.has("cancelled")) note.textContent = "Card payment was cancelled. Your bag is still here; you can try again or choose to pay after we confirm.";
+  if (params.has("cancelled")) {
+    $(".checkout__copy").insertAdjacentHTML("afterbegin", '<p class="checkout__notice" role="status">Your card payment was cancelled, so nothing was charged. Your bag is still here — try again, or choose to pay after we confirm.</p>');
+  }
   form.addEventListener("change", (e) => {
     if (e.target.name === "method") { checkout.method = e.target.value; refreshCheckout(); }
     if (e.target.name === "pay") { checkout.pay = e.target.value; refreshCheckout(); }
@@ -611,8 +635,9 @@ async function setupOrderDone() {
   const steps = ["new", "confirmed", "shipped", "delivered"];
   const draw = (o) => {
     const c = site?.checkout || {};
-    const fresh = o.status === "new" && Date.now() - Date.parse(o.created) < 30 * 6e4;
-    $("[data-order-title]").innerHTML = fresh ? "Thank <em>you.</em>" : `Order <em>${esc(o.statusName.toLowerCase())}.</em>`;
+    const waiting = o.pay !== "later" && !o.amountPaid && o.status !== "cancelled";
+    const fresh = !waiting && o.status === "new" && Date.now() - Date.parse(o.created) < 30 * 6e4;
+    $("[data-order-title]").innerHTML = waiting ? "Almost <em>there.</em>" : fresh ? "Thank <em>you.</em>" : `Order <em>${esc(o.statusName.toLowerCase())}.</em>`;
     const balance = Math.max(0, o.total - o.amountPaid);
     let payment = "";
     if (o.status !== "cancelled") {
@@ -644,11 +669,13 @@ async function setupOrderDone() {
   };
   try {
     let o = await load();
-    bag = bag.filter((b) => !o.lines.some((l) => l.key === bagKey(b))); syncBag();
+    // The bag empties once the order is really placed: pay-later, or paid by card
+    if (o.pay === "later" || o.amountPaid) { bag = bag.filter((b) => !o.lines.some((l) => l.key === bagKey(b))); syncBag(); }
     draw(o);
     for (let i = 0; o.pay !== "later" && !o.amountPaid && !o.payUrl && o.status !== "cancelled" && i < 6; i++) {
       await new Promise((r) => setTimeout(r, 3000));
       o = await load(); draw(o);
+      if (o.amountPaid) { bag = bag.filter((b) => !o.lines.some((l) => l.key === bagKey(b))); syncBag(); }
     }
   } catch (x) {
     view.innerHTML = `<p>${esc(x.message)} If you placed an order, we'll text you to confirm it.</p>`;
@@ -809,8 +836,8 @@ loadContent()
     setupCollections();
     setupForms();
     syncBag();
-    loadStock();
-    setupCheckout();
+    // Back from a cancelled card payment: free the held pieces first, so the bag and stock are right
+    releaseCancelled().then(() => { loadStock(); setupCheckout(); });
     setupOrderDone();
     setupReview();
     if (onPiecePage) track("view", $("[data-piece]")?.dataset.piece);

@@ -392,7 +392,7 @@ export async function startCardPayment(order) {
   const form = {
     mode: "payment",
     success_url: trackUrl(order),
-    cancel_url: `${SITE}checkout.html?cancelled=1`,
+    cancel_url: `${SITE}checkout.html?cancelled=${order.id}&t=${order.token}`,
     client_reference_id: order.id,
     "metadata[order]": order.id,
     "payment_intent_data[description]": `Sharif Adornment order ${order.id}`,
@@ -434,6 +434,7 @@ export async function refreshPayment(order) {
   const res = await changeOrder(order.id, (o) => {
     if (o.amountPaid) return NO_WRITE;
     o.amountPaid = paid;
+    o.cardPaid = paid; // what came in by card, kept if the rest is later marked paid by hand
     o.paid = paid >= o.total - 0.005;
     o.paidAt = new Date().toISOString();
     o.payUrl = "";

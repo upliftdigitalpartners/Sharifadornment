@@ -891,3 +891,4 @@ body:has(.banner) .nav:not(.is-scrolled) { top: var(--banner-h, 41px); }
 .policy__contact a { color: var(--gold-text); }
 .checkout > * { min-width: 0; }
 .code .btn { flex: 0 0 auto; }
+.checkout__notice { margin: 0 0 1.4rem; padding: 14px 16px; background: var(--surface); border-left: 3px solid var(--gold); font-size: 0.92rem; }
