@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$80",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "oval-mop-clutch-with-floral-pattern",
+  "name": "Oval MOP Clutch With Floral Pattern",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mv5a8kob0.jpg"
+ },
+ {
+  "description": "",
   "price": "$50",
   "soldOut": false,
   "featured": false,
