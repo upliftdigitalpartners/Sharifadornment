@@ -6,7 +6,7 @@
  * personal is stored. Sent with navigator.sendBeacon. */
 import { getStore } from "@netlify/blobs";
 
-const EVENTS = new Set(["page", "view", "save", "ask", "share"]);
+const EVENTS = new Set(["page", "view", "save", "ask", "share", "bag"]);
 const SOURCES = new Set(["direct", "facebook", "instagram", "google", "whatsapp", "other"]);
 const DEVICES = new Set(["phone", "tablet", "computer"]);
 const ID = /^[a-z0-9][a-z0-9-]{0,63}$/;

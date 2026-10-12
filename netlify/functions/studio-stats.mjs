@@ -10,7 +10,7 @@ export default async (req) => {
   if (!(await checkSession(req))) return json(req, { error: "Please sign in again." }, 401);
 
   let body = {};
-  try { body = await req.json(); } catch { /* no body */ }
+  try { body = (await req.json()) || {}; } catch { /* no body */ }
   const subs = getStore("subscribers");
   if (typeof body.unsubscribe === "string") await subs.delete(body.unsubscribe.toLowerCase());
 

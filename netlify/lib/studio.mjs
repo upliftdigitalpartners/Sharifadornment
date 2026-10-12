@@ -26,7 +26,7 @@ const DEFAULT_ORIGINS = [
 ];
 
 const enc = new TextEncoder();
-const env = (k) => (globalThis.Netlify ? Netlify.env.get(k) : process.env[k]) || "";
+export const env = (k) => (globalThis.Netlify ? Netlify.env.get(k) : process.env[k]) || "";
 
 /* ---------- CORS: only the site itself may call the API ---------- */
 export function cors(req) {

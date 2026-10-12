@@ -2,7 +2,7 @@
  * The pages arrive fully built (shared/pages.mjs); this adds the interactive
  * parts: quick view, saved pieces, asking about a piece, search and filters,
  * photo zoom, forms, night mode and the Studio's preview mode. */
-import { esc, rich, withPieces, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, money, pieceUrl, waNumber } from "../shared/render.mjs";
+import { buyable, rentNumber, dollars, priceNumber, sm, esc, rich, withPieces, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, money, pieceUrl, waNumber } from "../shared/render.mjs";
 
 const API = "https://sharif-adornment-studio.netlify.app/api";
 const $ = (s, el = document) => el.querySelector(s);
@@ -66,19 +66,23 @@ track("page", "", visitInfo());
 
 /* ---------- Night mode ---------- */
 const root = document.documentElement;
-const themeBtn = $("[data-theme-toggle]");
+// The icon in the header, and on small phones a "Night mode" line in the menu
+const themeBtns = $$("[data-theme-toggle]");
 const setThemeLabel = () => {
   const dark = root.dataset.theme === "dark";
-  themeBtn?.setAttribute("aria-label", dark ? "Switch to day mode" : "Switch to night mode");
-  themeBtn?.setAttribute("title", dark ? "Day mode" : "Night mode");
+  themeBtns.forEach((b) => {
+    if (b.classList.contains("nav__theme")) { b.textContent = dark ? "Day mode" : "Night mode"; return; }
+    b.setAttribute("aria-label", dark ? "Switch to day mode" : "Switch to night mode");
+    b.setAttribute("title", dark ? "Day mode" : "Night mode");
+  });
   $('meta[name="theme-color"]')?.setAttribute("content", dark ? "#151413" : "#f6f3ee");
 };
 setThemeLabel();
-themeBtn?.addEventListener("click", () => {
+themeBtns.forEach((b) => b.addEventListener("click", () => {
   root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
   try { localStorage.setItem("sa-theme", root.dataset.theme); } catch (_) { /* private mode */ }
   setThemeLabel();
-});
+}));
 
 /* ---------- Banner ---------- */
 function setupBanner() {
@@ -305,6 +309,7 @@ function openPiece(id, { push = true } = {}) {
   if (!it || !sheet) return false;
   $("[data-sheet-body]", sheet).innerHTML = pieceDetail(it, site, items);
   syncSaved();
+  applyStock(sheet);
   setupSlides(sheet);
   if (!sheet.open) sheet.showModal();
   sheet.scrollTop = 0;
@@ -330,6 +335,7 @@ document.addEventListener("click", (e) => {
   if (!items.length) return; // content not loaded: follow the link to the piece's page
   e.preventDefault();
   $("[data-saved]")?.open && $("[data-saved]").close();
+  $("[data-bag]")?.open && $("[data-bag]").close();
   openPiece(o.dataset.open);
 });
 
@@ -368,6 +374,335 @@ function setupCollections() {
   apply();
 }
 
+/* ---------- Live stock (pieces whose stock is counted) ---------- */
+let stock = {};
+const stockLeft = (id) => (Object.hasOwn(stock, id) ? stock[id] : Infinity);
+const available = (it) => buyable(it) && stockLeft(it.id) > 0;
+async function loadStock() {
+  try {
+    const res = await fetch(`${API}/order`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "stock" }) });
+    if (res.ok) stock = (await res.json()).stock || {};
+  } catch (_) { /* the page still works; checkout re-checks */ }
+  applyStock();
+}
+// Sold out / last one on cards and buttons, from the live counts
+function applyStock(scope = document) {
+  for (const [id, left] of Object.entries(stock)) {
+    $$(`[data-item="${CSS.escape(id)}"]`, scope).forEach((card) => {
+      const badges = $(".item__badges", card);
+      if (left <= 0 && !card.classList.contains("is-sold")) {
+        card.classList.add("is-sold");
+        badges?.querySelector(".badge:not(.badge--gold)")?.remove();
+        badges?.insertAdjacentHTML("afterbegin", '<span class="badge badge--sold">Sold out</span>');
+      } else if (left === 1 && badges && !/Last one|Sold out/.test(badges.textContent)) {
+        badges.insertAdjacentHTML("afterbegin", '<span class="badge">Last one</span>');
+      }
+    });
+    if (left <= 0) $$(`[data-add="${CSS.escape(id)}"]`, scope).forEach((b) => { b.disabled = true; b.textContent = "Sold out"; });
+  }
+  syncBag();
+}
+
+/* ---------- Bag: pieces to buy or rent, kept on this device ---------- */
+let bag = store.get("sa-bag", []); // [{ id, qty }] or [{ id, kind: "rent", date }]
+const MAX_QTY = 5;
+const bagKey = (b) => (b.kind === "rent" ? `${b.id}:rent:${b.date}` : b.id);
+function bagLines() {
+  return bag.map((b) => ({ ...b, key: bagKey(b), it: byId(b.id) })).filter((l) => l.it && (l.kind === "rent" ? rentNumber(l.it) != null : available(l.it)))
+    .map((l) => ({ ...l, qty: l.kind === "rent" ? 1 : Math.min(l.qty, stockLeft(l.id)), price: l.kind === "rent" ? rentNumber(l.it) : priceNumber(l.it) }));
+}
+const lineName = (l) => `${esc(l.it?.name || l.name)}${l.kind === "rent" ? ` <small>· rental for ${esc(prettyDate(l.date))}</small>` : ""}`;
+const prettyDate = (d) => (d ? new Date(`${d}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "");
+function syncBag() {
+  if (items.length) bag = bagLines().map(({ id, qty, kind, date }) => (kind === "rent" ? { id, kind, date } : { id, qty }));
+  store.set("sa-bag", bag);
+  const n = bag.reduce((s, b) => s + (b.qty || 1), 0);
+  const count = $("[data-bag-count]");
+  if (count) { count.textContent = n; count.hidden = !n; }
+  $$("[data-add]").forEach((b) => { if (!b.disabled) b.textContent = bag.some((x) => !x.kind && x.id === b.dataset.add) ? "In your bag — view" : "Add to bag"; });
+}
+function drawBag() {
+  const lines = bagLines();
+  $("[data-bag-empty]").hidden = lines.length > 0;
+  $("[data-bag-actions]").hidden = !lines.length;
+  const totals = $("[data-bag-totals]");
+  totals.hidden = !lines.length;
+  totals.innerHTML = lines.length ? `<div class="is-total"><dt>Subtotal</dt><dd>${dollars(lines.reduce((s, l) => s + l.price * l.qty, 0))}</dd></div>
+    <p class="bag__note">Delivery${site?.checkout?.taxRate ? ", tax" : ""} and discount codes at checkout.</p>` : "";
+  $("[data-bag-list]").innerHTML = lines.map((l) => `<div class="saved__row bag__row">
+    <a href="${pieceUrl(l.it)}" data-open="${esc(l.id)}"><img src="${esc(l.it.image)}" alt="" /></a>
+    <div><a href="${pieceUrl(l.it)}" data-open="${esc(l.id)}" class="saved__name">${esc(l.it.name)}</a>
+      <span>${dollars(l.price)}${l.kind === "rent" ? ` · rental for ${esc(prettyDate(l.date))}` : l.qty > 1 ? ` × ${l.qty}` : ""}</span>
+      ${l.kind === "rent" ? "" : `<div class="qty" role="group" aria-label="Quantity of ${esc(l.it.name)}">
+        <button type="button" data-qty="${esc(l.key)}" data-step="-1" aria-label="One fewer"${l.qty <= 1 ? " disabled" : ""}>−</button><b>${l.qty}</b><button type="button" data-qty="${esc(l.key)}" data-step="1" aria-label="One more"${l.qty >= Math.min(MAX_QTY, stockLeft(l.id)) ? " disabled" : ""}>+</button>
+      </div>`}</div>
+    <button type="button" class="link" data-unbag="${esc(l.key)}">Remove</button></div>`).join("");
+}
+const openBag = () => { drawBag(); const d = $("[data-bag]"); if (!d.open) d.showModal(); };
+const bagChanged = () => { const keep = focusKey(); syncBag(); drawBag(); refocus(keep); refreshCheckout(); };
+document.addEventListener("click", (e) => {
+  const add = e.target.closest("[data-add]");
+  if (add) {
+    e.preventDefault();
+    const id = add.dataset.add;
+    if (!bag.some((b) => !b.kind && b.id === id)) { bag.push({ id, qty: 1 }); track("bag", id); }
+    syncBag();
+    openBag();
+    return;
+  }
+  const rt = e.target.closest("[data-rent-toggle]");
+  if (rt) {
+    const form = $(".rent-pick__form", rt.closest("[data-rent]"));
+    form.hidden = !form.hidden;
+    const input = $("[data-rent-date]", form);
+    input.min = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+    if (!form.hidden) input.focus();
+    return;
+  }
+  const ra = e.target.closest("[data-rent-add]");
+  if (ra) {
+    const input = $("[data-rent-date]", ra.closest("[data-rent]"));
+    const date = input.value;
+    if (!date) { toast("Pick the date of your event first."); return; }
+    if (input.min && date < input.min) { toast("Please pick a date from today on."); return; }
+    const id = ra.dataset.rentAdd;
+    if (!bag.some((b) => b.kind === "rent" && b.id === id && b.date === date)) { bag.push({ id, kind: "rent", date }); track("bag", id); }
+    syncBag();
+    openBag();
+    return;
+  }
+  const q = e.target.closest("[data-qty]");
+  if (q) {
+    const line = bag.find((b) => bagKey(b) === q.dataset.qty);
+    if (line) line.qty = Math.min(MAX_QTY, stockLeft(line.id), Math.max(1, line.qty + Number(q.dataset.step)));
+    bagChanged();
+    return;
+  }
+  const u = e.target.closest("[data-unbag]");
+  if (u) { bag = bag.filter((b) => bagKey(b) !== u.dataset.unbag); bagChanged(); }
+});
+$("[data-bag-open]")?.addEventListener("click", openBag);
+$$("[data-bag-close]").forEach((b) => b.addEventListener("click", () => $("[data-bag]").close()));
+$("[data-bag]")?.addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+
+/* ---------- Checkout: totals always come from the order service ---------- */
+const orderApi = async (body) => {
+  const res = await fetch(`${API}/order`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(out.error || "Something went wrong. Please try again.");
+  return out;
+};
+const totalsHTML = (q) => `<div><dt>Subtotal</dt><dd>${dollars(q.subtotal)}</dd></div>
+  ${q.discount ? `<div class="is-discount"><dt>Code ${esc(q.code)}</dt><dd>−${dollars(q.discount)}</dd></div>` : ""}
+  <div><dt>${esc(q.methodLabel || "Delivery")}</dt><dd>${q.delivery ? dollars(q.delivery) : q.deliveryKnown === false ? "We'll confirm" : "Free"}</dd></div>
+  ${q.rentDeposit ? `<div><dt>Refundable rental deposit</dt><dd>${dollars(q.rentDeposit)}</dd></div>` : ""}
+  ${q.tax ? `<div><dt>${esc(q.taxLabel || "Sales tax")}</dt><dd>${dollars(q.tax)}</dd></div>` : ""}
+  <div class="is-total"><dt>Total</dt><dd>${dollars(q.total)}</dd></div>`;
+const checkout = { method: "", pay: "", code: "", quote: null, timer: 0, seq: 0 };
+function refreshCheckout() {
+  if (!$('[data-form="checkout"]')) return;
+  clearTimeout(checkout.timer);
+  checkout.timer = setTimeout(drawCheckout, 150);
+}
+// Redraws replace the radios and buttons; put keyboard focus back on the same one
+const focusKey = () => {
+  const a = document.activeElement;
+  if (a?.name === "method" || a?.name === "pay") return `[name="${a.name}"][value="${CSS.escape(a.value)}"]`;
+  if (a?.dataset?.qty) return `[data-qty="${CSS.escape(a.dataset.qty)}"][data-step="${a.dataset.step}"]`;
+  return "";
+};
+const refocus = (key) => { if (key) { const el = $(key); if (el && !el.disabled) el.focus(); } };
+async function drawCheckout() {
+  const keep = focusKey();
+  await drawCheckoutInner();
+  refocus(keep);
+}
+async function drawCheckoutInner() {
+  const box = $("[data-checkout-summary]");
+  const form = $('[data-form="checkout"]');
+  if (!box) return;
+  const lines = bagLines();
+  form.hidden = !lines.length;
+  if (!lines.length) {
+    box.innerHTML = '<p class="checkout__empty">Your bag is empty.</p><a class="btn" href="collections.html">Browse the collections</a>';
+    return;
+  }
+  const seq = ++checkout.seq;
+  let q;
+  try {
+    q = await orderApi({ action: "quote", items: bag, code: checkout.code, method: checkout.method, pay: checkout.pay });
+  } catch (x) {
+    box.innerHTML = `<p class="checkout__empty">We couldn't load prices right now.</p><p class="muted">${esc(x.message === "Failed to fetch" ? "Check your connection and try again." : x.message)}</p>`;
+    form.hidden = true;
+    return;
+  }
+  if (seq !== checkout.seq) return; // a newer change is on its way
+  checkout.quote = q;
+  checkout.method = q.method;
+  checkout.pay = q.pay;
+  if (q.problems.length) {
+    toast(q.problems[0]);
+    // keep the bag in step with what's really available
+    bag = q.lines.map((l) => (l.kind === "rent" ? { id: l.id, kind: "rent", date: l.date } : { id: l.id, qty: l.qty }));
+    syncBag();
+    if (!q.lines.length) return drawCheckoutInner();
+  }
+  box.innerHTML = `<div class="checkout__lines">${q.lines.map((l) => `<div class="checkout__line">
+      <img src="${esc(sm(l.image))}" alt="" /><span>${lineName(l)}${l.qty > 1 ? ` <small>× ${l.qty}</small>` : ""}</span><b>${dollars(l.price * l.qty)}</b></div>`).join("")}</div>
+    <form class="code" data-code-form><label class="visually-hidden" for="c-code">Discount code</label>
+      <input id="c-code" name="code" placeholder="Discount code" value="${esc(checkout.code)}" autocomplete="off" autocapitalize="characters" />
+      <button type="submit" class="btn btn--ghost">${q.code ? "Applied ✓" : "Apply"}</button></form>
+    ${q.codeError ? `<p class="code__error">${esc(q.codeError)}</p>` : ""}
+    <dl class="bag__totals">${totalsHTML(q)}</dl>
+    <button type="button" class="link" data-bag-open-inline>Change your bag</button>`;
+  $("[data-bag-open-inline]", box).addEventListener("click", openBag);
+  $("[data-code-form]", box).addEventListener("submit", (e) => {
+    e.preventDefault();
+    checkout.code = e.target.code.value.trim();
+    drawCheckout();
+  });
+
+  // Delivery choices
+  $("[data-methods]", form).innerHTML = q.methods.map((m) => `<label class="pay__opt"><input type="radio" name="method" value="${esc(m.id)}"${m.id === q.method ? " checked" : ""} />
+    <span><b>${esc(m.label)} <em class="pay__price">${m.id === "pickup" || (!m.fee && m.feeSet) ? "Free" : m.fee ? (m.freeOver ? `${dollars(m.fee)} · free over ${dollars(m.freeOver)}` : dollars(m.fee)) : "We'll confirm"}</em></b>${m.note ? `<small>${esc(m.note)}</small>` : ""}</span></label>`).join("");
+  const pickup = q.method === "pickup";
+  $("[data-address]", form).hidden = pickup;
+  ["#c-address", "#c-city", "#c-zip"].forEach((sel) => { const i = $(sel, form); i.required = !pickup; if (pickup) i.closest(".field")?.classList.remove("is-invalid"); });
+
+  // Ways to pay
+  const payText = {
+    card: [`Pay now by card — ${dollars(q.total)}`, "Secure checkout by Stripe. Apple Pay and Google Pay too."],
+    deposit: [`Pay a ${q.depositPercent}% deposit now — ${dollars(q.depositAmount)}`, `By card now; the rest (${dollars(q.total - q.depositAmount)}) after we confirm.`],
+    later: ["Pay after we confirm", `We'll text you to confirm, then you pay by ${q.payMethods}.`],
+  };
+  $("[data-pays]", form).innerHTML = q.pays.map((p) => `<label class="pay__opt"><input type="radio" name="pay" value="${p}"${p === q.pay ? " checked" : ""} />
+    <span><b>${esc(payText[p][0])}</b><small>${esc(payText[p][1])}</small></span></label>`).join("");
+  $("[data-place]", form).textContent = q.pay === "later" ? `Place order — ${dollars(q.total)}` : `Continue to payment — ${dollars(q.pay === "deposit" ? q.depositAmount : q.total)}`;
+}
+async function releaseCancelled() {
+  const id = params.get("cancelled"), token = params.get("t");
+  if (!id || !token || !$('[data-form="checkout"]')) return;
+  try { await orderApi({ action: "abandon", id, token }); } catch (_) { /* the hold expires by itself */ }
+  history.replaceState(null, "", "checkout.html?cancelled=1"); // the link can't be reused
+}
+function setupCheckout() {
+  const form = $('[data-form="checkout"]');
+  if (!form) return;
+  if (params.has("cancelled")) checkout.code = store.get("sa-code", "") || ""; // keep the code they'd applied
+  drawCheckout();
+  const note = $(".enquiry__note", form);
+  if (params.has("cancelled")) {
+    $(".checkout__copy").insertAdjacentHTML("afterbegin", '<p class="checkout__notice" role="status">Your card payment was cancelled, so nothing was charged. Your bag is still here — try again, or choose to pay after we confirm.</p>');
+  }
+  form.addEventListener("change", (e) => {
+    if (e.target.name === "method") { checkout.method = e.target.value; refreshCheckout(); }
+    if (e.target.name === "pay") { checkout.pay = e.target.value; refreshCheckout(); }
+  });
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!validate(form)) return;
+    const d = Object.fromEntries(new FormData(form));
+    const btn = $("[data-place]", form);
+    const label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = d.pay === "later" ? "Placing your order…" : "Opening secure payment…";
+    note.textContent = "";
+    try {
+      const out = await orderApi({
+        action: "place", pay: d.pay, method: d.method, code: checkout.code, website: d.website, items: bag,
+        customer: { name: d.name, phone: d.phone, email: d.email, address: d.address, city: d.city, state: d.state, zip: d.zip, notes: d.notes },
+      });
+      store.set("sa-last-order", { id: out.id, token: out.token });
+      if (out.url) { store.set("sa-code", checkout.code); location.href = out.url; return; } // Stripe's page; the bag empties once it's paid
+      bag = []; syncBag();
+      location.href = `order-done.html?o=${encodeURIComponent(out.id)}&t=${encodeURIComponent(out.token)}`;
+    } catch (x) {
+      note.textContent = x.message === "Failed to fetch" ? "We couldn't reach the shop. Check your connection and try again." : x.message;
+      btn.disabled = false;
+      btn.textContent = label;
+      refreshCheckout();
+    }
+  });
+}
+
+/* ---------- Your order: confirmation and tracking ---------- */
+async function setupOrderDone() {
+  const view = $("[data-order-view]");
+  if (!view) return;
+  const last = store.get("sa-last-order", {});
+  const id = params.get("o") || last.id, token = params.get("t") || last.token;
+  if (!id || !token) { view.innerHTML = '<p>We couldn\'t find an order on this device. If you placed one, we\'ll text you to confirm it.</p>'; return; }
+  const load = async () => (await orderApi({ action: "status", id, token })).order;
+  const steps = ["new", "confirmed", "shipped", "delivered"];
+  const draw = (o) => {
+    const c = site?.checkout || {};
+    const waiting = o.pay !== "later" && !o.amountPaid && o.status !== "cancelled";
+    const fresh = !waiting && o.status === "new" && Date.now() - Date.parse(o.created) < 30 * 6e4;
+    $("[data-order-title]").innerHTML = waiting ? "Almost <em>there.</em>" : fresh ? "Thank <em>you.</em>" : `Order <em>${esc(o.statusName.toLowerCase())}.</em>`;
+    const balance = Math.max(0, o.total - o.amountPaid);
+    let payment = "";
+    if (o.status !== "cancelled") {
+      if (o.pay !== "later" && !o.amountPaid) {
+        payment = o.payUrl
+          ? `<div class="order__pay"><p>Your card payment isn't finished yet.</p><a class="btn" href="${esc(o.payUrl)}">Pay now — ${dollars(o.due)}</a></div>`
+          : '<p class="muted">Confirming your card payment… this takes a moment.</p>';
+      } else if (o.paid) {
+        payment = `<p class="order__paid">✓ Paid${o.pay === "card" ? " by card" : ""}. Thank you!</p>`;
+      } else {
+        payment = `${o.amountPaid ? `<p class="order__paid">✓ Deposit of ${dollars(o.amountPaid)} paid.</p>` : ""}
+          <div class="order__pay"><h2>${o.amountPaid ? `Balance: ${dollars(balance)}` : "How to pay"}</h2>
+          <p>${esc(o.payLater || "We'll text you to confirm your order and how to pay.").replace(/\n/g, "<br />")}</p>
+          <p class="muted">Please add your order number <b>${esc(o.id)}</b> to the payment note.</p></div>`;
+      }
+    }
+    const at = steps.indexOf(o.status);
+    const timeline = o.status === "cancelled" ? '<p class="order__cancelled">This order was cancelled. Questions? <a href="contact.html">Message us</a>.</p>'
+      : `<ol class="timeline">${steps.map((s, i) => `<li class="${i <= at ? "is-done" : ""}${i === at ? " is-now" : ""}"><span>${{ new: "Placed", confirmed: "Confirmed", shipped: "On its way", delivered: "Delivered" }[s]}</span>${o.times?.[s] ? `<small>${new Date(o.times[s]).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</small>` : ""}</li>`).join("")}</ol>`;
+    const tracking = o.tracking?.number ? `<p class="order__tracking">Tracking: <b>${esc(o.tracking.carrier || "")} ${esc(o.tracking.number)}</b>${/usps/i.test(o.tracking.carrier) ? ` · <a href="https://tools.usps.com/go/TrackConfirmAction?tLabels=${encodeURIComponent(o.tracking.number)}" target="_blank" rel="noopener">Track it</a>` : /ups/i.test(o.tracking.carrier) ? ` · <a href="https://www.ups.com/track?tracknum=${encodeURIComponent(o.tracking.number)}" target="_blank" rel="noopener">Track it</a>` : /fedex/i.test(o.tracking.carrier) ? ` · <a href="https://www.fedex.com/fedextrack/?trknbr=${encodeURIComponent(o.tracking.number)}" target="_blank" rel="noopener">Track it</a>` : ""}</p>` : "";
+    view.innerHTML = `${fresh ? `<p class="order__lead">${esc(c.thanks || "We've got your order and will text you shortly to confirm it.")}</p>` : ""}
+      <p class="order__id">Order <b>${esc(o.id)}</b> · ${esc(o.name)}</p>
+      ${timeline}${tracking}${payment}
+      <div class="checkout__lines">${o.lines.map((l) => `<div class="checkout__line"><img src="${esc(sm(l.image))}" alt="" /><span>${lineName(l)}${l.qty > 1 ? ` <small>× ${l.qty}</small>` : ""}</span><b>${dollars(l.price * l.qty)}</b></div>`).join("")}</div>
+      <dl class="bag__totals">${totalsHTML(o)}</dl>
+      ${o.status === "delivered" ? `<p><a class="btn" href="review.html?o=${encodeURIComponent(id)}&t=${encodeURIComponent(token)}">Leave a review</a></p>` : ""}
+      <p class="muted small">Bookmark this page to check on your order any time.</p>
+      <a class="link" href="collections.html">Keep browsing</a>`;
+  };
+  try {
+    let o = await load();
+    // The bag empties once the order is really placed: pay-later, or paid by card
+    if (o.pay === "later" || o.amountPaid) { bag = bag.filter((b) => !o.lines.some((l) => l.key === bagKey(b))); syncBag(); }
+    draw(o);
+    for (let i = 0; o.pay !== "later" && !o.amountPaid && !o.payUrl && o.status !== "cancelled" && i < 6; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      o = await load(); draw(o);
+      if (o.amountPaid) { bag = bag.filter((b) => !o.lines.some((l) => l.key === bagKey(b))); syncBag(); }
+    }
+  } catch (x) {
+    view.innerHTML = `<p>${esc(x.message)} If you placed an order, we'll text you to confirm it.</p>`;
+  }
+}
+
+/* ---------- Leave a review (from the link in a delivered order) ---------- */
+function setupReview() {
+  const form = $('[data-form="review"]');
+  if (!form) return;
+  const id = params.get("o"), token = params.get("t");
+  const note = $(".enquiry__note", form);
+  if (!id || !token) { form.innerHTML = "<p>Please use the review link we sent you.</p>"; return; }
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!validate(form)) return;
+    const d = Object.fromEntries(new FormData(form));
+    try {
+      const res = await fetch(`${API}/review`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, token, rating: d.rating, text: d.text, name: d.name }) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || "That didn't go through. Please try again.");
+      form.innerHTML = '<p class="order__lead">Thank you! Your review means a lot to us. It will appear on the site once we\'ve read it.</p><a class="link" href="index.html">Back to the shop</a>';
+    } catch (x) { note.textContent = x.message; }
+  });
+}
+
 /* ---------- Forms: enquiry and newsletter ---------- */
 function handoff(form, body, subject) {
   const note = $(".enquiry__note", form);
@@ -380,6 +715,8 @@ function handoff(form, body, subject) {
   note.textContent = "Your message is copied — paste it into Messenger and we'll reply there.";
   open(b.messenger || b.facebook, "_blank", "noopener");
 }
+// A field marked as missing clears as soon as something is typed into it
+document.addEventListener("input", (e) => { if (e.target.value?.trim()) e.target.closest(".field.is-invalid")?.classList.remove("is-invalid"); });
 function validate(form) {
   let ok = true;
   $$("[required]", form).forEach((input) => {
@@ -499,6 +836,11 @@ loadContent()
     setupSlides(document);
     setupCollections();
     setupForms();
+    syncBag();
+    // Back from a cancelled card payment: free the held pieces first, so the bag and stock are right
+    releaseCancelled().then(() => { loadStock(); setupCheckout(); });
+    setupOrderDone();
+    setupReview();
     if (onPiecePage) track("view", $("[data-piece]")?.dataset.piece);
     else if (params.get("piece") && !$('[data-form="enquiry"]')) openPiece(params.get("piece"), { push: false });
   })

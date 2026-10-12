@@ -8,7 +8,7 @@
 import {
   esc, rich, img, motif, itemCard, collectionCard, pieceDetail, stepsHTML, pillarsHTML,
   paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, bannerHTML, collectionName,
-  priceLine, pieceUrl, waNumber, HEART, withPieces,
+  priceLine, pieceUrl, waNumber, HEART, BAG, withPieces, shareImg, priceNumber,
 } from "./render.mjs";
 
 export const SITE_URL = "https://sharifadornment.com/";
@@ -62,7 +62,7 @@ function shell(site, { file, title, desc, body, base = "", ogImage = "assets/img
   <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(desc)}" />
   <meta property="og:url" content="${canonical}" />
-  <meta property="og:image" content="${esc(abs(ogImage))}" />
+  <meta property="og:image" content="${esc(abs(shareImg(ogImage)))}" />
   <meta name="twitter:card" content="summary_large_image" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -78,9 +78,11 @@ function shell(site, { file, title, desc, body, base = "", ogImage = "assets/img
     <nav class="nav__links" id="menu" aria-label="Primary">
 ${nav}
       ${messageLink(site, "nav__cta", msgLabel)}
+      <button class="nav__theme" type="button" data-theme-toggle>Night mode</button>
     </nav>
     <div class="nav__tools">
       <button class="icon-btn saved-toggle" type="button" data-saved-open aria-label="Saved pieces">${HEART}<span class="count" data-saved-count hidden>0</span></button>
+      <button class="icon-btn bag-toggle" type="button" data-bag-open aria-label="Your bag">${BAG}<span class="count" data-bag-count hidden>0</span></button>
       <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch to night mode" title="Night mode">
         <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
         <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -113,7 +115,7 @@ ${body}
     </div>
     <nav class="footer__links" aria-label="More">
       <a href="collections.html">Collections</a><a href="bridal.html">Bridal</a><a href="order.html">How to order</a>
-      <a href="faq.html">FAQ</a><a href="contact.html">Enquire</a>
+      <a href="faq.html">FAQ</a><a href="policies.html">Policies</a><a href="contact.html">Enquire</a>
     </nav>
     <div class="footer__row">
       <span><a class="footer__c" href="studio/" aria-label="Studio">©</a> <span class="js-year">${new Date().getFullYear()}</span> Sharif Adornment</span>
@@ -142,6 +144,20 @@ ${body}
       <div class="saved__actions" data-saved-actions hidden>
         <button class="btn" type="button" data-ask-saved>Ask about these pieces</button>
         <a class="link" href="contact.html?saved=1">Use the enquiry form</a>
+      </div>
+    </div>
+  </dialog>
+  <dialog class="sheet saved bag" data-bag aria-labelledby="bag-title">
+    <button class="sheet__close" type="button" data-bag-close>Close</button>
+    <div class="saved__inner">
+      <p class="label">Your order</p>
+      <h2 id="bag-title">Your <em>bag</em></h2>
+      <p class="saved__empty" data-bag-empty>Your bag is empty. Tap “Add to bag” on any piece with a price.</p>
+      <div class="saved__list" data-bag-list></div>
+      <dl class="bag__totals" data-bag-totals hidden></dl>
+      <div class="saved__actions" data-bag-actions hidden>
+        <a class="btn" href="checkout.html">Checkout</a>
+        <button class="link" type="button" data-bag-close>Keep browsing</button>
       </div>
     </div>
   </dialog>
@@ -383,6 +399,86 @@ ${head("faq", site, { tag: "h1", intro: true })}
 <body><p><a href="contact.html">Continue to Sharif Adornment</a></p></body></html>
 `;
 
+  // Ordering: the bag turns into an order here. Totals, delivery choices and ways to pay
+  // come from the order service (/api/order "quote"), which prices everything itself.
+  const co = site.checkout || {};
+  pages["checkout.html"] = shell(site, {
+    file: "checkout.html", title: "Checkout — Sharif Adornment",
+    desc: "Place your Sharif Adornment order: delivery details and payment.",
+    body: `    <section class="section section--first checkout">
+      <div class="checkout__copy">
+        <p class="label reveal" data-t="checkout.label">${rich(co.label || "Checkout")}</p>
+        <h1 class="page__title reveal" data-t="checkout.title">${rich(co.title || "")}</h1>
+        <p class="reveal" data-t="checkout.intro">${rich(co.intro || "")}</p>
+        <div class="checkout__summary" data-checkout-summary><p class="muted">Loading your bag…</p></div>
+      </div>
+      <form class="enquiry checkout__form" data-form="checkout" novalidate hidden>
+        <fieldset><legend class="label">Your details</legend>
+          <div class="field"><label for="c-name">Full name</label><input id="c-name" name="name" required autocomplete="name" /></div>
+          <div class="field-row">
+            <div class="field"><label for="c-phone">Phone</label><input id="c-phone" name="phone" type="tel" required autocomplete="tel" placeholder="We'll text to confirm" /></div>
+            <div class="field"><label for="c-email">Email <small>(optional)</small></label><input id="c-email" name="email" type="email" autocomplete="email" placeholder="For your receipt" /></div>
+          </div>
+        </fieldset>
+        <fieldset class="pay"><legend class="label">Delivery</legend><div data-methods></div></fieldset>
+        <fieldset data-address><legend class="label">Delivery address</legend>
+          <div class="field"><label for="c-address">Street address</label><input id="c-address" name="address" required autocomplete="street-address" /></div>
+          <div class="field-row field-row--3">
+            <div class="field"><label for="c-city">City</label><input id="c-city" name="city" required autocomplete="address-level2" /></div>
+            <div class="field"><label for="c-state">State</label><input id="c-state" name="state" value="NY" autocomplete="address-level1" /></div>
+            <div class="field"><label for="c-zip">ZIP</label><input id="c-zip" name="zip" required inputmode="numeric" autocomplete="postal-code" /></div>
+          </div>
+        </fieldset>
+        <div class="field"><label for="c-notes">Notes <small>(optional)</small></label><textarea id="c-notes" name="notes" rows="2" placeholder="Event date, gift message, delivery instructions…"></textarea></div>
+        <fieldset class="pay"><legend class="label">Payment</legend><div data-pays></div></fieldset>
+        <div class="hp" aria-hidden="true"><label>Leave empty <input name="website" tabindex="-1" autocomplete="off" /></label></div>
+        <button type="submit" class="btn btn--block" data-place>Place order</button>
+        <p class="checkout__agree">By placing your order you agree to our <a href="policies.html" target="_blank">shipping, returns and rental policies</a>.</p>
+        <p class="enquiry__note" role="status" aria-live="polite"></p>
+      </form>
+    </section>`,
+  });
+  pages["order-done.html"] = shell(site, {
+    file: "order-done.html", title: "Your order — Sharif Adornment",
+    desc: "Your Sharif Adornment order.",
+    body: `    <section class="section section--first order-done" data-order-done>
+      <p class="label">Your order</p>
+      <h1 class="page__title" data-order-title>Thank <em>you.</em></h1>
+      <div data-order-view><p class="muted">Loading your order…</p></div>
+    </section>`,
+  });
+  pages["review.html"] = shell(site, {
+    file: "review.html", title: "Leave a review — Sharif Adornment",
+    desc: "Tell us how you liked your Sharif Adornment pieces.",
+    body: `    <section class="section section--first order-done">
+      <p class="label">Your review</p>
+      <h1 class="page__title">How did we <em>do?</em></h1>
+      <form class="enquiry review-form" data-form="review" novalidate>
+        <fieldset class="stars" data-stars><legend class="label">Your rating</legend>
+          ${[5, 4, 3, 2, 1].map((n) => `<label><input type="radio" name="rating" value="${n}"${n === 5 ? " checked" : ""} /><span aria-label="${n} star${n > 1 ? "s" : ""}">★</span></label>`).join("")}
+        </fieldset>
+        <div class="field"><label for="r-text">Your review</label><textarea id="r-text" name="text" rows="4" required placeholder="How did it look on the day? How was ordering?"></textarea></div>
+        <div class="field"><label for="r-name">Name to show</label><input id="r-name" name="name" autocomplete="given-name" placeholder="e.g. Ayesha, Queens" /></div>
+        <button type="submit" class="btn btn--block">Send review</button>
+        <p class="enquiry__note" role="status" aria-live="polite"></p>
+      </form>
+    </section>`,
+  });
+  const pol = site.policies || {};
+  const polSections = [["shipping", "Delivery & shipping"], ["returns", "Returns & exchanges"], ["rentals", "Rentals"], ["payment", "Payment"], ["privacy", "Privacy"]]
+    .filter(([k]) => pol[k]);
+  pages["policies.html"] = shell(site, {
+    file: "policies.html", title: "Policies — Sharif Adornment",
+    desc: "Delivery, returns, rentals, payment and privacy at Sharif Adornment.",
+    body: `    <section class="section section--first policies">
+      <p class="label reveal" data-t="policies.label">${rich(pol.label || "Policies")}</p>
+      <h1 class="page__title reveal" data-t="policies.title">${rich(pol.title || "")}</h1>
+      ${pol.intro ? `<p class="page__intro reveal" data-t="policies.intro">${rich(pol.intro)}</p>` : ""}
+      ${polSections.map(([k, t]) => `<section class="policy reveal" id="${k}"><h2>${t}</h2><div data-paragraphs="policies.${k}">${paragraphsHTML(pol[k])}</div></section>`).join("")}
+      <p class="policy__contact">Questions? <a href="contact.html">Send us a message</a>${site.business?.phone ? ` or call ${esc(site.business.phone)}` : ""}.</p>
+    </section>`,
+  });
+
   const ct = site.contact || {};
   const b = site.business || {};
   pages["contact.html"] = shell(site, {
@@ -422,11 +518,17 @@ ${head("faq", site, { tag: "h1", intro: true })}
     const desc = `${it.description || it.name} ${priceLine(it)}. Sharif Adornment, Queens NY.`.trim();
     pages[pieceUrl(it)] = shell(site, {
       file: pieceUrl(it), base: "../", page: "piece",
-      title: `${it.name} — Sharif Adornment`, desc, ogImage: it.image || undefined,
+      title: `${it.name} — Sharif Adornment`, desc, ogImage: shareImg(it.image) || undefined,
       jsonld: {
         "@context": "https://schema.org", "@type": "Product", name: it.name, description: it.description || undefined,
-        image: [it.image, ...(it.images || [])].filter(Boolean).map(abs), category: col || undefined,
+        image: [it.image, ...(it.images || [])].filter(Boolean).map((x) => abs(shareImg(x))), category: col || undefined,
         brand: { "@type": "Brand", name: "Sharif Adornment" }, url: abs(pieceUrl(it)),
+        // Lets Google show the price and stock in search results
+        offers: priceNumber(it) == null ? undefined : {
+          "@type": "Offer", price: priceNumber(it).toFixed(2), priceCurrency: "USD", url: abs(pieceUrl(it)),
+          availability: `https://schema.org/${it.soldOut ? "OutOfStock" : "InStock"}`,
+          itemCondition: "https://schema.org/NewCondition",
+        },
       },
       body: `    <section class="section section--first piece-page" data-piece="${esc(it.id)}">
       <nav class="crumbs" aria-label="Breadcrumb"><a href="collections.html">Collections</a><span>/</span><a href="collections.html?c=${encodeURIComponent(it.collection)}">${esc(col)}</a></nav>
@@ -439,7 +541,32 @@ ${head("faq", site, { tag: "h1", intro: true })}
     });
   }
 
-  const urls = ["", "collections.html", "bridal.html", "story.html", "order.html", "gallery.html", "faq.html", "contact.html", ...items.map(pieceUrl)];
+  const urls = ["", "collections.html", "bridal.html", "story.html", "order.html", "gallery.html", "faq.html", "policies.html", "contact.html", ...items.map(pieceUrl)];
+  // Product catalog for Facebook & Instagram Shops (Commerce Manager) and Google Merchant Center.
+  // Pieces need a plain dollar price and a photo to be listed.
+  const listed = items.filter((it) => priceNumber(it) != null && it.image);
+  pages["products.xml"] = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
+<channel>
+<title>Sharif Adornment</title>
+<link>${SITE_URL}</link>
+<description>South Asian jewelry and accessories</description>
+${listed.map((it) => `<item>
+  <g:id>${esc(it.id)}</g:id>
+  <g:title>${esc(it.name)}</g:title>
+  <g:description>${esc(it.description || it.name)}</g:description>
+  <g:link>${esc(abs(pieceUrl(it)))}</g:link>
+  <g:image_link>${esc(abs(shareImg(it.image)))}</g:image_link>
+${(it.images || []).slice(0, 10).map((x) => `  <g:additional_image_link>${esc(abs(shareImg(x)))}</g:additional_image_link>\n`).join("")}  <g:availability>${it.soldOut ? "out of stock" : "in stock"}</g:availability>
+  <g:condition>new</g:condition>
+  <g:price>${priceNumber(it).toFixed(2)} USD</g:price>
+  <g:brand>Sharif Adornment</g:brand>
+  <g:product_type>${esc(collectionName(site, it.collection))}</g:product_type>
+</item>`).join("\n")}
+</channel>
+</rss>
+`;
+
   pages["sitemap.xml"] = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${abs(u)}</loc></url>`).join("\n")}\n</urlset>\n`;
   return pages;
 }

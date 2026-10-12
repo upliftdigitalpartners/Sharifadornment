@@ -14,6 +14,9 @@ export const rich = (s = "") => esc(s).replace(/\*(.+?)\*/g, "<em>$1</em>");
 /** Every photo has a 640px copy next to it: name.jpg -> name-sm.jpg */
 export const sm = (src = "") => (/\.(jpe?g|png|webp)$/i.test(src) && !/-sm\.\w+$/.test(src) ? src.replace(/(\.\w+)$/, "-sm$1") : src);
 
+/** Photos are shown as WebP; each WebP has a JPG twin for Facebook previews and shop catalogs. */
+export const shareImg = (src = "") => src.replace(/\.webp$/i, ".jpg");
+
 export const isVideo = (src = "") => /\.(mp4|webm|mov)$/i.test(src);
 
 /** A responsive <img>. If the small copy is missing, it falls back to the full photo. */
@@ -23,6 +26,8 @@ export function img(src, alt = "", { sizes = "(max-width: 680px) 50vw, 25vw", la
 }
 
 export const pad = (n) => String(n).padStart(2, "0");
+
+export const BAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>';
 
 export const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.3 4.5 6.9 4.5c2.1 0 3.7 1.2 5.1 3 1.4-1.8 3-3 5.1-3 3.6 0 5.5 3.5 4.2 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>';
 
@@ -55,6 +60,22 @@ export const money = (v = "") => {
   const m = t.match(/^\$?\s*(\d[\d,]*(?:\.\d{1,2})?)\s*\$?$/);
   return m ? `$${m[1]}` : t;
 };
+
+/** The price as a number, when it's a plain dollar amount ("$65", "65", "65$"), else null. */
+export const priceNumber = (it) => {
+  const m = money(it.price).match(/^\$(\d[\d,]*(?:\.\d{1,2})?)$/);
+  return m ? Number(m[1].replace(/,/g, "")) : null;
+};
+
+export const dollars = (n) => `$${Number(n).toFixed(2).replace(/\.00$/, "")}`;
+/** The rental price as a number, when the piece can be rented online, else null */
+export const rentNumber = (it) => {
+  if (!it.rent) return null;
+  const m = money(it.rentPrice).match(/^\$(\d[\d,]*(?:\.\d{1,2})?)$/);
+  return m ? Number(m[1].replace(/,/g, "")) : null;
+};
+/** Can this piece be ordered on the site? (a plain price and not sold out) */
+export const buyable = (it) => !it.soldOut && priceNumber(it) != null;
 
 export function priceLine(it) {
   const buy = money(it.price) || "Price on request";
@@ -122,9 +143,20 @@ export function pieceDetail(it, site, items, { heading = "h2" } = {}) {
     ${it.description ? `<p class="detail__desc">${esc(it.description)}</p>` : ""}
     ${facts.length ? `<dl class="detail__facts">${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>` : ""}
     <div class="detail__actions">
-      <button class="btn" type="button" data-ask="${esc(it.id)}" data-kind="${it.soldOut ? "notify" : "ask"}">${it.soldOut ? "Tell me when it's back" : "Ask about this piece"}</button>
+      ${buyable(it)
+        ? `<button class="btn" type="button" data-add="${esc(it.id)}">Add to bag</button>`
+        : `<button class="btn" type="button" data-ask="${esc(it.id)}" data-kind="${it.soldOut ? "notify" : "ask"}">${it.soldOut ? "Tell me when it's back" : "Ask about this piece"}</button>`}
       <button class="btn btn--ghost save-btn" type="button" data-save="${esc(it.id)}" aria-pressed="false">${HEART}<span>Save</span></button>
+      ${buyable(it) ? `<button class="btn btn--ghost detail__ask" type="button" data-ask="${esc(it.id)}" data-kind="ask">Ask about this piece</button>` : ""}
     </div>
+    ${rentNumber(it) != null ? `<div class="rent-pick" data-rent="${esc(it.id)}">
+      <button class="link" type="button" data-rent-toggle>Rent it for an event — ${dollars(rentNumber(it))}</button>
+      <div class="rent-pick__form" hidden>
+        <label class="field"><span>Event date</span><input type="date" data-rent-date /></label>
+        <button class="btn btn--ghost" type="button" data-rent-add="${esc(it.id)}">Add rental to bag</button>
+        <small>A refundable deposit is added at checkout. We'll confirm the dates with you.</small>
+      </div>
+    </div>` : ""}
     <div class="detail__more">
       <button class="link" type="button" data-share="${esc(it.id)}">Share</button>
       ${it.soldOut ? "" : `<button class="link" type="button" data-ask="${esc(it.id)}" data-kind="gift">Buying as a gift?</button>`}
@@ -142,7 +174,9 @@ export const stepsHTML = (steps = []) =>
 export const pillarsHTML = (pillars = []) =>
   pillars.map((p) => `<div><dt>${esc(p.title)}</dt><dd>${esc(p.text)}</dd></div>`).join("");
 
-export const paragraphsHTML = (ps = []) => ps.map((p) => `<p>${esc(p)}</p>`).join("");
+// A list of paragraphs, or one text with blank lines between paragraphs
+export const paragraphsHTML = (ps = []) =>
+  (typeof ps === "string" ? ps.split(/\n\s*\n/) : ps || []).filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join("");
 
 export const faqHTML = (items = []) =>
   items.map((f) => `<details class="faq__item reveal"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("");
@@ -150,6 +184,7 @@ export const faqHTML = (items = []) =>
 export const reviewsHTML = (items = []) =>
   items.map((r) => `<figure class="review reveal">
   ${r.image ? `<div class="review__img">${img(r.image, r.name ? `${r.name}` : "", { sizes: "(max-width: 760px) 100vw, 33vw" })}</div>` : ""}
+  ${r.rating ? `<p class="review__stars" aria-label="${r.rating} out of 5">${"★".repeat(r.rating)}</p>` : ""}
   <blockquote>${esc(r.text)}</blockquote>
   <figcaption>${esc(r.name)}${r.occasion ? ` <span>· ${esc(r.occasion)}</span>` : ""}</figcaption>
 </figure>`).join("");

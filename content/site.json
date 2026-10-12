@@ -15,7 +15,7 @@
   "intro": "Bridal sets, kundan, pearls, bangles and potlis — chosen piece by piece and delivered to your door.",
   "button": "Explore the collections",
   "link": "Message to order",
-  "heroImage": "assets/uploads/home-mv3x3og20.jpg",
+  "heroImage": "assets/uploads/home-mv3x3og20.webp",
   "heroVideo": "assets/uploads/video-mv3wr5dy0.mp4",
   "heroVideoMobile": "assets/uploads/video-mv3utux50.mp4",
   "collectionsLabel": "The collections",
@@ -35,61 +35,61 @@
    "id": "bridal",
    "name": "Bridal Sets",
    "text": "Statement necklaces with matching earrings and tikka, for the mehndi, the nikah and every photo after.",
-   "image": "assets/uploads/collection-bridal-sets-mv4jbjw30.jpg"
+   "image": "assets/uploads/collection-bridal-sets-mv4jbjw30.webp"
   },
   {
    "id": "kundan",
    "name": "Kundan & Stone",
    "text": "Ruby, emerald and sapphire tones set in gold — colour that catches the light from across the room.",
-   "image": "assets/img/col-kundan.jpg"
+   "image": "assets/img/col-kundan.webp"
   },
   {
    "id": "oxidized",
    "name": "Silver Look-Alike Sets",
    "text": "Antique silver finishes and bold, tribal-inspired forms with a quiet, old-world edge.",
-   "image": "assets/uploads/collection-silver-look-alike-mv4jc0us1.jpg"
+   "image": "assets/uploads/collection-silver-look-alike-mv4jc0us1.webp"
   },
   {
    "id": "mossanite-polki-necklaces",
    "name": "Mossanite & Polki Necklaces",
    "text": "",
-   "image": "assets/uploads/collection-mossanite-and-polki-necklaces-mv4jdl372.jpg"
+   "image": "assets/uploads/collection-mossanite-and-polki-necklaces-mv4jdl372.webp"
   },
   {
    "id": "potli",
    "name": "Potlis & Clutches",
    "text": "Embroidered potli bags draped in pearls, and sculpted clutches made to be noticed.",
-   "image": "assets/img/col-potli.jpg"
+   "image": "assets/img/col-potli.webp"
   },
   {
    "id": "pearl",
    "name": "Pearl Malas",
    "text": "Layered pearl strands and rani haar silhouettes, finished with jewelled pendants.",
-   "image": "assets/img/col-pearl.jpg"
+   "image": "assets/img/col-pearl.webp"
   },
   {
    "id": "bangles",
    "name": "Bangles & Cuffs",
    "text": "",
-   "image": "assets/uploads/collection-bangles-cuffs-mv4hukgid.jpg"
+   "image": "assets/uploads/collection-bangles-cuffs-mv4hukgid.webp"
   },
   {
    "id": "earings",
    "name": "Earrings & Jhumkas",
    "text": "",
-   "image": "assets/uploads/collection-earings-mv3vmshz0.jpg"
+   "image": "assets/uploads/collection-earings-mv3vmshz0.webp"
   },
   {
    "id": "exclusive-pachi-kundan-necklaces",
    "name": "Exclusive Pachi kundan Necklaces",
    "text": "",
-   "image": "assets/uploads/collection-exclusive-pachi-kundan-necklaces-mv3wkb7l0.jpg"
+   "image": "assets/uploads/collection-exclusive-pachi-kundan-necklaces-mv3wkb7l0.webp"
   },
   {
    "id": "other-accessories",
    "name": "Other Accessories",
    "text": "",
-   "image": "assets/uploads/collection-other-accessories-mv3wodzd1.jpg"
+   "image": "assets/uploads/collection-other-accessories-mv3wodzd1.webp"
   }
  ],
  "story": {
@@ -99,7 +99,7 @@
    "A grandmother's bangles. A bride's rani haar. Jhumkas borrowed for Eid and never quite returned. In South Asian homes, jewelry carries memory as much as it carries light.",
    "Sharif Adornment brings that tradition to Queens — jewelry and accessories chosen piece by piece for weddings, festivals and every celebration in between, and delivered to your door."
   ],
-  "image": "assets/img/story.jpg",
+  "image": "assets/img/story.webp",
   "pillars": [
    {
     "title": "Heritage",
@@ -149,51 +149,51 @@
   "link": "See more on Facebook",
   "images": [
    {
-    "src": "assets/gallery/gold-coin-temple-set.jpg",
+    "src": "assets/gallery/gold-coin-temple-set.webp",
     "alt": "Antique gold coin necklace set with aqua drops"
    },
    {
-    "src": "assets/gallery/fusion-hasli-ruby.jpg",
+    "src": "assets/gallery/fusion-hasli-ruby.webp",
     "alt": "Gold hasli necklace with ruby flower jhumkas"
    },
    {
-    "src": "assets/gallery/multistone-statement-set.jpg",
+    "src": "assets/gallery/multistone-statement-set.webp",
     "alt": "Multicolour stone statement necklace set"
    },
    {
-    "src": "assets/gallery/taj-embroidered-clutch.jpg",
+    "src": "assets/gallery/taj-embroidered-clutch.webp",
     "alt": "Ivory clutch embroidered with the Taj Mahal"
    },
    {
-    "src": "assets/gallery/black-velvet-potli.jpg",
+    "src": "assets/gallery/black-velvet-potli.webp",
     "alt": "Black velvet potli bag with pearl strands"
    },
    {
-    "src": "assets/gallery/silver-medallion-set.jpg",
+    "src": "assets/gallery/silver-medallion-set.webp",
     "alt": "Silver medallion pendant set on a display bust"
    },
    {
-    "src": "assets/gallery/pachi-kundan-choker.jpg",
+    "src": "assets/gallery/pachi-kundan-choker.webp",
     "alt": "Pachi kundan choker with pearl strands"
    },
    {
-    "src": "assets/gallery/pearl-tassel-bag.jpg",
+    "src": "assets/gallery/pearl-tassel-bag.webp",
     "alt": "Pearl-beaded bag with tassel fringe"
    },
    {
-    "src": "assets/gallery/polki-pearl-necklace.jpg",
+    "src": "assets/gallery/polki-pearl-necklace.webp",
     "alt": "Polki pendant on navy and pearl strands"
    },
    {
-    "src": "assets/gallery/mother-of-pearl-leaf-clutch.jpg",
+    "src": "assets/gallery/mother-of-pearl-leaf-clutch.webp",
     "alt": "Gold and mother-of-pearl leaf clutch"
    },
    {
-    "src": "assets/gallery/oxidized-peacock-set.jpg",
+    "src": "assets/gallery/oxidized-peacock-set.webp",
     "alt": "Oxidized silver peacock necklace set"
    },
    {
-    "src": "assets/gallery/gold-pendant-pearl-mala.jpg",
+    "src": "assets/gallery/gold-pendant-pearl-mala.webp",
     "alt": "Gold pendant on pearl and ruby bead mala"
    }
   ],
@@ -226,7 +226,7 @@
    {
     "title": "The Peacock beaded set  ",
     "text": "Carved temple gold on layered pearls and ruby beads, finished with pearl jhumkas, a full kangan stack and a red potli.",
-    "image": "assets/img/col-bridal.jpg",
+    "image": "assets/img/col-bridal.webp",
     "pieces": [
      "temple-pendant-rani-haar",
      "pearl-cascade-jhumkas",
@@ -237,7 +237,7 @@
    {
     "title": "Jewel tones",
     "text": "Multicolour kundan for a reception or walima — bright enough to carry a simple outfit, with a sculpted clutch.",
-    "image": "assets/img/col-kundan.jpg",
+    "image": "assets/img/col-kundan.webp",
     "pieces": [
      "navratna-kundan-set",
      "multistone-statement-set",
@@ -247,7 +247,7 @@
    {
     "title": "Heirloom gold",
     "text": "Antique gold coins and a pearl mala, softened with aqua drops and a black velvet potli.",
-    "image": "assets/gallery/gold-coin-temple-set.jpg",
+    "image": "assets/gallery/gold-coin-temple-set.webp",
     "pieces": [
      "gold-coin-temple-set",
      "gold-pendant-pearl-mala",
@@ -310,5 +310,52 @@
  },
  "nav": {
   "book": "Send us a message"
+ },
+ "checkout": {
+  "label": "Checkout",
+  "title": "Your *order.*",
+  "intro": "Check your pieces, add your delivery details and choose how to pay. We'll text you to confirm.",
+  "cardPayments": false,
+  "payMethods": "Zelle, Cash App or PayPal",
+  "payLater": "",
+  "thanks": "We've got your order and will text you shortly to confirm it.",
+  "delivery": {
+   "local": {
+    "on": true,
+    "label": "Local delivery (Queens & NYC)",
+    "fee": "",
+    "freeOver": "",
+    "note": "Usually within 2–3 days."
+   },
+   "ship": {
+    "on": false,
+    "label": "Shipping in the US",
+    "fee": "",
+    "freeOver": "",
+    "note": "Tracked shipping, 3–7 days."
+   },
+   "pickup": {
+    "on": false,
+    "label": "Meet-up in Queens",
+    "note": "We'll text you a place and time."
+   }
+  },
+  "taxRate": "",
+  "taxLabel": "NY sales tax",
+  "deposit": {
+   "percent": "",
+   "over": ""
+  },
+  "rentDeposit": ""
+ },
+ "policies": {
+  "label": "Policies",
+  "title": "The *small print.*",
+  "intro": "Everything you need to know about ordering from us. Questions? Just message us.",
+  "shipping": "We deliver across Queens and New York City, usually within 2–3 days of confirming your order. If you're further away, ask us about shipping.\n\nWe'll text you to arrange a delivery time.",
+  "returns": "Because many pieces are one of a kind, please message us before you order if you have any questions about size, colour or fit.\n\nIf something arrives damaged, tell us within 48 hours with a photo and we'll make it right.",
+  "rentals": "Rentals are for one event. A refundable deposit is taken with the rental and returned once the piece comes back in the same condition.\n\nWe'll confirm the pickup and return dates with you by text.",
+  "payment": "Pay by card at checkout, or choose to pay after we confirm your order by Zelle, Cash App or PayPal. Your order is reserved once payment is received.",
+  "privacy": "We only use your details to deliver your order and contact you about it. We never sell or share them."
  }
 }
