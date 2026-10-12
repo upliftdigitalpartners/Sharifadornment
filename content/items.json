@@ -1,6 +1,27 @@
 [
  {
   "description": "",
+  "price": "$35",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mv4ig0jg8.jpg",
+   "assets/uploads/piece-mv4if1of7.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "kashmiri-earrings-with-tana-and-ghungroo",
+  "name": "Kashmiri Earrings with Tana and Ghungroo",
+  "collection": "earings",
+  "image": "assets/uploads/piece-mv4ig0vl9.jpg"
+ },
+ {
+  "description": "",
   "price": "$38",
   "soldOut": false,
   "featured": false,
