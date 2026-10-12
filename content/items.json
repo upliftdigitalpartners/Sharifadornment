@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$42",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "mint-green-moti-necklace-set",
+  "name": "Mint Green Moti Necklace set",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mv4hr5jpc.jpg"
+ },
+ {
+  "description": "",
   "price": "$40",
   "soldOut": false,
   "featured": false,
