@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$18",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mv4int1jd.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "silver-look-alive-blue-oversized-jhumka",
+  "name": "Silver look alive Blue Oversized Jhumka",
+  "collection": "earings",
+  "image": "assets/uploads/piece-mv4insuhc.jpg"
+ },
+ {
+  "description": "",
   "price": "$28",
   "soldOut": false,
   "featured": false,
