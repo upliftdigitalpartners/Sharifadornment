@@ -393,3 +393,21 @@ div.tile { cursor: default; align-content: start; }
 .order textarea { width: 100%; box-sizing: border-box; }
 @media (max-width: 700px) { .order__grid { grid-template-columns: 1fr; } .order { padding: 16px; } }
 .order__who .btn { text-decoration: none; }
+
+/* ---------- Shop tab, tracking inputs, pending reviews ---------- */
+.head-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.tg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tg-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--card); border: 1px solid var(--line); }
+.codes-table tr.is-off td { opacity: 0.5; }
+.codes-table td:last-child { white-space: nowrap; }
+.code-new { display: grid; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.code-off { display: flex; gap: 6px; }
+.code-off input { flex: 1; min-width: 0; }
+.code-off .select { width: auto; }
+.order__track { display: flex; gap: 6px; margin-top: 12px; }
+.order__track .select { width: auto; flex: 0 0 auto; }
+.order__track input { flex: 1; min-width: 0; min-height: 36px; padding: 0 10px; background: var(--card); color: var(--ink); border: 1px solid var(--line); font: 400 0.9rem var(--sans); }
+.pending { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.pending blockquote { margin: 4px 0 6px; font-family: var(--serif); font-size: 1.2rem; }
+.review__stars { margin: 0; color: var(--gold); letter-spacing: 2px; }
+.stat-block h3.sub { margin-top: 20px; font-size: 1.2rem; }

@@ -115,7 +115,7 @@ ${body}
     </div>
     <nav class="footer__links" aria-label="More">
       <a href="collections.html">Collections</a><a href="bridal.html">Bridal</a><a href="order.html">How to order</a>
-      <a href="faq.html">FAQ</a><a href="contact.html">Enquire</a>
+      <a href="faq.html">FAQ</a><a href="policies.html">Policies</a><a href="contact.html">Enquire</a>
     </nav>
     <div class="footer__row">
       <span><a class="footer__c" href="studio/" aria-label="Studio">©</a> <span class="js-year">${new Date().getFullYear()}</span> Sharif Adornment</span>
@@ -399,7 +399,8 @@ ${head("faq", site, { tag: "h1", intro: true })}
 <body><p><a href="contact.html">Continue to Sharif Adornment</a></p></body></html>
 `;
 
-  // Ordering: the bag turns into an order here; prices are checked again by the server
+  // Ordering: the bag turns into an order here. Totals, delivery choices and ways to pay
+  // come from the order service (/api/order "quote"), which prices everything itself.
   const co = site.checkout || {};
   pages["checkout.html"] = shell(site, {
     file: "checkout.html", title: "Checkout — Sharif Adornment",
@@ -416,35 +417,65 @@ ${head("faq", site, { tag: "h1", intro: true })}
           <div class="field"><label for="c-name">Full name</label><input id="c-name" name="name" required autocomplete="name" /></div>
           <div class="field-row">
             <div class="field"><label for="c-phone">Phone</label><input id="c-phone" name="phone" type="tel" required autocomplete="tel" placeholder="We'll text to confirm" /></div>
-            <div class="field"><label for="c-email">Email <small>(optional)</small></label><input id="c-email" name="email" type="email" autocomplete="email" /></div>
+            <div class="field"><label for="c-email">Email <small>(optional)</small></label><input id="c-email" name="email" type="email" autocomplete="email" placeholder="For your receipt" /></div>
           </div>
         </fieldset>
-        <fieldset><legend class="label">Delivery address</legend>
+        <fieldset class="pay"><legend class="label">Delivery</legend><div data-methods></div></fieldset>
+        <fieldset data-address><legend class="label">Delivery address</legend>
           <div class="field"><label for="c-address">Street address</label><input id="c-address" name="address" required autocomplete="street-address" /></div>
           <div class="field-row field-row--3">
             <div class="field"><label for="c-city">City</label><input id="c-city" name="city" required autocomplete="address-level2" /></div>
             <div class="field"><label for="c-state">State</label><input id="c-state" name="state" value="NY" autocomplete="address-level1" /></div>
             <div class="field"><label for="c-zip">ZIP</label><input id="c-zip" name="zip" required inputmode="numeric" autocomplete="postal-code" /></div>
           </div>
-          <div class="field"><label for="c-notes">Notes <small>(optional)</small></label><textarea id="c-notes" name="notes" rows="2" placeholder="Event date, gift message, delivery instructions…"></textarea></div>
         </fieldset>
-        <fieldset class="pay"><legend class="label">Payment</legend>
-          ${co.cardPayments ? `<label class="pay__opt"><input type="radio" name="pay" value="card" checked /><span><b>Pay now by card</b><small>Secure checkout by Stripe. Apple Pay and Google Pay too.</small></span></label>` : ""}
-          <label class="pay__opt"><input type="radio" name="pay" value="later"${co.cardPayments ? "" : " checked"} /><span><b>Pay after we confirm</b><small>We'll text you to confirm, then you pay by ${esc(co.payMethods || "Zelle, Cash App or PayPal")}.</small></span></label>
-        </fieldset>
+        <div class="field"><label for="c-notes">Notes <small>(optional)</small></label><textarea id="c-notes" name="notes" rows="2" placeholder="Event date, gift message, delivery instructions…"></textarea></div>
+        <fieldset class="pay"><legend class="label">Payment</legend><div data-pays></div></fieldset>
         <div class="hp" aria-hidden="true"><label>Leave empty <input name="website" tabindex="-1" autocomplete="off" /></label></div>
         <button type="submit" class="btn btn--block" data-place>Place order</button>
+        <p class="checkout__agree">By placing your order you agree to our <a href="policies.html" target="_blank">shipping, returns and rental policies</a>.</p>
         <p class="enquiry__note" role="status" aria-live="polite"></p>
       </form>
     </section>`,
   });
   pages["order-done.html"] = shell(site, {
-    file: "order-done.html", title: "Order received — Sharif Adornment",
+    file: "order-done.html", title: "Your order — Sharif Adornment",
     desc: "Your Sharif Adornment order.",
     body: `    <section class="section section--first order-done" data-order-done>
       <p class="label">Your order</p>
-      <h1 class="page__title">Thank <em>you.</em></h1>
+      <h1 class="page__title" data-order-title>Thank <em>you.</em></h1>
       <div data-order-view><p class="muted">Loading your order…</p></div>
+    </section>`,
+  });
+  pages["review.html"] = shell(site, {
+    file: "review.html", title: "Leave a review — Sharif Adornment",
+    desc: "Tell us how you liked your Sharif Adornment pieces.",
+    body: `    <section class="section section--first order-done">
+      <p class="label">Your review</p>
+      <h1 class="page__title">How did we <em>do?</em></h1>
+      <form class="enquiry review-form" data-form="review" novalidate>
+        <fieldset class="stars" data-stars><legend class="label">Your rating</legend>
+          ${[1, 2, 3, 4, 5].map((n) => `<label><input type="radio" name="rating" value="${n}"${n === 5 ? " checked" : ""} /><span aria-label="${n} star${n > 1 ? "s" : ""}">★</span></label>`).join("")}
+        </fieldset>
+        <div class="field"><label for="r-text">Your review</label><textarea id="r-text" name="text" rows="4" required placeholder="How did it look on the day? How was ordering?"></textarea></div>
+        <div class="field"><label for="r-name">Name to show</label><input id="r-name" name="name" autocomplete="given-name" placeholder="e.g. Ayesha, Queens" /></div>
+        <button type="submit" class="btn btn--block">Send review</button>
+        <p class="enquiry__note" role="status" aria-live="polite"></p>
+      </form>
+    </section>`,
+  });
+  const pol = site.policies || {};
+  const polSections = [["shipping", "Delivery & shipping"], ["returns", "Returns & exchanges"], ["rentals", "Rentals"], ["payment", "Payment"], ["privacy", "Privacy"]]
+    .filter(([k]) => pol[k]);
+  pages["policies.html"] = shell(site, {
+    file: "policies.html", title: "Policies — Sharif Adornment",
+    desc: "Delivery, returns, rentals, payment and privacy at Sharif Adornment.",
+    body: `    <section class="section section--first policies">
+      <p class="label reveal" data-t="policies.label">${rich(pol.label || "Policies")}</p>
+      <h1 class="page__title reveal" data-t="policies.title">${rich(pol.title || "")}</h1>
+      ${pol.intro ? `<p class="page__intro reveal" data-t="policies.intro">${rich(pol.intro)}</p>` : ""}
+      ${polSections.map(([k, t]) => `<section class="policy reveal" id="${k}"><h2>${t}</h2><div data-paragraphs="policies.${k}">${paragraphsHTML(pol[k])}</div></section>`).join("")}
+      <p class="policy__contact">Questions? <a href="contact.html">Send us a message</a>${site.business?.phone ? ` or call ${esc(site.business.phone)}` : ""}.</p>
     </section>`,
   });
 
@@ -510,7 +541,7 @@ ${head("faq", site, { tag: "h1", intro: true })}
     });
   }
 
-  const urls = ["", "collections.html", "bridal.html", "story.html", "order.html", "gallery.html", "faq.html", "contact.html", ...items.map(pieceUrl)];
+  const urls = ["", "collections.html", "bridal.html", "story.html", "order.html", "gallery.html", "faq.html", "policies.html", "contact.html", ...items.map(pieceUrl)];
   // Product catalog for Facebook & Instagram Shops (Commerce Manager) and Google Merchant Center.
   // Pieces need a plain dollar price and a photo to be listed.
   const listed = items.filter((it) => priceNumber(it) != null && it.image);

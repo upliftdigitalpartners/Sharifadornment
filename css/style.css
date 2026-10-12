@@ -850,3 +850,44 @@ body:has(.banner) .nav:not(.is-scrolled) { top: var(--banner-h, 41px); }
 .order__pay h2 { font-size: 1.6rem; margin-bottom: 0.5rem; }
 .order__pay p { margin: 0.4rem 0 0; }
 .order-done .bag__totals { margin-bottom: 1.6rem; }
+
+/* ---------- Shop extras: rentals, codes, tracking, reviews, policies ---------- */
+.rent-pick { margin-top: 14px; }
+.rent-pick > .link { background: none; border: 0; padding: 0; cursor: pointer; color: var(--ink); font: inherit; font-size: 0.8rem; }
+.rent-pick__form { display: grid; gap: 10px; margin-top: 12px; padding: 16px; background: var(--surface); }
+.rent-pick__form small { color: var(--muted); font-size: 0.8rem; }
+.bag__note { margin: 6px 0 0; font-size: 0.82rem; color: var(--muted); }
+.code { display: flex; gap: 8px; margin-top: 18px; }
+.code input { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 0; font: 400 0.95rem var(--sans); text-transform: uppercase; }
+.code input:focus { outline: none; border-color: var(--gold); }
+.code .btn { min-height: 44px; padding: 0 18px; }
+.code__error { margin: 6px 0 0; font-size: 0.85rem; color: #a33a2c; }
+:root[data-theme="dark"] .code__error { color: #e07a6a; }
+.bag__totals .is-discount dd { color: var(--gold-text); }
+.pay__price { font-style: normal; font-weight: 400; color: var(--muted); margin-left: 6px; }
+.checkout__agree { margin: -8px 0 0; font-size: 0.82rem; color: var(--muted); }
+.checkout__agree a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.timeline { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 0 0 1.6rem; padding: 0; }
+.timeline li { display: grid; gap: 2px; padding-top: 10px; border-top: 3px solid var(--line); font-size: 0.8rem; color: var(--muted); }
+.timeline li.is-done { border-top-color: var(--gold); color: var(--ink); }
+.timeline li.is-now span { font-weight: 600; }
+.timeline small { font-size: 0.72rem; color: var(--muted); }
+.order__tracking { margin: -0.6rem 0 1.4rem; }
+.order__tracking a { color: var(--gold-text); }
+.order__cancelled { margin-bottom: 1.4rem; }
+.small { font-size: 0.82rem; }
+.stars { border: 0; padding: 0; margin: 0; display: flex; gap: 4px; flex-direction: row-reverse; justify-content: flex-end; }
+.stars legend { width: 100%; margin-bottom: 6px; }
+.stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.stars span { font-size: 2rem; line-height: 1; color: var(--line); cursor: pointer; transition: color 0.2s; }
+.stars label:has(input:checked) span, .stars label:has(input:checked) ~ label span, .stars label:hover span, .stars label:hover ~ label span { color: var(--gold); }
+.stars input:focus-visible + span { outline: 2px solid var(--gold); outline-offset: 2px; }
+.review__stars { margin: 0 0 6px; color: var(--gold); letter-spacing: 2px; }
+.policies { max-width: 760px; }
+.policy { margin-top: 2.4rem; }
+.policy h2 { font-size: 1.8rem; margin-bottom: 0.6rem; }
+.policy p { color: var(--muted); }
+.policy__contact { margin-top: 2.4rem; }
+.policy__contact a { color: var(--gold-text); }
+.checkout > * { min-width: 0; }
+.code .btn { flex: 0 0 auto; }

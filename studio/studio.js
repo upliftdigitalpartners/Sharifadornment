@@ -178,7 +178,16 @@
     s.faq.items ||= [];
     s.book ||= { label: "", title: "", intro: "", types: ["Video call", "Phone call"], button: "", note: "" };
     s.nav ||= { book: "Message us" };
-    s.checkout ||= { label: "Checkout", title: "Your *order.*", intro: "", cardPayments: false, deliveryFee: "", freeDeliveryOver: "", payMethods: "Zelle, Cash App or PayPal", payLater: "", thanks: "" };
+    s.checkout ||= { label: "Checkout", title: "Your *order.*", intro: "", cardPayments: false, payMethods: "Zelle, Cash App or PayPal", payLater: "", thanks: "" };
+    const ck = s.checkout;
+    ck.delivery ||= {};
+    ck.delivery.local ||= { on: true, label: "Local delivery (Queens & NYC)", fee: ck.deliveryFee || "", freeOver: ck.freeDeliveryOver || "", note: "" };
+    ck.delivery.ship ||= { on: false, label: "Shipping in the US", fee: "", freeOver: "", note: "" };
+    ck.delivery.pickup ||= { on: false, label: "Meet-up in Queens", note: "" };
+    ck.deposit ||= { percent: "", over: "" };
+    for (const k of ["taxRate", "rentDeposit", "payLater", "thanks"]) ck[k] ??= "";
+    ck.taxLabel ??= "NY sales tax";
+    s.policies ||= { label: "Policies", title: "", intro: "", shipping: "", returns: "", rentals: "", payment: "", privacy: "" };
     return s;
   }
 
@@ -441,7 +450,7 @@
         <div class="tile${i.soldOut ? " is-sold" : ""}" data-tile="${esc(i.id)}">
           <button type="button" class="tile__open" data-edit="${esc(i.id)}" aria-label="Edit ${esc(i.name)}">
             <div class="tile__img"><img src="${esc(src(i.image))}" alt="" loading="lazy" />
-              <div class="tile__flags">${i.lastOne ? '<span class="flag">Last one</span>' : ""}${i.rent ? '<span class="flag">Rent</span>' : ""}${i.video ? '<span class="flag">▶</span>' : ""}</div>
+              <div class="tile__flags">${i.id in (state.stock || {}) ? `<span class="flag${state.stock[i.id] ? "" : " flag--gold"}">${state.stock[i.id] ? `${state.stock[i.id]} left` : "0 left"}</span>` : ""}${i.lastOne ? '<span class="flag">Last one</span>' : ""}${i.rent ? '<span class="flag">Rent</span>' : ""}${i.video ? '<span class="flag">▶</span>' : ""}</div>
             </div>
             <span class="tile__col">${esc(colName(i.collection))}</span>
             <span class="tile__name">${esc(i.name)}</span>
@@ -517,6 +526,9 @@
           </label>
           <div class="field-pair">
             <label class="field"><span>Price</span><input name="price" value="${esc(it.price)}" placeholder="Empty = “Price on request”" /></label>
+            <label class="field"><span>In stock <small>(optional)</small></span><input name="stock" inputmode="numeric" value="${esc(state.stock?.[it.id] ?? "")}" placeholder="Not counted" /><small>How many you have. Orders take them off; at 0 it shows Sold out. Saved straight away.</small></label>
+          </div>
+          <div class="field-pair">
             <label class="field"><span>Size / length</span><input name="size" value="${esc(it.size)}" placeholder="e.g. Bangle 2.6, adjustable" /></label>
           </div>
           <label class="field"><span>Description</span><textarea name="description" rows="3">${esc(it.description)}</textarea></label>
@@ -643,6 +655,8 @@
         data.id = nid;
         state.items.unshift(data);
       }
+      const stockNow = f.stock.value.trim();
+      if (stockNow !== String(state.stock?.[data.id] ?? "")) saveStock(data.id, stockNow);
       render();
     });
     dlg.showModal();
@@ -768,14 +782,11 @@
       ["gallery.label", "Small label"], ["gallery.title", "Heading"], ["gallery.link", "Facebook link text"],
       ["gallery.facebookFeed", "Offer to show our latest Facebook posts", "check"], ["gallery.feedTitle", "Facebook section heading"],
     ]],
-    ["Ordering & checkout", [
-      ["checkout.deliveryFee", "Delivery fee", "text", "e.g. $8. Leave empty to confirm delivery cost by text."],
-      ["checkout.freeDeliveryOver", "Free delivery on orders over", "text", "e.g. $100. Leave empty for no free delivery."],
-      ["checkout.payMethods", "Pay-later methods (short)", "text", "Shown at checkout, e.g. “Zelle, Cash App or PayPal”."],
-      ["checkout.payLater", "How to pay — shown after an order", "area", "Your Zelle number, Cash App tag, PayPal link… one per line."],
-      ["checkout.cardPayments", "Accept card payments (Stripe)", "check", "Only works once Stripe is connected on Netlify. See the README."],
-      ["checkout.thanks", "Thank-you message after ordering", "area"],
-      ["checkout.label", "Checkout — small label"], ["checkout.title", "Checkout — heading"], ["checkout.intro", "Checkout — intro", "area"],
+    ["Policies page", [
+      ["policies.title", "Heading"], ["policies.intro", "Intro", "area"],
+      ["policies.shipping", "Delivery & shipping", "area", "Leave a blank line between paragraphs. Leave empty to hide a section."],
+      ["policies.returns", "Returns & exchanges", "area"], ["policies.rentals", "Rentals", "area"],
+      ["policies.payment", "Payment", "area"], ["policies.privacy", "Privacy", "area"],
     ]],
     ["Enquire page", [["contact.label", "Small label"], ["contact.title", "Heading"], ["contact.text", "Text", "area"], ["contact.button", "Form button"]]],
     ["Footer", [
@@ -887,17 +898,47 @@
     const list = state.site.reviews.items;
     el.innerHTML = `
       <div class="view__head"><div><h2>Reviews</h2><p>Shown on the home and Bridal pages. The section stays hidden until you add one.</p></div></div>
-      <p class="hint">Only add real reviews from customers — ideally with their permission to show their name and photo.</p>
+      <section class="group" data-pending hidden><h3>Waiting for approval</h3><div class="group__fields" data-pending-list></div></section>
+      <p class="hint">Only add real reviews from customers — ideally with their permission to show their name and photo. Reviews customers send from their order link appear above for you to approve.</p>
       ${list.map((r, i) => `<section class="group card-block"><h3>Review ${i + 1}</h3><div class="group__fields">
         ${fieldHTML([`reviews.items.${i}.text`, "What they said", "area"])}
         <div class="field-pair">${fieldHTML([`reviews.items.${i}.name`, "Name", "text"])}${fieldHTML([`reviews.items.${i}.occasion`, "Occasion (optional)"])}</div>
         ${fieldHTML([`reviews.items.${i}.image`, "Photo", "image", "optional"])}
+        ${r.rating ? `<p class="muted">${"★".repeat(r.rating)} from the customer</p>` : ""}
         ${listTools("reviews.items", i, list.length)}
       </div></section>`).join("")}
       <button type="button" class="btn btn--ghost" data-list-add="reviews.items" data-blank='{"name":"","occasion":"","text":"","image":""}'>+ Add a review</button>`;
     bindFields(el);
     bindList(el);
+    drawPending(el);
   };
+
+  // Reviews customers sent from their order link
+  async function drawPending(el) {
+    const box = $("[data-pending]", el), listEl = $("[data-pending-list]", el);
+    let pending = DEMO ? [{ id: "SA-261003-EF56", date: new Date().toISOString(), rating: 5, text: "Beautiful set, everyone asked where it was from!", name: "Sample", pieces: ["Bridal set"] }] : [];
+    if (!DEMO) { try { pending = (await shopApi({ reviews: "list" })).reviews; } catch (_) { return; } }
+    const draw = () => {
+      box.hidden = !pending.length;
+      listEl.innerHTML = pending.map((p) => `<div class="pending" data-pid="${esc(p.id)}">
+        <p class="review__stars">${"★".repeat(p.rating)}</p><blockquote>“${esc(p.text)}”</blockquote>
+        <p class="muted">${esc(p.name)} · ${esc(p.pieces.join(", "))} · ${new Date(p.date).toLocaleDateString()}</p>
+        <div class="order__actions"><button type="button" class="btn" data-approve>Approve</button><button type="button" class="btn btn--ghost" data-reject>Delete</button></div></div>`).join("");
+    };
+    draw();
+    listEl.onclick = async (e) => {
+      const card = e.target.closest("[data-pid]");
+      if (!card) return;
+      const p = pending.find((x) => x.id === card.dataset.pid);
+      const approve = e.target.closest("[data-approve]"), reject = e.target.closest("[data-reject]");
+      if (!approve && !reject) return;
+      if (reject && !confirm("Delete this review? It won't be shown.")) return;
+      if (approve) state.site.reviews.items.unshift({ text: p.text, name: p.name, occasion: p.pieces[0] || "", image: "", rating: p.rating });
+      if (!DEMO) { try { await shopApi({ reviews: { remove: p.id } }); } catch (x) { toast(x.message, true); return; } }
+      pending = pending.filter((x) => x !== p);
+      if (approve) { render(); toast("Added to your reviews. Press Publish to show it on the site."); } else draw();
+    };
+  }
 
   /* ---------- FAQ ---------- */
   views.faq = (el) => {
@@ -917,22 +958,139 @@
     bindList(el);
   };
 
+  /* ---------- Shop: alerts, discount codes, checkout settings ---------- */
+  const shopApi = (body) => api("shop", body, session.get());
+  views.shop = (el) => {
+    const D = "checkout.delivery";
+    el.innerHTML = `
+      <div class="view__head"><div><h2>Shop</h2><p>Order alerts, discount codes, delivery, tax and payment settings.</p></div></div>
+      <section class="group"><h3>New-order alerts</h3><div class="group__fields" data-tg><p class="loading">Loading…</p></div></section>
+      <section class="group"><h3>Discount codes</h3><div class="group__fields" data-codes><p class="loading">Loading…</p></div></section>
+      <section class="group"><h3>Delivery</h3><div class="group__fields">
+        ${fieldHTML([`${D}.local.on`, "Local delivery", "check"])}
+        <div class="field-pair">${fieldHTML([`${D}.local.label`, "Name at checkout"])}${fieldHTML([`${D}.local.note`, "Short note", "text", "e.g. Usually within 2–3 days."])}</div>
+        <div class="field-pair">${fieldHTML([`${D}.local.fee`, "Fee", "text", "e.g. $8. Empty = confirm by text."])}${fieldHTML([`${D}.local.freeOver`, "Free on orders over", "text", "e.g. $100. Empty = never free."])}</div>
+        ${fieldHTML([`${D}.ship.on`, "Shipping in the US", "check"])}
+        <div class="field-pair">${fieldHTML([`${D}.ship.label`, "Name at checkout"])}${fieldHTML([`${D}.ship.note`, "Short note"])}</div>
+        <div class="field-pair">${fieldHTML([`${D}.ship.fee`, "Fee"])}${fieldHTML([`${D}.ship.freeOver`, "Free on orders over"])}</div>
+        ${fieldHTML([`${D}.pickup.on`, "Pickup / meet-up (free)", "check"])}
+        <div class="field-pair">${fieldHTML([`${D}.pickup.label`, "Name at checkout"])}${fieldHTML([`${D}.pickup.note`, "Short note", "text", "e.g. We'll text you a place and time."])}</div>
+      </div></section>
+      <section class="group"><h3>Payment</h3><div class="group__fields">
+        ${fieldHTML(["checkout.cardPayments", "Accept card payments (Stripe)", "check", "works once Stripe is connected on Netlify — see the README"])}
+        ${fieldHTML(["checkout.payMethods", "Pay-later methods (short)", "text", "Shown at checkout, e.g. “Zelle, Cash App or PayPal”."])}
+        ${fieldHTML(["checkout.payLater", "How to pay — shown after an order", "area", "Your Zelle number, Cash App tag, PayPal link… one per line."])}
+        <div class="field-pair">${fieldHTML(["checkout.deposit.percent", "Deposit option: percent", "text", "e.g. 30. Empty = no deposit option. Needs card payments."])}${fieldHTML(["checkout.deposit.over", "…for orders over", "text", "e.g. $300"])}</div>
+      </div></section>
+      <section class="group"><h3>Tax & rentals</h3><div class="group__fields">
+        <div class="field-pair">${fieldHTML(["checkout.taxRate", "Sales tax rate (%)", "text", "e.g. 8.875 for NYC. Empty = no tax. Check with your accountant."])}${fieldHTML(["checkout.taxLabel", "Tax name at checkout"])}</div>
+        ${fieldHTML(["checkout.rentDeposit", "Refundable deposit per rented piece", "text", "e.g. $50. Rentable pieces need “Available to rent” and a rental price."])}
+      </div></section>
+      <section class="group"><h3>Checkout wording</h3><div class="group__fields">
+        ${[["checkout.title", "Heading"], ["checkout.intro", "Intro", "area"], ["checkout.thanks", "Thank-you message after ordering", "area"]].map(fieldHTML).join("")}
+      </div></section>`;
+    bindFields(el);
+    drawTelegram($("[data-tg]", el));
+    drawCodes($("[data-codes]", el));
+  };
+
+  async function drawTelegram(box) {
+    if (DEMO) { box.innerHTML = '<p class="muted">Alerts are set up on the live Studio.</p>'; return; }
+    const show = (t, found = null) => {
+      box.innerHTML = !t.configured
+        ? `<p>Get a phone notification for every new order, payment, review and sold-out piece, in the free Telegram app.</p>
+           <p class="muted">One-time setup: in Telegram, message <b>@BotFather</b>, send <b>/newbot</b> and follow the steps. It gives you a token: add it on Netlify as <b>TELEGRAM_BOT_TOKEN</b> (see the README), redeploy, then come back here.</p>`
+        : `${t.chats.length ? `<ul class="tg-list">${t.chats.map((c) => `<li><span>🔔 ${esc(c.name)}</span><button type="button" class="add-link" data-tg-remove="${esc(c.id)}">Remove</button></li>`).join("")}</ul>
+             <button type="button" class="btn btn--ghost" data-tg-test>Send a test alert</button>`
+           : '<p>No phone connected yet.</p>'}
+           <p class="muted">To connect a phone: open your bot in Telegram, send it any message (like “hi”), then tap:</p>
+           <button type="button" class="btn btn--ghost" data-tg-find>Find my chat</button>
+           ${found ? (found.length ? `<ul class="tg-list">${found.filter((f) => !t.chats.some((c) => c.id === f.id)).map((f) => `<li><span>${esc(f.name)}</span><button type="button" class="btn" data-tg-add="${esc(f.id)}" data-name="${esc(f.name)}">Connect</button></li>`).join("") || "<li>Already connected.</li>"}</ul>` : '<p class="muted">No messages found yet. Send your bot a message, then try again.</p>') : ""}`;
+    };
+    const run = async (body) => { try { const t = await shopApi({ telegram: body }); show(t, t.found || null); } catch (x) { toast(x.message, true); } };
+    box.onclick = (e) => {
+      if (e.target.closest("[data-tg-find]")) run("find");
+      if (e.target.closest("[data-tg-test]")) run("test").then(() => toast("Test alert sent. Check Telegram."));
+      const a = e.target.closest("[data-tg-add]");
+      if (a) run({ add: { id: a.dataset.tgAdd, name: a.dataset.name } }).then(() => toast("Connected. A welcome message was sent."));
+      const r = e.target.closest("[data-tg-remove]");
+      if (r && confirm("Stop alerts to this chat?")) run({ remove: r.dataset.tgRemove });
+    };
+    run("status");
+  }
+
+  async function drawCodes(box) {
+    let codes = DEMO ? { EID15: { kind: "percent", value: 15, minSubtotal: 0, expires: "", maxUses: 0, uses: 3, active: true } } : null;
+    const off = (c) => (c.kind === "percent" ? `${c.value}% off` : `$${c.value} off`);
+    const draw = () => {
+      const rows = Object.entries(codes);
+      box.innerHTML = `${rows.length ? `<div class="table-wrap"><table class="stat-table codes-table"><thead><tr><th>Code</th><th>Takes off</th><th>Rules</th><th>Used</th><th></th></tr></thead><tbody>
+        ${rows.map(([k, c]) => `<tr class="${c.active === false ? "is-off" : ""}"><td><b>${esc(k)}</b></td><td>${off(c)}</td>
+          <td>${[c.minSubtotal ? `orders over $${c.minSubtotal}` : "", c.expires ? `until ${esc(c.expires)}` : "", c.maxUses ? `max ${c.maxUses} uses` : ""].filter(Boolean).join(" · ") || "—"}</td>
+          <td>${c.uses || 0}</td>
+          <td><button type="button" class="add-link" data-code-toggle="${esc(k)}">${c.active === false ? "Turn on" : "Pause"}</button> <button type="button" class="add-link" data-code-del="${esc(k)}">Delete</button></td></tr>`).join("")}
+        </tbody></table></div>` : '<p class="muted">No codes yet.</p>'}
+        <form class="code-new" data-code-new>
+          <div class="field-pair">
+            <label class="field"><span>Code</span><input name="code" placeholder="e.g. EID15" autocapitalize="characters" required /></label>
+            <label class="field"><span>Takes off</span><span class="code-off"><input name="value" inputmode="decimal" placeholder="15" required /><select class="select" name="kind"><option value="percent">%</option><option value="amount">$</option></select></span></label>
+          </div>
+          <div class="field-pair">
+            <label class="field"><span>Only on orders over ($, optional)</span><input name="minSubtotal" inputmode="decimal" /></label>
+            <label class="field"><span>Last day (optional)</span><input name="expires" type="date" /></label>
+          </div>
+          <label class="field"><span>Maximum uses (optional)</span><input name="maxUses" inputmode="numeric" /></label>
+          <button type="submit" class="btn">Add code</button>
+        </form>`;
+    };
+    const save = async (body) => {
+      if (DEMO) { toast("Demo mode — codes aren't saved."); return; }
+      try { codes = (await shopApi({ codes: body })).codes; draw(); } catch (x) { toast(x.message, true); }
+    };
+    box.addEventListener("submit", (e) => {
+      if (!e.target.matches("[data-code-new]")) return;
+      e.preventDefault();
+      const d = Object.fromEntries(new FormData(e.target));
+      save({ set: { ...d, active: true } }).then(() => toast(`Code ${d.code.toUpperCase()} added.`));
+    });
+    box.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-code-toggle]");
+      if (t) { const c = codes[t.dataset.codeToggle]; save({ set: { code: t.dataset.codeToggle, ...c, active: c.active === false } }); }
+      const d = e.target.closest("[data-code-del]");
+      if (d && confirm(`Delete the code ${d.dataset.codeDel}?`)) save({ remove: d.dataset.codeDel });
+    });
+    if (!DEMO) { try { codes = (await shopApi({ codes: "list" })).codes; } catch (x) { box.innerHTML = `<p class="muted">${esc(x.message)}</p>`; return; } }
+    draw();
+  }
+
+  // Live stock counts (kept on the server, not in the content): loaded once after sign-in
+  state.stock = {};
+  const loadStock = () => { if (!DEMO) shopApi({ stock: "get" }).then((d) => { state.stock = d.stock || {}; if (state.tab === "pieces") render(); }).catch(() => {}); };
+  async function saveStock(id, value) {
+    const n = value === "" ? null : Math.max(0, Math.floor(Number(value) || 0));
+    if (n === null) delete state.stock[id]; else state.stock[id] = n;
+    if (DEMO) return;
+    try { state.stock = (await shopApi({ stock: { set: { [id]: n } } })).stock; toast("Stock count saved — it's live straight away."); }
+    catch (x) { toast(`Stock count not saved: ${x.message}`, true); }
+  }
+
   /* ---------- Orders ---------- */
-  const STATUS = { new: "New", confirmed: "Confirmed", delivered: "Delivered", cancelled: "Cancelled" };
-  const OPEN = ["new", "confirmed"];
+  const STATUS = { new: "New", confirmed: "Confirmed", shipped: "On its way", delivered: "Delivered", cancelled: "Cancelled" };
+  const OPEN = ["new", "confirmed", "shipped"];
   let ordersFilter = "open";
+  let ordersCache = null;
   const showOrderCount = (list) => {
-    const n = list.filter((o) => o.status === "new").length;
+    const n = list.filter((o) => o.status === "new" && !(o.pay !== "later" && !o.amountPaid)).length;
     const tab = $('[data-tab="orders"]');
     if (tab) tab.innerHTML = `Orders${n ? ` <span class="tab-count">${n}</span>` : ""}`;
   };
   // Quietly check for new orders after signing in, for the count on the tab
-  const peekOrders = () => { if (!DEMO) api("orders", {}, session.get()).then((d) => showOrderCount(d.orders)).catch(() => {}); };
+  const peekOrders = () => { if (!DEMO) api("orders", {}, session.get()).then((d) => { ordersCache = d.orders; showOrderCount(d.orders); }).catch(() => {}); loadStock(); };
+  const getOrders = async () => (DEMO ? sampleOrders() : (ordersCache = (await api("orders", {}, session.get())).orders));
 
   views.orders = (el) => {
-    el.innerHTML = `<div class="view__head"><div><h2>Orders</h2><p>Orders placed on the site. Card orders show as paid once Stripe confirms.</p></div></div><p class="loading">Loading…</p>`;
-    if (DEMO) { drawOrders(el, sampleOrders(), true); return; }
-    api("orders", {}, session.get()).then((d) => drawOrders(el, d.orders)).catch((x) => {
+    el.innerHTML = `<div class="view__head"><div><h2>Orders</h2><p>Orders placed on the site.</p></div></div><p class="loading">Loading…</p>`;
+    getOrders().then((list) => drawOrders(el, list, DEMO)).catch((x) => {
       if (x.status === 401) lockOut("Please sign in again.");
       else $(".loading", el).textContent = `Couldn't load orders (${x.message}).`;
     });
@@ -940,33 +1098,46 @@
 
   function sampleOrders() {
     const it = state.items.slice(0, 3);
-    const line = (x, qty = 1) => ({ id: x.id, name: x.name, price: Number(String(x.price).replace(/[^\d.]/g, "")) || 50, qty, image: x.image });
-    const mk = (id, h, status, pay, paid, lines, c) => {
+    const line = (x, qty = 1) => ({ key: x.id, id: x.id, kind: "buy", name: x.name, price: Number(String(x.price).replace(/[^\d.]/g, "")) || 50, qty, image: x.image });
+    const mk = (id, h, status, pay, paid, lines, c, extra = {}) => {
       const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
-      return { id, created: new Date(Date.now() - h * 36e5).toISOString(), status, pay, paid, lines, subtotal, delivery: 8, total: subtotal + 8, note: "",
-        customer: { name: c, phone: "(347) 555-0101", email: "", address: "12 Example Ave", city: "Queens", state: "NY", zip: "11101", notes: h < 5 ? "For a mehndi on Saturday" : "" } };
+      const total = subtotal + 8;
+      return { id, created: new Date(Date.now() - h * 36e5).toISOString(), status, pay, paid, amountPaid: paid ? total : 0, lines, subtotal, discount: 0, delivery: 8, tax: 0, rentDeposit: 0, total, due: total,
+        method: "local", methodLabel: "Local delivery", note: "", times: { new: new Date(Date.now() - h * 36e5).toISOString() },
+        trackUrl: "https://sharifadornment.com/order-done.html?o=" + id, reviewUrl: "https://sharifadornment.com/review.html?o=" + id,
+        customer: { name: c, phone: "(347) 555-0101", email: "", address: "12 Example Ave", city: "Queens", state: "NY", zip: "11101", notes: h < 5 ? "For a mehndi on Saturday" : "" }, ...extra };
     };
     return [mk("SA-261012-AB12", 2, "new", "later", false, [line(it[0]), line(it[1])], "Sample Customer"),
-      mk("SA-261011-CD34", 30, "confirmed", "card", true, [line(it[2], 2)], "Another Sample"),
+      mk("SA-261011-CD34", 30, "shipped", "card", true, [line(it[2], 2)], "Another Sample", { tracking: { carrier: "USPS", number: "9400 1000 0000 0000 0000 00" } }),
       mk("SA-261003-EF56", 220, "delivered", "later", true, [line(it[1])], "Past Sample")];
   }
 
+  const money = (n) => `$${Number(n || 0).toFixed(2).replace(/\.00$/, "")}`;
+  const digits = (p) => String(p).replace(/\D/g, "").slice(-10);
+  const prettyDay = (d) => new Date(`${d}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+
   function drawOrders(el, list, sample = false) {
-    const money = (n) => `$${Number(n).toFixed(2).replace(/\.00$/, "")}`;
     const when = (d) => new Date(d).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-    const digits = (p) => String(p).replace(/\D/g, "").slice(-10);
+    const payState = (o) => {
+      if (o.pay !== "later" && !o.amountPaid) return '<span class="flag">Card — waiting for payment</span>';
+      if (o.paid) return `<span class="flag flag--gold">Paid${o.pay === "later" ? "" : " by card"} ✓</span>`;
+      if (o.amountPaid) return `<span class="flag flag--gold">Deposit paid ${money(o.amountPaid)}</span> <span class="muted">Balance ${money(o.total - o.amountPaid)}</span>`;
+      return "";
+    };
     const draw = () => {
       showOrderCount(list);
       const shown = list.filter((o) => ordersFilter === "all" || (ordersFilter === "open" ? OPEN.includes(o.status) : o.status === ordersFilter));
-      const counts = { open: list.filter((o) => OPEN.includes(o.status)).length, delivered: list.filter((o) => o.status === "delivered").length, cancelled: list.filter((o) => o.status === "cancelled").length, all: list.length };
+      const count = (f) => list.filter((o) => (f === "all" ? true : f === "open" ? OPEN.includes(o.status) : o.status === f)).length;
       el.innerHTML = `
-        <div class="view__head"><div><h2>Orders</h2><p>${sample ? "<b>Sample orders</b> — demo mode. " : ""}Orders placed on the site. Card orders show as paid once Stripe confirms.</p></div>
-          <button class="btn btn--ghost" type="button" data-orders-refresh>Refresh</button></div>
+        <div class="view__head"><div><h2>Orders</h2><p>${sample ? "<b>Sample orders</b> — demo mode. " : ""}Orders placed on the site. Card orders show as paid once Stripe confirms; unpaid card checkouts cancel themselves after 35 minutes.</p></div>
+          <div class="head-actions"><button class="btn btn--ghost" type="button" data-orders-csv>Download spreadsheet</button><button class="btn btn--ghost" type="button" data-orders-refresh>Refresh</button></div></div>
         <div class="chips">${[["open", "Open"], ["delivered", "Delivered"], ["cancelled", "Cancelled"], ["all", "All"]].map(([k, label]) =>
-          `<button type="button" class="chip" data-ofilter="${k}" aria-pressed="${ordersFilter === k}">${label} <small>${counts[k]}</small></button>`).join("")}</div>
+          `<button type="button" class="chip" data-ofilter="${k}" aria-pressed="${ordersFilter === k}">${label} <small>${count(k)}</small></button>`).join("")}</div>
         ${shown.length ? shown.map((o) => {
           const c = o.customer;
-          const text = encodeURIComponent(`Hi ${c.name.split(" ")[0]}, this is Sharif Adornment about your order ${o.id}. `);
+          const hi = `Hi ${c.name.split(" ")[0]}, this is Sharif Adornment about your order ${o.id}. `;
+          const sms = (t) => `sms:+1${digits(c.phone)}?&body=${encodeURIComponent(t)}`;
+          const wa = (t) => `https://wa.me/1${digits(c.phone)}?text=${encodeURIComponent(t)}`;
           const addr = [c.address, c.city, [c.state, c.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
           return `<article class="order${o.status === "new" ? " is-new" : ""}" data-order="${esc(o.id)}">
             <header class="order__head">
@@ -977,23 +1148,33 @@
               <div class="order__who">
                 <p><b>${esc(c.name)}</b></p>
                 <p><a href="tel:+1${digits(c.phone)}">${esc(c.phone)}</a>${c.email ? ` · <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ""}</p>
-                <p><a href="https://maps.google.com/?q=${encodeURIComponent(addr)}" target="_blank" rel="noopener">${esc(addr)}</a></p>
+                <p>${esc(o.methodLabel || "Delivery")}${o.method === "pickup" ? "" : `: <a href="https://maps.google.com/?q=${encodeURIComponent(addr)}" target="_blank" rel="noopener">${esc(addr)}</a>`}</p>
                 ${c.notes ? `<p class="order__notes">“${esc(c.notes)}”</p>` : ""}
                 <div class="order__actions">
-                  <a class="btn btn--ghost" href="sms:+1${digits(c.phone)}?&body=${text}">Text</a>
-                  <a class="btn btn--ghost" href="https://wa.me/1${digits(c.phone)}?text=${text}" target="_blank" rel="noopener">WhatsApp</a>
+                  <a class="btn btn--ghost" href="${sms(hi + "Track it here: " + o.trackUrl)}">Text</a>
+                  <a class="btn btn--ghost" href="${wa(hi + "Track it here: " + o.trackUrl)}" target="_blank" rel="noopener">WhatsApp</a>
                   <a class="btn btn--ghost" href="tel:+1${digits(c.phone)}">Call</a>
+                  <button type="button" class="btn btn--ghost" data-oprint>Print slip</button>
+                  ${o.status === "delivered" ? `<a class="btn btn--ghost" href="${sms(`Hi ${c.name.split(" ")[0]}! We hope you love your pieces from Sharif Adornment. Would you leave us a quick review? ${o.reviewUrl}`)}">Ask for a review</a>` : ""}
                 </div>
+                ${["shipped", "delivered"].includes(o.status) || o.tracking?.number ? `<div class="order__track">
+                  <select class="select" data-ocarrier aria-label="Carrier">${["", "USPS", "UPS", "FedEx", "DHL", "Courier"].map((x) => `<option${(o.tracking?.carrier || "") === x ? " selected" : ""} value="${x}">${x || "Carrier"}</option>`).join("")}</select>
+                  <input data-otrack placeholder="Tracking number" value="${esc(o.tracking?.number || "")}" />
+                </div>` : ""}
               </div>
               <div class="order__what">
-                ${o.lines.map((l) => `<div class="order__line"><img src="${esc(src(l.image))}" alt="" loading="lazy" /><span>${esc(l.name)}${l.qty > 1 ? ` × ${l.qty}` : ""}</span><b>${money(l.price * l.qty)}</b></div>`).join("")}
-                <dl class="order__sum"><div><dt>Subtotal</dt><dd>${money(o.subtotal)}</dd></div><div><dt>Delivery</dt><dd>${o.delivery ? money(o.delivery) : "—"}</dd></div><div class="is-total"><dt>Total</dt><dd>${money(o.total)}</dd></div></dl>
-                <div class="order__pay">
-                  ${o.pay === "card"
-                    ? `<span class="flag${o.paid ? " flag--gold" : ""}">${o.paid ? "Paid by card ✓" : "Card — awaiting payment"}</span>`
-                    : `<label class="check"><input type="checkbox" data-opaid ${o.paid ? "checked" : ""} /> <span>Paid (${esc(state.site.checkout?.payMethods || "Zelle / Cash App / PayPal")})</span></label>`}
+                ${o.lines.map((l) => `<div class="order__line"><img src="${esc(src(l.image))}" alt="" loading="lazy" /><span>${esc(l.name)}${l.kind === "rent" ? ` <small>· rental for ${esc(prettyDay(l.date))}</small>` : ""}${l.qty > 1 ? ` × ${l.qty}` : ""}</span><b>${money(l.price * l.qty)}</b></div>`).join("")}
+                <dl class="order__sum">
+                  <div><dt>Subtotal</dt><dd>${money(o.subtotal)}</dd></div>
+                  ${o.discount ? `<div><dt>Code ${esc(o.code)}</dt><dd>−${money(o.discount)}</dd></div>` : ""}
+                  <div><dt>${esc(o.methodLabel || "Delivery")}</dt><dd>${o.delivery ? money(o.delivery) : o.deliveryKnown === false ? "to confirm" : "Free"}</dd></div>
+                  ${o.rentDeposit ? `<div><dt>Rental deposit (refundable)</dt><dd>${money(o.rentDeposit)}</dd></div>` : ""}
+                  ${o.tax ? `<div><dt>Tax</dt><dd>${money(o.tax)}</dd></div>` : ""}
+                  <div class="is-total"><dt>Total</dt><dd>${money(o.total)}</dd></div></dl>
+                <div class="order__pay">${payState(o)}
+                  ${o.pay === "later" || (o.amountPaid && !o.paid) ? `<label class="check"><input type="checkbox" data-opaid ${o.paid ? "checked" : ""} /> <span>Paid in full (${esc(state.site.checkout?.payMethods || "Zelle / Cash App / PayPal")})</span></label>` : ""}
                 </div>
-                <button type="button" class="add-link" data-osold>Mark these pieces sold out</button>
+                ${o.lines.some((l) => l.kind === "buy") ? '<button type="button" class="add-link" data-osold>Mark these pieces sold out</button>' : ""}
               </div>
             </div>
             <label class="field"><span>Private note</span><textarea rows="2" data-onote placeholder="Only you see this">${esc(o.note || "")}</textarea></label>
@@ -1003,18 +1184,21 @@
     draw();
     const update = async (id, change) => {
       if (sample) { Object.assign(list.find((o) => o.id === id), change); draw(); return; }
-      try { list = (await api("orders", { update: { id, ...change } }, session.get())).orders; draw(); toast("Saved."); }
+      try { list = ordersCache = (await api("orders", { update: { id, ...change } }, session.get())).orders; draw(); toast("Saved."); loadStock(); }
       catch (x) { toast(x.message, true); }
     };
     el.addEventListener("click", async (e) => {
       const f = e.target.closest("[data-ofilter]");
       if (f) { ordersFilter = f.dataset.ofilter; draw(); return; }
       if (e.target.closest("[data-orders-refresh]")) { views.orders(el); return; }
-      const sold = e.target.closest("[data-osold]");
-      if (sold) {
-        const o = list.find((x) => x.id === sold.closest("[data-order]").dataset.order);
+      if (e.target.closest("[data-orders-csv]")) { downloadOrders(list); return; }
+      const card = e.target.closest("[data-order]");
+      const o = card && list.find((x) => x.id === card.dataset.order);
+      if (!o) return;
+      if (e.target.closest("[data-oprint]")) printSlip(o);
+      if (e.target.closest("[data-osold]")) {
         let n = 0;
-        for (const l of o.lines) { const it = state.items.find((i) => i.id === l.id); if (it && !it.soldOut) { it.soldOut = true; n++; } }
+        for (const l of o.lines) { const it = state.items.find((i) => i.id === l.id); if (l.kind === "buy" && it && !it.soldOut) { it.soldOut = true; n++; } }
         changed();
         toast(n ? `Marked ${n} piece${n === 1 ? "" : "s"} sold out. Press Publish to update the site.` : "Those pieces are already sold out.");
       }
@@ -1022,10 +1206,52 @@
     el.addEventListener("change", (e) => {
       const card = e.target.closest("[data-order]");
       if (!card) return;
-      if (e.target.matches("[data-ostatus]")) update(card.dataset.order, { status: e.target.value });
-      if (e.target.matches("[data-opaid]")) update(card.dataset.order, { paid: e.target.checked });
-      if (e.target.matches("[data-onote]")) update(card.dataset.order, { note: e.target.value });
+      const id = card.dataset.order;
+      if (e.target.matches("[data-ostatus]")) {
+        if (e.target.value === "cancelled" && !confirm("Cancel this order? Counted pieces go back into stock.")) { draw(); return; }
+        update(id, { status: e.target.value });
+      }
+      if (e.target.matches("[data-opaid]")) update(id, { paid: e.target.checked });
+      if (e.target.matches("[data-onote]")) update(id, { note: e.target.value });
+      if (e.target.matches("[data-ocarrier], [data-otrack]")) update(id, { tracking: { carrier: $("[data-ocarrier]", card).value, number: $("[data-otrack]", card).value.trim() } });
     });
+  }
+
+  // A spreadsheet of orders for bookkeeping (opens in Excel, Numbers or Google Sheets)
+  function downloadOrders(list) {
+    const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const head = ["Order", "Date", "Status", "Customer", "Phone", "Email", "Delivery", "Address", "Pieces", "Subtotal", "Discount", "Code", "Delivery fee", "Rental deposit", "Tax", "Total", "Paid", "Payment", "Note"];
+    const rows = list.map((o) => [o.id, new Date(o.created).toLocaleString(), STATUS[o.status] || o.status, o.customer.name, o.customer.phone, o.customer.email,
+      o.methodLabel, [o.customer.address, o.customer.city, o.customer.state, o.customer.zip].filter(Boolean).join(", "),
+      o.lines.map((l) => `${l.name}${l.kind === "rent" ? ` (rental ${l.date})` : ""} x${l.qty} @ ${l.price}`).join("; "),
+      o.subtotal, o.discount || 0, o.code || "", o.delivery, o.rentDeposit || 0, o.tax || 0, o.total, o.amountPaid || 0,
+      o.pay === "later" ? "Pay later" : o.pay === "deposit" ? "Card deposit" : "Card", o.note]);
+    const csv = [head, ...rows].map((r) => r.map(cell).join(",")).join("\r\n");
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" })), download: `sharif-adornment-orders-${new Date().toISOString().slice(0, 10)}.csv` });
+    document.body.append(a); a.click(); a.remove();
+  }
+
+  // A packing slip in a new window, ready to print
+  function printSlip(o) {
+    const c = o.customer;
+    const w = open("", "_blank");
+    if (!w) { toast("Allow pop-ups to print the slip.", true); return; }
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(o.id)}</title>
+      <style>body{font:14px/1.5 Georgia,serif;color:#1b1917;max-width:640px;margin:32px auto;padding:0 20px}h1{font-weight:400;font-size:28px;margin:0}
+      table{width:100%;border-collapse:collapse;margin:20px 0}td,th{padding:8px 0;border-bottom:1px solid #ddd;text-align:left}td:last-child,th:last-child{text-align:right}
+      .muted{color:#6e6860}.tot td{font-weight:bold;border:0}</style></head><body>
+      <h1>SHARIF Adornment</h1><p class="muted">Order ${esc(o.id)} · ${new Date(o.created).toLocaleDateString()}</p>
+      <p><b>${esc(c.name)}</b><br>${esc(c.phone)}${c.email ? `<br>${esc(c.email)}` : ""}<br>${esc(o.methodLabel || "Delivery")}${o.method === "pickup" ? "" : `<br>${esc(c.address)}<br>${esc(c.city)}, ${esc(c.state)} ${esc(c.zip)}`}</p>
+      ${c.notes ? `<p><i>“${esc(c.notes)}”</i></p>` : ""}
+      <table><tr><th>Piece</th><th>Qty</th><th>Price</th></tr>${o.lines.map((l) => `<tr><td>${esc(l.name)}${l.kind === "rent" ? ` (rental, ${esc(l.date)})` : ""}</td><td>${l.qty}</td><td>${money(l.price * l.qty)}</td></tr>`).join("")}
+      ${o.discount ? `<tr><td colspan="2">Discount ${esc(o.code)}</td><td>−${money(o.discount)}</td></tr>` : ""}
+      <tr><td colspan="2">${esc(o.methodLabel || "Delivery")}</td><td>${money(o.delivery)}</td></tr>
+      ${o.rentDeposit ? `<tr><td colspan="2">Refundable rental deposit</td><td>${money(o.rentDeposit)}</td></tr>` : ""}
+      ${o.tax ? `<tr><td colspan="2">Tax</td><td>${money(o.tax)}</td></tr>` : ""}
+      <tr class="tot"><td colspan="2">Total</td><td>${money(o.total)}</td></tr></table>
+      <p class="muted">${o.paid ? "Paid — thank you!" : o.amountPaid ? `Paid ${money(o.amountPaid)} · balance ${money(o.total - o.amountPaid)}` : "Payment due"}</p>
+      <p>Thank you for shopping with us. sharifadornment.com</p><script>print()<\/script></body></html>`);
+    w.document.close();
   }
 
   /* ---------- Analytics ---------- */
@@ -1083,14 +1309,14 @@
     };
 
     // Horizontal bars: one hue, labelled, longest first
-    const bars = (obj = {}, label = (k) => k, n = 8) => {
+    const bars = (obj = {}, label = (k) => k, n = 8, show = fmt) => {
       const rows = Object.entries(obj).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, n);
       if (!rows.length) return '<p class="muted">Nothing yet.</p>';
       const max = rows[0][1];
       const total = sum(obj);
       return `<ol class="hbars">${rows.map(([k, v]) => `<li>
         <span class="hbars__label">${esc(label(k))}</span>
-        <span class="hbars__value">${fmt(v)}<small>${Math.round((v / total) * 100)}%</small></span>
+        <span class="hbars__value">${show(v)}<small>${Math.round((v / total) * 100)}%</small></span>
         <span class="hbars__track"><i style="width:${Math.max(2, (v / max) * 100)}%"></i></span></li>`).join("")}</ol>`;
     };
 
@@ -1195,6 +1421,7 @@
           <section><h3>Collections</h3><p class="muted small">Piece views in each collection</p>${bars(byCol, colName, 12)}</section>
           <section><h3>Pages</h3>${bars(d.page, pageName, 10)}</section>
         </div>
+        <section class="stat-block" data-sales><h3>Sales</h3><p class="muted">Loading orders…</p></section>
         <section class="stat-block"><h3>Pieces</h3>
           ${rows.length ? `<div class="table-wrap"><table class="stat-table">
             <thead><tr><th>Piece</th><th>Views</th><th>Questions</th><th>Saves</th><th>Shares</th></tr></thead>
@@ -1207,7 +1434,28 @@
             <button type="button" class="add-link" data-unsub="${esc(s.email)}">Remove</button></li>`).join("")}</ol>` : '<p class="muted">No sign-ups yet.</p>'}
         </div></section>`;
       if (sum(perDay)) bindChart(perDay, unit, m);
+      drawSales(d);
     };
+    // Orders for the chosen month: count, money, average, best sellers, and how many bags became orders
+    let allOrders = sample ? sampleOrders() : ordersCache;
+    async function drawSales(d) {
+      const box = $("[data-sales]", el);
+      if (!box) return;
+      if (!allOrders) { try { allOrders = await getOrders(); } catch (_) { box.innerHTML = '<h3>Sales</h3><p class="muted">Couldn\'t load orders.</p>'; return; } }
+      const inMonth = allOrders.filter((o) => o.created.slice(0, 7) === m && o.status !== "cancelled" && !(o.pay !== "later" && !o.amountPaid));
+      const revenue = inMonth.reduce((s, o) => s + o.total, 0), collected = inMonth.reduce((s, o) => s + (o.amountPaid || 0), 0);
+      const best = {};
+      for (const o of inMonth) for (const l of o.lines) best[l.name] = (best[l.name] || 0) + l.price * l.qty;
+      const bagged = sum(d.bag), visits = sum(d.visit);
+      box.innerHTML = `<h3>Sales</h3>
+        <div class="stat-cards">
+          <div><span>Orders</span><b>${fmt(inMonth.length)}</b>${visits ? `<small>${((inMonth.length / visits) * 100).toFixed(1)}% of visits</small>` : ""}</div>
+          <div><span>Order value</span><b>${money(revenue)}</b><small>${money(collected)} paid so far</small></div>
+          <div><span>Average order</span><b>${inMonth.length ? money(revenue / inMonth.length) : "—"}</b></div>
+          <div><span>Added to bag</span><b>${fmt(bagged)}</b>${bagged ? `<small>${Math.round((inMonth.length / bagged) * 100)}% became orders</small>` : ""}</div>
+        </div>
+        <h3 class="sub">Best sellers</h3>${Object.keys(best).length ? bars(best, (k) => k, 8, money) : '<p class="muted">No orders this month yet.</p>'}`;
+    }
     draw();
     el.addEventListener("change", (e) => { if (e.target.matches("[data-month]")) { m = e.target.value; draw(); } });
     el.addEventListener("click", async (e) => {

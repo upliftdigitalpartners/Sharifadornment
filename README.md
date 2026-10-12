@@ -87,6 +87,8 @@ Everyone is signed out. A longer password (a short phrase) is stronger.
 | **FAQ** | Questions and answers, in order. |
 | **Pages** | Every heading and message, the announcement banner, footer and the "Message us" button text. Wrap words in `*asterisks*` for gold italics. |
 | **Gallery** | Add, describe, reorder and remove photos. |
+| **Orders** | Every order placed on the site: status, tracking, payment, contact buttons, packing slip, review request, spreadsheet download. |
+| **Shop** | Telegram order alerts, discount codes, delivery choices and fees, card payments, pay-later instructions, deposits, sales tax, rental deposit, checkout wording. |
 | **Analytics** | Per month, compared with the month before: visits, page views, pieces viewed, questions and saves; visits per day; where visitors come from (Facebook, Instagram, Google, WhatsApp, typed in); phone, tablet or computer; the most viewed collections and pages; a table of every piece's views, questions, saves and shares; and the newsletter list, which you can copy or remove addresses from. Add `?demo` to the Studio address to see it with sample numbers. |
 | **History** | Every published version, with **Restore**, which loads it as unpublished changes. |
 | **Details** | Phone, WhatsApp, email, Messenger, Facebook, Instagram, location, and the hero videos (upload MP4 under 4 MB). |
@@ -110,37 +112,82 @@ catalog. Safari and iPhones save JPGs, which work everywhere too.
 
 ### Ordering on the site
 
-Pieces with a plain price (like `$65`) that aren't sold out get **Add to bag**.
-The bag (top right, kept on the visitor's device) leads to **Checkout**: name,
-phone, optional email, delivery address, notes, and how to pay:
+**For customers.** Pieces with a plain price (like `$65`) get **Add to bag**;
+pieces marked "Available to rent" with a rental price also get **Rent it for an
+event** (pick the event date). The bag leads to **Checkout**:
 
-- **Pay after we confirm:** the order is saved, the customer sees the "How to
-  pay" text from the Studio (Zelle number, Cash App tag, PayPal…) and you
-  confirm by text.
-- **Pay now by card:** the customer pays on Stripe's secure page (cards, Apple
-  Pay, Google Pay); the order shows as paid once Stripe confirms.
+- contact details, and a **delivery choice**: local delivery, shipping in the
+  US and/or pickup / meet-up, each with its own fee and "free over" amount;
+- a **discount code** box;
+- **sales tax** if a rate is set, and a **refundable deposit** per rented piece;
+- how to pay: **by card now** (Stripe), **a deposit by card now** (for orders
+  over a set amount) or **after we confirm** (Zelle, Cash App, PayPal…).
 
-Prices, stock and delivery are always worked out again on the server from the
-published content, so nobody can change what they pay. Orders appear in the
-Studio's **Orders** tab, with a count of new ones on the tab: pieces, total,
-customer details with Text / WhatsApp / Call buttons, the payment state, a
-status (New → Confirmed → Delivered, or Cancelled), a private note, and
-**Mark these pieces sold out**. Delivery fee, free delivery threshold, payment
-instructions and the thank-you message are in **Pages → Ordering & checkout**.
+Totals always come from the server, which prices everything from the published
+content, so nobody can change what they pay. After ordering, the customer's
+order page doubles as **tracking**: Placed → Confirmed → On its way →
+Delivered, the tracking number, and what's left to pay. Once delivered it
+offers **Leave a review**. **policies.html** (delivery, returns, rentals,
+payment, privacy; edited in Pages → Policies page) is linked from checkout and
+the footer, which Stripe and Facebook Shops expect.
+
+**Stock.** Give a piece an **In stock** count in its editor (optional; it's
+saved straight away, separately from Publish). Each order takes from it, the
+site shows "Last one" at 1 and "Sold out" at 0, and orders can't take more
+than there is. While a card payment is open the pieces are held; an unpaid
+card checkout cancels itself after 35 minutes and puts them back. Cancelling an
+order also puts them back.
+
+**For the admin (Studio).**
+
+- **Orders:** new-order count on the tab; Open / Delivered / Cancelled; each
+  order's pieces, totals, customer, Text / WhatsApp / Call (with the tracking
+  link), **Print slip**, status, tracking number, "Paid in full" for pay-later
+  and deposit orders, private note, **Mark these pieces sold out**, **Ask for a
+  review** once delivered, and **Download spreadsheet** (CSV) for bookkeeping.
+- **Shop:** Telegram alerts, **discount codes** (% or $ off, minimum order, last
+  day, maximum uses, pause), delivery choices and fees, card payments,
+  pay-later instructions, deposit option, sales tax, rental deposit and the
+  checkout wording.
+- **Reviews:** reviews customers send wait under **Waiting for approval**;
+  Approve adds them (with their stars) to the site on the next Publish.
+- **Analytics → Sales:** orders, order value and what's been paid, average
+  order, how many "added to bag" became orders, and best sellers.
+
+**New-order alerts on your phone (Telegram, free, one-time):**
+1. Install Telegram, message **@BotFather**, send `/newbot` and follow the
+   steps. It gives you a **token**.
+2. In Netlify → Project configuration → Environment variables, add
+   `TELEGRAM_BOT_TOKEN` with that token (Functions scope, secret), then
+   Deploys → Trigger deploy.
+3. In Telegram, open your new bot and send it "hi". In the Studio → Shop →
+   New-order alerts, tap **Find my chat**, then **Connect**. Repeat on other
+   phones (or add the bot to a group) to alert more people. **Send a test
+   alert** checks it.
+
+You'll get a message for every new order, card payment, deposit, piece that
+runs out, and review.
+
+**Order emails to customers (optional):** create a free account at
+resend.com, add and verify the domain sharifadornment.com there (it gives a
+few DNS records to add in Squarespace), create an API key, and add on Netlify
+`RESEND_API_KEY` and `ORDER_EMAIL_FROM` (e.g.
+`Sharif Adornment <orders@sharifadornment.com>`). Customers who give an email
+then get their order summary, and a note when it's on its way and delivered.
 
 **Turning on card payments (one-time):**
 1. Create a Stripe account at stripe.com and finish its business and bank
    details (payouts go to that bank account).
 2. In Stripe → Developers → API keys, create a **restricted key** with
    *Checkout Sessions: Write* (everything else None), or use the secret key.
-3. In Netlify → Project configuration → Environment variables, add
-   `STRIPE_SECRET_KEY` with that key (scope: Functions, mark it secret), then
-   Deploys → Trigger deploy.
-4. In the Studio, tick **Accept card payments** under Pages → Ordering &
-   checkout, and Publish.
+3. In Netlify, add `STRIPE_SECRET_KEY` with that key (Functions scope,
+   secret), then Deploys → Trigger deploy.
+4. In the Studio → Shop, tick **Accept card payments**, and Publish.
 
 Stripe charges about 2.9% + 30¢ per card payment. Without step 3 the card
-option stays hidden even if ticked.
+options stay hidden even if ticked. **Sales tax:** collecting NY sales tax
+usually requires being registered with NY State; check with an accountant
+before setting a rate.
 
 ### Facebook & Instagram Shop, Google Shopping
 
@@ -241,7 +288,7 @@ tools/build-pages.mjs           rebuilds the pages locally
 css/style.css                   design system, layout, night mode
 js/app.js                       quick view, saved pieces, search, forms, analytics, preview
 studio/                         the admin (Studio)
-netlify/functions/              Studio API: login, github, publish, stats (analytics), orders; public: order, track, subscribe
+netlify/functions/              Studio API: login, github, publish, stats, orders, shop; public: order, review, track, subscribe
 netlify/lib/studio.mjs          sessions, CORS, GitHub access rules
 netlify.toml, package.json      Netlify settings (API only); @netlify/blobs for analytics and the newsletter
 assets/                         images (each with a -sm phone copy), pieces, gallery, video, uploads/

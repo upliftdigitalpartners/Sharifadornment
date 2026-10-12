@@ -68,24 +68,23 @@
           <div class="field"><label for="c-name">Full name</label><input id="c-name" name="name" required autocomplete="name" /></div>
           <div class="field-row">
             <div class="field"><label for="c-phone">Phone</label><input id="c-phone" name="phone" type="tel" required autocomplete="tel" placeholder="We'll text to confirm" /></div>
-            <div class="field"><label for="c-email">Email <small>(optional)</small></label><input id="c-email" name="email" type="email" autocomplete="email" /></div>
+            <div class="field"><label for="c-email">Email <small>(optional)</small></label><input id="c-email" name="email" type="email" autocomplete="email" placeholder="For your receipt" /></div>
           </div>
         </fieldset>
-        <fieldset><legend class="label">Delivery address</legend>
+        <fieldset class="pay"><legend class="label">Delivery</legend><div data-methods></div></fieldset>
+        <fieldset data-address><legend class="label">Delivery address</legend>
           <div class="field"><label for="c-address">Street address</label><input id="c-address" name="address" required autocomplete="street-address" /></div>
           <div class="field-row field-row--3">
             <div class="field"><label for="c-city">City</label><input id="c-city" name="city" required autocomplete="address-level2" /></div>
             <div class="field"><label for="c-state">State</label><input id="c-state" name="state" value="NY" autocomplete="address-level1" /></div>
             <div class="field"><label for="c-zip">ZIP</label><input id="c-zip" name="zip" required inputmode="numeric" autocomplete="postal-code" /></div>
           </div>
-          <div class="field"><label for="c-notes">Notes <small>(optional)</small></label><textarea id="c-notes" name="notes" rows="2" placeholder="Event date, gift message, delivery instructions…"></textarea></div>
         </fieldset>
-        <fieldset class="pay"><legend class="label">Payment</legend>
-          
-          <label class="pay__opt"><input type="radio" name="pay" value="later" checked /><span><b>Pay after we confirm</b><small>We'll text you to confirm, then you pay by Zelle, Cash App or PayPal.</small></span></label>
-        </fieldset>
+        <div class="field"><label for="c-notes">Notes <small>(optional)</small></label><textarea id="c-notes" name="notes" rows="2" placeholder="Event date, gift message, delivery instructions…"></textarea></div>
+        <fieldset class="pay"><legend class="label">Payment</legend><div data-pays></div></fieldset>
         <div class="hp" aria-hidden="true"><label>Leave empty <input name="website" tabindex="-1" autocomplete="off" /></label></div>
         <button type="submit" class="btn btn--block" data-place>Place order</button>
+        <p class="checkout__agree">By placing your order you agree to our <a href="policies.html" target="_blank">shipping, returns and rental policies</a>.</p>
         <p class="enquiry__note" role="status" aria-live="polite"></p>
       </form>
     </section>
@@ -111,7 +110,7 @@
     </div>
     <nav class="footer__links" aria-label="More">
       <a href="collections.html">Collections</a><a href="bridal.html">Bridal</a><a href="order.html">How to order</a>
-      <a href="faq.html">FAQ</a><a href="contact.html">Enquire</a>
+      <a href="faq.html">FAQ</a><a href="policies.html">Policies</a><a href="contact.html">Enquire</a>
     </nav>
     <div class="footer__row">
       <span><a class="footer__c" href="studio/" aria-label="Studio">©</a> <span class="js-year">2026</span> Sharif Adornment</span>
