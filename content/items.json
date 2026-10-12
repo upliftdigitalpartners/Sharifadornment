@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$40",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "goldenleaf-potli-bag-with-bead-drops",
+  "name": "Goldenleaf Potli Bag With Bead Drops",
+  "collection": "potli",
+  "image": "assets/uploads/piece-mv5c42fb0.jpg"
+ },
+ {
+  "description": "",
   "price": "$80",
   "soldOut": false,
   "featured": false,
