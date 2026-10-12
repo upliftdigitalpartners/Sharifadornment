@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$38",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mv4iceka6.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "blue-zardozi-lotus-potli-bag",
+  "name": "Blue Zardozi Lotus Potli Bag",
+  "collection": "potli",
+  "image": "assets/uploads/piece-mv4iceee5.jpg"
+ },
+ {
+  "description": "",
   "price": "$42",
   "soldOut": false,
   "featured": false,
