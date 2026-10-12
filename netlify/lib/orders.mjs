@@ -17,7 +17,7 @@
  */
 import { getStore } from "@netlify/blobs";
 import { BASE, BRANCH, env, github } from "./studio.mjs";
-import { esc, money, priceNumber } from "../../shared/render.mjs";
+import { esc, money, priceNumber, rentNumber } from "../../shared/render.mjs";
 
 export const SITE = "https://sharifadornment.com/";
 export const STATUSES = ["new", "confirmed", "shipped", "delivered", "cancelled"];
@@ -51,7 +51,7 @@ export const amount = (v) => {
   const n = Number(String(v ?? "").replace(/[^\d.]/g, ""));
   return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : 0;
 };
-const round = (n) => Math.round(n * 100) / 100;
+const round = (n) => Math.round(n * 100 + 1e-7) / 100;
 export const dollars = (n) => `$${Number(n).toFixed(2).replace(/\.00$/, "")}`;
 export const cardsOn = (site) => Boolean(site.checkout?.cardPayments && env("STRIPE_SECRET_KEY"));
 const nyDate = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
@@ -108,48 +108,78 @@ export async function setStock(changes) {
     return levels;
   });
 }
-/** Take pieces out of stock for an order; false if something ran out meanwhile */
-async function reserve(order) {
-  const buys = order.lines.filter((l) => l.kind === "buy");
-  const ok = await update(stockStore(), "levels", (levels) => {
+/** Read-modify-write one order safely; fn returns NO_WRITE to leave it as it is */
+const NO_WRITE = Symbol("no write");
+export async function changeOrder(id, fn) {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const found = await orders().getWithMetadata(id, { type: "json" });
+    if (!found?.data) return null;
+    const order = found.data;
+    const result = await fn(order);
+    if (result === NO_WRITE) return { order, wrote: false };
+    const { modified } = await orders().setJSON(id, order, { onlyIfMatch: found.etag });
+    if (modified) return { order, wrote: true, result };
+    await new Promise((r) => setTimeout(r, 15 + Math.random() * 50));
+  }
+  throw new Error("The shop is busy. Please try again.");
+}
+
+/** Take counted pieces out of stock; false (and nothing taken) if any has run out.
+ *  Marks the lines it took from, so only those are ever put back. */
+export async function takeStock(lines) {
+  const buys = lines.filter((l) => l.kind === "buy");
+  return update(stockStore(), "levels", (levels) => {
+    for (const l of buys) delete l.counted;
     for (const l of buys) if (Object.hasOwn(levels, l.id) && levels[l.id] < l.qty) return false;
-    // Remember which pieces were counted, so only those go back if the order is cancelled
     for (const l of buys) if (Object.hasOwn(levels, l.id)) { levels[l.id] -= l.qty; l.counted = true; }
     return true;
   });
-  if (ok && order.pay !== "later") {
-    await update(stockStore(), "holds", (holds) => {
-      holds[order.id] = { until: Date.now() + HOLD_MINUTES * 60e3, lines: buys.map((l) => ({ id: l.id, qty: l.qty })) };
-    });
-  }
-  return ok;
 }
-/** Put an order's pieces back (cancelled, or the card payment never happened) */
-export async function restock(order) {
-  if (order.restocked) return;
-  const buys = order.lines.filter((l) => l.kind === "buy" && l.counted);
+async function giveBackStock(lines) {
+  const buys = lines.filter((l) => l.kind === "buy" && l.counted);
+  if (!buys.length) return;
   await update(stockStore(), "levels", (levels) => {
     for (const l of buys) if (Object.hasOwn(levels, l.id)) levels[l.id] += l.qty;
   });
-  await update(stockStore(), "holds", (holds) => { delete holds[order.id]; });
-  order.restocked = true;
 }
+const addHold = (order) => update(stockStore(), "holds", (holds) => {
+  holds[order.id] = { until: Date.now() + HOLD_MINUTES * 60e3 };
+});
 const dropHold = (id) => update(stockStore(), "holds", (holds) => { delete holds[id]; });
+
+/** Cancel an order and put its pieces (and code use) back, exactly once even if asked twice at the same moment */
+export async function cancelOrder(id, note = "") {
+  const res = await changeOrder(id, (o) => {
+    const first = !o.restocked;
+    o.status = "cancelled";
+    (o.times ||= {}).cancelled ||= new Date().toISOString();
+    if (note && first) o.note = [o.note, note].filter(Boolean).join("\n");
+    if (!first) return NO_WRITE;
+    o.restocked = true;
+    const code = o.code && !o.codeReleased ? o.code : "";
+    o.codeReleased = Boolean(o.code);
+    return { lines: o.lines, code };
+  });
+  if (!res?.wrote) return res?.order || null;
+  await giveBackStock(res.result.lines);
+  if (res.result.code) await releaseCodeUse(res.result.code);
+  await dropHold(id);
+  return res.order;
+}
+
 /** Card checkouts left unpaid past the hold time: cancel them and free the pieces */
 export async function expireHolds() {
   const holds = (await stockStore().get("holds", { type: "json" })) || {};
   const due = Object.entries(holds).filter(([, h]) => h.until < Date.now()).map(([id]) => id);
   for (const id of due) {
-    let order = await orders().get(id, { type: "json" });
+    const order = await orders().get(id, { type: "json" });
     if (!order) { await dropHold(id); continue; }
-    order = await refreshPayment(order);
-    if (order.amountPaid > 0) { await dropHold(id); continue; }
-    if (order.status !== "cancelled") {
-      order.status = "cancelled";
-      order.note = [order.note, "Card payment wasn't completed, so the pieces were put back."].filter(Boolean).join("\n");
-    }
-    await restock(order);
-    await orders().setJSON(order.id, order);
+    const { order: now, checked } = await refreshPayment(order);
+    if (!checked) continue; // couldn't ask Stripe: keep holding, try again later
+    if (now.amountPaid > 0) { await dropHold(id); continue; }
+    // Only the request that removes the hold goes on to cancel
+    const mine = await update(stockStore(), "holds", (h) => { if (!h[id]) return false; delete h[id]; return true; });
+    if (mine) await cancelOrder(id, "Card payment wasn't completed, so the pieces were put back.");
   }
 }
 
@@ -168,6 +198,19 @@ function codeProblem(c, subtotal) {
   return "";
 }
 
+/** Count one use of a code, refusing if it's no longer valid or fully used (safe when orders arrive together) */
+async function claimCodeUse(code, subtotal) {
+  return update(shopStore(), "codes", (codes) => {
+    const problem = codeProblem(codes[code], subtotal);
+    if (problem) return problem;
+    codes[code].uses = (codes[code].uses || 0) + 1;
+    return "";
+  });
+}
+async function releaseCodeUse(code) {
+  await update(shopStore(), "codes", (codes) => { if (codes[code]) codes[code].uses = Math.max(0, (codes[code].uses || 0) - 1); });
+}
+
 /* ---------- Pricing: one place that works out every total ---------- */
 const ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 export async function quote({ wanted = [], code = "", method = "", pay = "" } = {}) {
@@ -180,9 +223,10 @@ export async function quote({ wanted = [], code = "", method = "", pay = "" } = 
     const it = ID.test(id) && items.find((x) => x.id === id);
     if (!it) { problems.push("A piece in your bag is no longer on the site, so it was removed."); continue; }
     if (w.kind === "rent") {
-      const price = amount(it.rentPrice);
-      const date = /^\d{4}-\d{2}-\d{2}$/.test(w.date) && w.date >= nyDate() ? w.date : "";
-      if (!it.rent || !price) { problems.push(`The ${it.name} can't be rented online. Please message us about it.`); continue; }
+      const price = rentNumber(it);
+      const real = /^\d{4}-\d{2}-\d{2}$/.test(w.date) && !Number.isNaN(Date.parse(`${w.date}T12:00:00Z`)) && new Date(`${w.date}T12:00:00Z`).toISOString().slice(0, 10) === w.date;
+      const date = real && w.date >= nyDate() ? w.date : "";
+      if (price == null) { problems.push(`The ${it.name} can't be rented online. Please message us about it.`); continue; }
       if (!date) { problems.push(`Please pick an event date for renting the ${it.name}.`); continue; }
       if (lines.some((l) => l.kind === "rent" && l.id === id && l.date === date)) continue;
       lines.push({ key: `${id}:rent:${date}`, id, kind: "rent", date, name: it.name, price, qty: 1, image: it.image || "" });
@@ -192,8 +236,9 @@ export async function quote({ wanted = [], code = "", method = "", pay = "" } = 
     const left = Object.hasOwn(levels, id) ? levels[id] : Infinity;
     if (it.soldOut || left <= 0) { problems.push(`Sorry, the ${it.name} is sold out.`); continue; }
     if (price == null) { problems.push(`The ${it.name} is priced on request. Please message us about it.`); continue; }
-    const qty = Math.min(5, left, Math.max(1, Math.floor(Number(w.qty) || 1)));
-    if (qty < Math.floor(Number(w.qty) || 1)) problems.push(`Only ${left} of the ${it.name} left, so your bag was updated.`);
+    const asked = Math.min(1e6, Math.max(1, Math.floor(Number(w.qty) || 1)));
+    const qty = Math.min(5, left, asked);
+    if (qty < asked) problems.push(left < asked && left < 5 ? `Only ${left} of the ${it.name} left, so your bag was updated.` : `You can order up to 5 of the ${it.name} at a time, so your bag was updated.`);
     if (lines.some((l) => l.kind === "buy" && l.id === id)) continue;
     lines.push({ key: id, id, kind: "buy", name: it.name, price, qty, image: it.image || "", left: Number.isFinite(left) ? left : null });
   }
@@ -222,14 +267,15 @@ export async function quote({ wanted = [], code = "", method = "", pay = "" } = 
   const rentDeposit = round(rentals * amount(c.rentDeposit));
   // A percentage like 8.875 keeps all its decimals (amounts of money are rounded to cents)
   const taxRate = Math.min(20, Math.max(0, Number(String(c.taxRate ?? "").replace(/[^\d.]/g, "")) || 0));
-  const tax = taxRate ? round((after + delivery) * taxRate / 100) : 0;
+  const tax = taxRate ? Math.round((after + delivery) * taxRate + 1e-7) / 100 : 0;
   const total = round(after + delivery + tax + rentDeposit);
 
   // Payment choices
   const cards = cardsOn(site);
   const depPct = Math.min(90, amount(c.deposit?.percent));
   const depositAmount = cards && depPct && total >= amount(c.deposit?.over) ? round(total * depPct / 100) : 0;
-  const pays = [cards && "card", depositAmount && "deposit", "later"].filter(Boolean);
+  // Stripe can't take less than 50¢, so tiny or free orders are always "pay after we confirm"
+  const pays = total >= 0.5 ? [cards && "card", depositAmount && "deposit", "later"].filter(Boolean) : ["later"];
   const payChoice = pays.includes(pay) ? pay : pays[0];
 
   return {
@@ -275,19 +321,26 @@ export async function place(body) {
   };
   const st = orders();
   while (await st.get(order.id)) order.id = newId();
-  if (!(await reserve(order))) throw new Bad("Sorry, one of your pieces just sold out. Please check your bag.");
+  if (order.code) {
+    const problem = await claimCodeUse(order.code, order.subtotal);
+    if (problem) throw new Bad(problem);
+  }
+  if (!(await takeStock(order.lines))) {
+    if (order.code) await releaseCodeUse(order.code);
+    throw new Bad("Sorry, one of your pieces just sold out. Please check your bag.");
+  }
   try {
     if (order.pay !== "later") {
+      await addHold(order);
       const s = await startCardPayment(order);
       order.stripeSession = s.id;
       order.payUrl = s.url;
     }
-    if (order.code) {
-      await update(shopStore(), "codes", (codes) => { if (codes[order.code]) codes[order.code].uses = (codes[order.code].uses || 0) + 1; });
-    }
     await st.setJSON(order.id, order);
   } catch (x) {
-    await restock(order);
+    await giveBackStock(order.lines);
+    if (order.code) await releaseCodeUse(order.code);
+    await dropHold(order.id);
     throw x;
   }
   await afterStock(order);
@@ -367,24 +420,36 @@ export async function startCardPayment(order) {
   return { id: session.id, url: session.url };
 }
 
-/** Ask Stripe whether a card order has been paid yet; saves the answer and tells the admin. */
+/** Ask Stripe whether a card order has been paid yet. Records the payment exactly once (with
+ *  one alert and one email) without overwriting anything else on the order.
+ *  Returns { order, checked }: checked is false when Stripe couldn't be asked. */
 export async function refreshPayment(order) {
-  if (order.pay === "later" || order.amountPaid || !order.stripeSession || !env("STRIPE_SECRET_KEY")) return order;
-  try {
-    const s = await stripe(`checkout/sessions/${encodeURIComponent(order.stripeSession)}`);
-    if (s.payment_status === "paid") {
-      order.amountPaid = round((s.amount_total || Math.round(order.due * 100)) / 100);
-      order.paid = order.amountPaid >= order.total - 0.005;
-      order.paidAt = new Date().toISOString();
-      order.payUrl = "";
-      await orders().setJSON(order.id, order);
-      await dropHold(order.id);
-      await alert(`✅ ${order.paid ? "Paid" : `Deposit paid (${dollars(order.amountPaid)})`}: order ${order.id}, ${order.customer.name}, ${dollars(order.amountPaid)} by card`);
-      const { site } = await catalogue();
-      await emailCustomer(order, "placed", site);
-    }
-  } catch { /* Stripe unreachable: try again next time */ }
-  return order;
+  if (order.pay === "later" || order.amountPaid || !order.stripeSession) return { order, checked: true };
+  if (!env("STRIPE_SECRET_KEY")) return { order, checked: true }; // card payments are switched off
+  let s;
+  try { s = await stripe(`checkout/sessions/${encodeURIComponent(order.stripeSession)}`); } catch { return { order, checked: false }; }
+  if (s.payment_status !== "paid") return { order, checked: true };
+  // Stripe reports the amount in cents; fall back to what was due if it's missing
+  const paid = round((s.amount_total > 0 ? s.amount_total : Math.round(order.due * 100)) / 100);
+  const res = await changeOrder(order.id, (o) => {
+    if (o.amountPaid) return NO_WRITE;
+    o.amountPaid = paid;
+    o.paid = paid >= o.total - 0.005;
+    o.paidAt = new Date().toISOString();
+    o.payUrl = "";
+  });
+  if (!res) return { order, checked: true };
+  if (!res.wrote) return { order: res.order, checked: true };
+  const o = res.order;
+  await dropHold(o.id);
+  if (o.status === "cancelled") {
+    await alert(`⚠️ Payment came in for cancelled order ${o.id} (${o.customer.name}, ${dollars(paid)}). Its pieces were put back in stock: re-open the order in the Studio, or refund it in Stripe.`);
+  } else {
+    await alert(`✅ ${o.paid ? "Paid" : `Deposit paid (${dollars(paid)})`}: order ${o.id}, ${o.customer.name}, ${dollars(paid)} by card`);
+    const { site } = await catalogue();
+    await emailCustomer(o, "placed", site);
+  }
+  return { order: o, checked: true };
 }
 
 /* ---------- Telegram alerts ---------- */
@@ -426,7 +491,7 @@ export async function emailCustomer(o, kind, site) {
   const subjects = { placed: `Your order ${o.id}`, shipped: `Your order ${o.id} is on its way`, delivered: `Your order ${o.id} was delivered` };
   const intro = {
     placed: o.amountPaid ? "Thank you — your payment came through and we're getting your order ready." : (site?.checkout?.thanks || "We've got your order and will text you shortly to confirm it."),
-    shipped: `Good news — your order is on its way.${o.tracking?.number ? ` Tracking: ${esc(o.tracking.carrier || "")} ${esc(o.tracking.number)}` : ""}`,
+    shipped: `Good news — your order is on its way.${o.tracking?.number ? ` Tracking: ${o.tracking.carrier || ""} ${o.tracking.number}` : ""}`,
     delivered: "Your order was delivered. We hope you love it!",
   }[kind];
   const html = `<div style="font-family:Georgia,serif;color:#1b1917;max-width:520px">

@@ -16,6 +16,7 @@ export default async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   let body;
   try { body = await req.json(); } catch { return json(req, { error: "Bad request." }, 400); }
+  if (!body || typeof body !== "object") return json(req, { error: "Bad request." }, 400);
 
   try {
     switch (body.action) {
@@ -27,7 +28,7 @@ export default async (req) => {
         if (!ORDER_ID.test(String(body.id)) || typeof body.token !== "string") throw new Bad("Order not found.");
         let order = await orders().get(body.id, { type: "json" });
         if (!order || order.token !== body.token) return json(req, { error: "Order not found." }, 404);
-        order = await refreshPayment(order);
+        ({ order } = await refreshPayment(order));
         const { site } = await catalogue();
         return json(req, { order: publicView(order, site) });
       }

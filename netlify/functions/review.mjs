@@ -12,6 +12,7 @@ export default async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   let b;
   try { b = await req.json(); } catch { return json(req, { error: "Bad request." }, 400); }
+  if (!b || typeof b !== "object") return json(req, { error: "Bad request." }, 400);
   if (!ORDER_ID.test(String(b.id)) || typeof b.token !== "string") return json(req, { error: "Order not found." }, 404);
   const order = await orders().get(b.id, { type: "json" });
   if (!order || order.token !== b.token) return json(req, { error: "Order not found." }, 404);

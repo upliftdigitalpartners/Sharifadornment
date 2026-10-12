@@ -52,6 +52,13 @@ function clean(site, items) {
   for (const k of ["phone", "email", "whatsapp", "location"]) if (b[k] != null && typeof b[k] !== "string") throw new Bad(`The ${k} must be text.`);
   site.business = b;
 
+  // Wording the pages print must be plain text (a wrong type would break every page)
+  for (const k of ["label", "title", "intro", "shipping", "returns", "rentals", "payment", "privacy"]) {
+    if (site.policies && site.policies[k] != null && typeof site.policies[k] !== "string") throw new Bad("The policies page has text in the wrong format.");
+  }
+  for (const k of ["label", "title", "intro", "payMethods", "payLater", "thanks", "taxRate", "taxLabel", "rentDeposit"]) {
+    if (site.checkout && site.checkout[k] != null && typeof site.checkout[k] !== "string") throw new Bad("The checkout settings have text in the wrong format.");
+  }
   if (site.banner?.link && !(typeof site.banner.link === "string" && (isLocalLink(site.banner.link) || isWebLink(site.banner.link)))) throw new Bad("The banner link must be a page on the site or an https:// link.");
   if (site.home) {
     site.home.heroImage = file(site.home.heroImage, "Hero photo");
