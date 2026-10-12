@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$38",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "green-zardozi-lotus-potli-bag",
+  "name": "Green Zardozi Lotus Potli Bag",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mv4i4ggm0.jpg"
+ },
+ {
+  "description": "",
   "price": "$42",
   "soldOut": false,
   "featured": false,
