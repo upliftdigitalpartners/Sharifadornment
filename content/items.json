@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$42",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mv4ib0ml3.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "golden-floral-potli-bag",
+  "name": "Golden Floral Potli Bag",
+  "collection": "potli",
+  "image": "assets/uploads/piece-mv4ib0rq4.jpg"
+ },
+ {
+  "description": "",
   "price": "$22",
   "soldOut": false,
   "featured": false,
