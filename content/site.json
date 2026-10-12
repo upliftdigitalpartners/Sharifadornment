@@ -35,7 +35,7 @@
    "id": "bridal",
    "name": "Bridal Sets",
    "text": "Statement necklaces with matching earrings and tikka, for the mehndi, the nikah and every photo after.",
-   "image": "assets/img/col-bridal.webp"
+   "image": "assets/uploads/collection-bridal-sets-mv4jbjw30.webp"
   },
   {
    "id": "kundan",
@@ -45,9 +45,21 @@
   },
   {
    "id": "oxidized",
-   "name": "Silver Look-Alike",
+   "name": "Silver Look-Alike Sets",
    "text": "Antique silver finishes and bold, tribal-inspired forms with a quiet, old-world edge.",
-   "image": "assets/img/col-oxidized.webp"
+   "image": "assets/uploads/collection-silver-look-alike-mv4jc0us1.webp"
+  },
+  {
+   "id": "mossanite-polki-necklaces",
+   "name": "Mossanite & Polki Necklaces",
+   "text": "",
+   "image": "assets/uploads/collection-mossanite-and-polki-necklaces-mv4jdl372.webp"
+  },
+  {
+   "id": "potli",
+   "name": "Potlis & Clutches",
+   "text": "Embroidered potli bags draped in pearls, and sculpted clutches made to be noticed.",
+   "image": "assets/img/col-potli.webp"
   },
   {
    "id": "pearl",
@@ -59,13 +71,7 @@
    "id": "bangles",
    "name": "Bangles & Cuffs",
    "text": "",
-   "image": "assets/img/col-bangles.webp"
-  },
-  {
-   "id": "potli",
-   "name": "Potlis & Clutches",
-   "text": "Embroidered potli bags draped in pearls, and sculpted clutches made to be noticed.",
-   "image": "assets/img/col-potli.webp"
+   "image": "assets/uploads/collection-bangles-cuffs-mv4hukgid.webp"
   },
   {
    "id": "earings",
@@ -218,7 +224,7 @@
   "button": "Ask about a bridal look",
   "looks": [
    {
-    "title": "The temple bride",
+    "title": "The Peacock beaded set  ",
     "text": "Carved temple gold on layered pearls and ruby beads, finished with pearl jhumkas, a full kangan stack and a red potli.",
     "image": "assets/img/col-bridal.webp",
     "pieces": [
