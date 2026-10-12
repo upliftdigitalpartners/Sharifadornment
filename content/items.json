@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$35",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mv4ipq59f.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "versatile-floral-bell-necklace",
+  "name": "Versatile Floral Bell Necklace",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mv4ippy5e.jpg"
+ },
+ {
+  "description": "",
   "price": "$18",
   "soldOut": false,
   "featured": false,
