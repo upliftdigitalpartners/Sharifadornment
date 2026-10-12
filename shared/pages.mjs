@@ -8,7 +8,7 @@
 import {
   esc, rich, img, motif, itemCard, collectionCard, pieceDetail, stepsHTML, pillarsHTML,
   paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, bannerHTML, collectionName,
-  priceLine, pieceUrl, waNumber, HEART, withPieces, shareImg, priceNumber,
+  priceLine, pieceUrl, waNumber, HEART, BAG, withPieces, shareImg, priceNumber,
 } from "./render.mjs";
 
 export const SITE_URL = "https://sharifadornment.com/";
@@ -78,9 +78,11 @@ function shell(site, { file, title, desc, body, base = "", ogImage = "assets/img
     <nav class="nav__links" id="menu" aria-label="Primary">
 ${nav}
       ${messageLink(site, "nav__cta", msgLabel)}
+      <button class="nav__theme" type="button" data-theme-toggle>Night mode</button>
     </nav>
     <div class="nav__tools">
       <button class="icon-btn saved-toggle" type="button" data-saved-open aria-label="Saved pieces">${HEART}<span class="count" data-saved-count hidden>0</span></button>
+      <button class="icon-btn bag-toggle" type="button" data-bag-open aria-label="Your bag">${BAG}<span class="count" data-bag-count hidden>0</span></button>
       <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch to night mode" title="Night mode">
         <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
         <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -142,6 +144,20 @@ ${body}
       <div class="saved__actions" data-saved-actions hidden>
         <button class="btn" type="button" data-ask-saved>Ask about these pieces</button>
         <a class="link" href="contact.html?saved=1">Use the enquiry form</a>
+      </div>
+    </div>
+  </dialog>
+  <dialog class="sheet saved bag" data-bag aria-labelledby="bag-title">
+    <button class="sheet__close" type="button" data-bag-close>Close</button>
+    <div class="saved__inner">
+      <p class="label">Your order</p>
+      <h2 id="bag-title">Your <em>bag</em></h2>
+      <p class="saved__empty" data-bag-empty>Your bag is empty. Tap “Add to bag” on any piece with a price.</p>
+      <div class="saved__list" data-bag-list></div>
+      <dl class="bag__totals" data-bag-totals hidden></dl>
+      <div class="saved__actions" data-bag-actions hidden>
+        <a class="btn" href="checkout.html">Checkout</a>
+        <button class="link" type="button" data-bag-close>Keep browsing</button>
       </div>
     </div>
   </dialog>
@@ -382,6 +398,55 @@ ${head("faq", site, { tag: "h1", intro: true })}
 <meta http-equiv="refresh" content="0; url=contact.html" /></head>
 <body><p><a href="contact.html">Continue to Sharif Adornment</a></p></body></html>
 `;
+
+  // Ordering: the bag turns into an order here; prices are checked again by the server
+  const co = site.checkout || {};
+  pages["checkout.html"] = shell(site, {
+    file: "checkout.html", title: "Checkout — Sharif Adornment",
+    desc: "Place your Sharif Adornment order: delivery details and payment.",
+    body: `    <section class="section section--first checkout">
+      <div class="checkout__copy">
+        <p class="label reveal" data-t="checkout.label">${rich(co.label || "Checkout")}</p>
+        <h1 class="page__title reveal" data-t="checkout.title">${rich(co.title || "")}</h1>
+        <p class="reveal" data-t="checkout.intro">${rich(co.intro || "")}</p>
+        <div class="checkout__summary" data-checkout-summary><p class="muted">Loading your bag…</p></div>
+      </div>
+      <form class="enquiry checkout__form" data-form="checkout" novalidate hidden>
+        <fieldset><legend class="label">Your details</legend>
+          <div class="field"><label for="c-name">Full name</label><input id="c-name" name="name" required autocomplete="name" /></div>
+          <div class="field-row">
+            <div class="field"><label for="c-phone">Phone</label><input id="c-phone" name="phone" type="tel" required autocomplete="tel" placeholder="We'll text to confirm" /></div>
+            <div class="field"><label for="c-email">Email <small>(optional)</small></label><input id="c-email" name="email" type="email" autocomplete="email" /></div>
+          </div>
+        </fieldset>
+        <fieldset><legend class="label">Delivery address</legend>
+          <div class="field"><label for="c-address">Street address</label><input id="c-address" name="address" required autocomplete="street-address" /></div>
+          <div class="field-row field-row--3">
+            <div class="field"><label for="c-city">City</label><input id="c-city" name="city" required autocomplete="address-level2" /></div>
+            <div class="field"><label for="c-state">State</label><input id="c-state" name="state" value="NY" autocomplete="address-level1" /></div>
+            <div class="field"><label for="c-zip">ZIP</label><input id="c-zip" name="zip" required inputmode="numeric" autocomplete="postal-code" /></div>
+          </div>
+          <div class="field"><label for="c-notes">Notes <small>(optional)</small></label><textarea id="c-notes" name="notes" rows="2" placeholder="Event date, gift message, delivery instructions…"></textarea></div>
+        </fieldset>
+        <fieldset class="pay"><legend class="label">Payment</legend>
+          ${co.cardPayments ? `<label class="pay__opt"><input type="radio" name="pay" value="card" checked /><span><b>Pay now by card</b><small>Secure checkout by Stripe. Apple Pay and Google Pay too.</small></span></label>` : ""}
+          <label class="pay__opt"><input type="radio" name="pay" value="later"${co.cardPayments ? "" : " checked"} /><span><b>Pay after we confirm</b><small>We'll text you to confirm, then you pay by ${esc(co.payMethods || "Zelle, Cash App or PayPal")}.</small></span></label>
+        </fieldset>
+        <div class="hp" aria-hidden="true"><label>Leave empty <input name="website" tabindex="-1" autocomplete="off" /></label></div>
+        <button type="submit" class="btn btn--block" data-place>Place order</button>
+        <p class="enquiry__note" role="status" aria-live="polite"></p>
+      </form>
+    </section>`,
+  });
+  pages["order-done.html"] = shell(site, {
+    file: "order-done.html", title: "Order received — Sharif Adornment",
+    desc: "Your Sharif Adornment order.",
+    body: `    <section class="section section--first order-done" data-order-done>
+      <p class="label">Your order</p>
+      <h1 class="page__title">Thank <em>you.</em></h1>
+      <div data-order-view><p class="muted">Loading your order…</p></div>
+    </section>`,
+  });
 
   const ct = site.contact || {};
   const b = site.business || {};

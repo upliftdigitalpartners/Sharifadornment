@@ -108,6 +108,40 @@ discarding clears the draft.
 pages load faster, plus a JPG copy used for Facebook link previews and the shop
 catalog. Safari and iPhones save JPGs, which work everywhere too.
 
+### Ordering on the site
+
+Pieces with a plain price (like `$65`) that aren't sold out get **Add to bag**.
+The bag (top right, kept on the visitor's device) leads to **Checkout**: name,
+phone, optional email, delivery address, notes, and how to pay:
+
+- **Pay after we confirm:** the order is saved, the customer sees the "How to
+  pay" text from the Studio (Zelle number, Cash App tag, PayPal…) and you
+  confirm by text.
+- **Pay now by card:** the customer pays on Stripe's secure page (cards, Apple
+  Pay, Google Pay); the order shows as paid once Stripe confirms.
+
+Prices, stock and delivery are always worked out again on the server from the
+published content, so nobody can change what they pay. Orders appear in the
+Studio's **Orders** tab, with a count of new ones on the tab: pieces, total,
+customer details with Text / WhatsApp / Call buttons, the payment state, a
+status (New → Confirmed → Delivered, or Cancelled), a private note, and
+**Mark these pieces sold out**. Delivery fee, free delivery threshold, payment
+instructions and the thank-you message are in **Pages → Ordering & checkout**.
+
+**Turning on card payments (one-time):**
+1. Create a Stripe account at stripe.com and finish its business and bank
+   details (payouts go to that bank account).
+2. In Stripe → Developers → API keys, create a **restricted key** with
+   *Checkout Sessions: Write* (everything else None), or use the secret key.
+3. In Netlify → Project configuration → Environment variables, add
+   `STRIPE_SECRET_KEY` with that key (scope: Functions, mark it secret), then
+   Deploys → Trigger deploy.
+4. In the Studio, tick **Accept card payments** under Pages → Ordering &
+   checkout, and Publish.
+
+Stripe charges about 2.9% + 30¢ per card payment. Without step 3 the card
+option stays hidden even if ticked.
+
 ### Facebook & Instagram Shop, Google Shopping
 
 Every publish also rebuilds **https://sharifadornment.com/products.xml**, a
@@ -207,7 +241,7 @@ tools/build-pages.mjs           rebuilds the pages locally
 css/style.css                   design system, layout, night mode
 js/app.js                       quick view, saved pieces, search, forms, analytics, preview
 studio/                         the admin (Studio)
-netlify/functions/              Studio API: login, github, publish, stats (analytics); public: track, subscribe
+netlify/functions/              Studio API: login, github, publish, stats (analytics), orders; public: order, track, subscribe
 netlify/lib/studio.mjs          sessions, CORS, GitHub access rules
 netlify.toml, package.json      Netlify settings (API only); @netlify/blobs for analytics and the newsletter
 assets/                         images (each with a -sm phone copy), pieces, gallery, video, uploads/

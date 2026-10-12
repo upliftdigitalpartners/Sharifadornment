@@ -27,6 +27,8 @@ export function img(src, alt = "", { sizes = "(max-width: 680px) 50vw, 25vw", la
 
 export const pad = (n) => String(n).padStart(2, "0");
 
+export const BAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>';
+
 export const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.3 4.5 6.9 4.5c2.1 0 3.7 1.2 5.1 3 1.4-1.8 3-3 5.1-3 3.6 0 5.5 3.5 4.2 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>';
 
 export const LOTUS =
@@ -64,6 +66,21 @@ export const priceNumber = (it) => {
   const m = money(it.price).match(/^\$(\d[\d,]*(?:\.\d{1,2})?)$/);
   return m ? Number(m[1].replace(/,/g, "")) : null;
 };
+
+/** Delivery for an order: the fee set in the Studio, free over the set amount. Used by the
+ *  bag and checkout in the browser and by the order function, so both always agree. */
+const amount = (v) => {
+  const n = Number(String(v ?? "").replace(/[^\d.]/g, ""));
+  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : 0;
+};
+export function deliveryFor(site, subtotal) {
+  const c = site?.checkout || {};
+  const fee = amount(c.deliveryFee), freeOver = amount(c.freeDeliveryOver);
+  return freeOver && subtotal >= freeOver ? 0 : fee;
+}
+export const dollars = (n) => `$${Number(n).toFixed(2).replace(/\.00$/, "")}`;
+/** Can this piece be ordered on the site? (a plain price and not sold out) */
+export const buyable = (it) => !it.soldOut && priceNumber(it) != null;
 
 export function priceLine(it) {
   const buy = money(it.price) || "Price on request";
@@ -131,8 +148,11 @@ export function pieceDetail(it, site, items, { heading = "h2" } = {}) {
     ${it.description ? `<p class="detail__desc">${esc(it.description)}</p>` : ""}
     ${facts.length ? `<dl class="detail__facts">${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>` : ""}
     <div class="detail__actions">
-      <button class="btn" type="button" data-ask="${esc(it.id)}" data-kind="${it.soldOut ? "notify" : "ask"}">${it.soldOut ? "Tell me when it's back" : "Ask about this piece"}</button>
+      ${buyable(it)
+        ? `<button class="btn" type="button" data-add="${esc(it.id)}">Add to bag</button>`
+        : `<button class="btn" type="button" data-ask="${esc(it.id)}" data-kind="${it.soldOut ? "notify" : "ask"}">${it.soldOut ? "Tell me when it's back" : "Ask about this piece"}</button>`}
       <button class="btn btn--ghost save-btn" type="button" data-save="${esc(it.id)}" aria-pressed="false">${HEART}<span>Save</span></button>
+      ${buyable(it) ? `<button class="btn btn--ghost detail__ask" type="button" data-ask="${esc(it.id)}" data-kind="ask">Ask about this piece</button>` : ""}
     </div>
     <div class="detail__more">
       <button class="link" type="button" data-share="${esc(it.id)}">Share</button>

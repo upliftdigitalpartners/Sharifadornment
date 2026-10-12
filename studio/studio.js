@@ -178,6 +178,7 @@
     s.faq.items ||= [];
     s.book ||= { label: "", title: "", intro: "", types: ["Video call", "Phone call"], button: "", note: "" };
     s.nav ||= { book: "Message us" };
+    s.checkout ||= { label: "Checkout", title: "Your *order.*", intro: "", cardPayments: false, deliveryFee: "", freeDeliveryOver: "", payMethods: "Zelle, Cash App or PayPal", payLater: "", thanks: "" };
     return s;
   }
 
@@ -192,6 +193,7 @@
     state.shas = { site: site.sha, items: items.sha };
     if (DEMO) toast("Demo mode — try anything; nothing will be published.");
     render();
+    peekOrders();
     await offerDraft();
   }
 
@@ -766,6 +768,15 @@
       ["gallery.label", "Small label"], ["gallery.title", "Heading"], ["gallery.link", "Facebook link text"],
       ["gallery.facebookFeed", "Offer to show our latest Facebook posts", "check"], ["gallery.feedTitle", "Facebook section heading"],
     ]],
+    ["Ordering & checkout", [
+      ["checkout.deliveryFee", "Delivery fee", "text", "e.g. $8. Leave empty to confirm delivery cost by text."],
+      ["checkout.freeDeliveryOver", "Free delivery on orders over", "text", "e.g. $100. Leave empty for no free delivery."],
+      ["checkout.payMethods", "Pay-later methods (short)", "text", "Shown at checkout, e.g. “Zelle, Cash App or PayPal”."],
+      ["checkout.payLater", "How to pay — shown after an order", "area", "Your Zelle number, Cash App tag, PayPal link… one per line."],
+      ["checkout.cardPayments", "Accept card payments (Stripe)", "check", "Only works once Stripe is connected on Netlify. See the README."],
+      ["checkout.thanks", "Thank-you message after ordering", "area"],
+      ["checkout.label", "Checkout — small label"], ["checkout.title", "Checkout — heading"], ["checkout.intro", "Checkout — intro", "area"],
+    ]],
     ["Enquire page", [["contact.label", "Small label"], ["contact.title", "Heading"], ["contact.text", "Text", "area"], ["contact.button", "Form button"]]],
     ["Footer", [
       ["footer.hours", "Short line under the logo"], ["footer.newsletterTitle", "Newsletter heading"], ["footer.newsletterText", "Newsletter text", "area"],
@@ -776,7 +787,7 @@
   function fieldHTML([path, label, type = "text", hint = ""]) {
     const v = get(state.site, path);
     const h = hint ? `<small>${hint}</small>` : "";
-    if (type === "check") return `<label class="check"><input type="checkbox" data-check="${path}" ${v ? "checked" : ""} /> <span>${label}</span></label>`;
+    if (type === "check") return `<label class="check"><input type="checkbox" data-check="${path}" ${v ? "checked" : ""} /> <span>${label}${hint ? ` <small class="muted">— ${hint}</small>` : ""}</span></label>`;
     if (type === "area") return `<label class="field"><span>${label}</span><textarea data-path="${path}" rows="2">${esc(v)}</textarea>${h}</label>`;
     if (type === "lines") return `<label class="field"><span>${label}</span><textarea data-lines="${path}" rows="3">${esc((v || []).join("\n"))}</textarea>${h}</label>`;
     if (type === "paras") return `<label class="field"><span>${label}</span><textarea data-paras="${path}" rows="7">${esc((v || []).join("\n\n"))}</textarea>${h}</label>`;
@@ -905,6 +916,117 @@
     bindFields(el);
     bindList(el);
   };
+
+  /* ---------- Orders ---------- */
+  const STATUS = { new: "New", confirmed: "Confirmed", delivered: "Delivered", cancelled: "Cancelled" };
+  const OPEN = ["new", "confirmed"];
+  let ordersFilter = "open";
+  const showOrderCount = (list) => {
+    const n = list.filter((o) => o.status === "new").length;
+    const tab = $('[data-tab="orders"]');
+    if (tab) tab.innerHTML = `Orders${n ? ` <span class="tab-count">${n}</span>` : ""}`;
+  };
+  // Quietly check for new orders after signing in, for the count on the tab
+  const peekOrders = () => { if (!DEMO) api("orders", {}, session.get()).then((d) => showOrderCount(d.orders)).catch(() => {}); };
+
+  views.orders = (el) => {
+    el.innerHTML = `<div class="view__head"><div><h2>Orders</h2><p>Orders placed on the site. Card orders show as paid once Stripe confirms.</p></div></div><p class="loading">Loading…</p>`;
+    if (DEMO) { drawOrders(el, sampleOrders(), true); return; }
+    api("orders", {}, session.get()).then((d) => drawOrders(el, d.orders)).catch((x) => {
+      if (x.status === 401) lockOut("Please sign in again.");
+      else $(".loading", el).textContent = `Couldn't load orders (${x.message}).`;
+    });
+  };
+
+  function sampleOrders() {
+    const it = state.items.slice(0, 3);
+    const line = (x, qty = 1) => ({ id: x.id, name: x.name, price: Number(String(x.price).replace(/[^\d.]/g, "")) || 50, qty, image: x.image });
+    const mk = (id, h, status, pay, paid, lines, c) => {
+      const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
+      return { id, created: new Date(Date.now() - h * 36e5).toISOString(), status, pay, paid, lines, subtotal, delivery: 8, total: subtotal + 8, note: "",
+        customer: { name: c, phone: "(347) 555-0101", email: "", address: "12 Example Ave", city: "Queens", state: "NY", zip: "11101", notes: h < 5 ? "For a mehndi on Saturday" : "" } };
+    };
+    return [mk("SA-261012-AB12", 2, "new", "later", false, [line(it[0]), line(it[1])], "Sample Customer"),
+      mk("SA-261011-CD34", 30, "confirmed", "card", true, [line(it[2], 2)], "Another Sample"),
+      mk("SA-261003-EF56", 220, "delivered", "later", true, [line(it[1])], "Past Sample")];
+  }
+
+  function drawOrders(el, list, sample = false) {
+    const money = (n) => `$${Number(n).toFixed(2).replace(/\.00$/, "")}`;
+    const when = (d) => new Date(d).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    const digits = (p) => String(p).replace(/\D/g, "").slice(-10);
+    const draw = () => {
+      showOrderCount(list);
+      const shown = list.filter((o) => ordersFilter === "all" || (ordersFilter === "open" ? OPEN.includes(o.status) : o.status === ordersFilter));
+      const counts = { open: list.filter((o) => OPEN.includes(o.status)).length, delivered: list.filter((o) => o.status === "delivered").length, cancelled: list.filter((o) => o.status === "cancelled").length, all: list.length };
+      el.innerHTML = `
+        <div class="view__head"><div><h2>Orders</h2><p>${sample ? "<b>Sample orders</b> — demo mode. " : ""}Orders placed on the site. Card orders show as paid once Stripe confirms.</p></div>
+          <button class="btn btn--ghost" type="button" data-orders-refresh>Refresh</button></div>
+        <div class="chips">${[["open", "Open"], ["delivered", "Delivered"], ["cancelled", "Cancelled"], ["all", "All"]].map(([k, label]) =>
+          `<button type="button" class="chip" data-ofilter="${k}" aria-pressed="${ordersFilter === k}">${label} <small>${counts[k]}</small></button>`).join("")}</div>
+        ${shown.length ? shown.map((o) => {
+          const c = o.customer;
+          const text = encodeURIComponent(`Hi ${c.name.split(" ")[0]}, this is Sharif Adornment about your order ${o.id}. `);
+          const addr = [c.address, c.city, [c.state, c.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+          return `<article class="order${o.status === "new" ? " is-new" : ""}" data-order="${esc(o.id)}">
+            <header class="order__head">
+              <div><b>${esc(o.id)}</b><span class="muted">${esc(when(o.created))}</span></div>
+              <select class="select" data-ostatus aria-label="Status of ${esc(o.id)}">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}"${o.status === k ? " selected" : ""}>${v}</option>`).join("")}</select>
+            </header>
+            <div class="order__grid">
+              <div class="order__who">
+                <p><b>${esc(c.name)}</b></p>
+                <p><a href="tel:+1${digits(c.phone)}">${esc(c.phone)}</a>${c.email ? ` · <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ""}</p>
+                <p><a href="https://maps.google.com/?q=${encodeURIComponent(addr)}" target="_blank" rel="noopener">${esc(addr)}</a></p>
+                ${c.notes ? `<p class="order__notes">“${esc(c.notes)}”</p>` : ""}
+                <div class="order__actions">
+                  <a class="btn btn--ghost" href="sms:+1${digits(c.phone)}?&body=${text}">Text</a>
+                  <a class="btn btn--ghost" href="https://wa.me/1${digits(c.phone)}?text=${text}" target="_blank" rel="noopener">WhatsApp</a>
+                  <a class="btn btn--ghost" href="tel:+1${digits(c.phone)}">Call</a>
+                </div>
+              </div>
+              <div class="order__what">
+                ${o.lines.map((l) => `<div class="order__line"><img src="${esc(src(l.image))}" alt="" loading="lazy" /><span>${esc(l.name)}${l.qty > 1 ? ` × ${l.qty}` : ""}</span><b>${money(l.price * l.qty)}</b></div>`).join("")}
+                <dl class="order__sum"><div><dt>Subtotal</dt><dd>${money(o.subtotal)}</dd></div><div><dt>Delivery</dt><dd>${o.delivery ? money(o.delivery) : "—"}</dd></div><div class="is-total"><dt>Total</dt><dd>${money(o.total)}</dd></div></dl>
+                <div class="order__pay">
+                  ${o.pay === "card"
+                    ? `<span class="flag${o.paid ? " flag--gold" : ""}">${o.paid ? "Paid by card ✓" : "Card — awaiting payment"}</span>`
+                    : `<label class="check"><input type="checkbox" data-opaid ${o.paid ? "checked" : ""} /> <span>Paid (${esc(state.site.checkout?.payMethods || "Zelle / Cash App / PayPal")})</span></label>`}
+                </div>
+                <button type="button" class="add-link" data-osold>Mark these pieces sold out</button>
+              </div>
+            </div>
+            <label class="field"><span>Private note</span><textarea rows="2" data-onote placeholder="Only you see this">${esc(o.note || "")}</textarea></label>
+          </article>`;
+        }).join("") : '<p class="muted">No orders here yet.</p>'}`;
+    };
+    draw();
+    const update = async (id, change) => {
+      if (sample) { Object.assign(list.find((o) => o.id === id), change); draw(); return; }
+      try { list = (await api("orders", { update: { id, ...change } }, session.get())).orders; draw(); toast("Saved."); }
+      catch (x) { toast(x.message, true); }
+    };
+    el.addEventListener("click", async (e) => {
+      const f = e.target.closest("[data-ofilter]");
+      if (f) { ordersFilter = f.dataset.ofilter; draw(); return; }
+      if (e.target.closest("[data-orders-refresh]")) { views.orders(el); return; }
+      const sold = e.target.closest("[data-osold]");
+      if (sold) {
+        const o = list.find((x) => x.id === sold.closest("[data-order]").dataset.order);
+        let n = 0;
+        for (const l of o.lines) { const it = state.items.find((i) => i.id === l.id); if (it && !it.soldOut) { it.soldOut = true; n++; } }
+        changed();
+        toast(n ? `Marked ${n} piece${n === 1 ? "" : "s"} sold out. Press Publish to update the site.` : "Those pieces are already sold out.");
+      }
+    });
+    el.addEventListener("change", (e) => {
+      const card = e.target.closest("[data-order]");
+      if (!card) return;
+      if (e.target.matches("[data-ostatus]")) update(card.dataset.order, { status: e.target.value });
+      if (e.target.matches("[data-opaid]")) update(card.dataset.order, { paid: e.target.checked });
+      if (e.target.matches("[data-onote]")) update(card.dataset.order, { note: e.target.value });
+    });
+  }
 
   /* ---------- Analytics ---------- */
   const ANALYTICS_HEAD = '<div class="view__head"><div><h2>Analytics</h2><p>How people use the site. Anonymous: no names, no cookies, nothing personal.</p></div></div>';

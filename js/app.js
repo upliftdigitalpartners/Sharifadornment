@@ -2,7 +2,7 @@
  * The pages arrive fully built (shared/pages.mjs); this adds the interactive
  * parts: quick view, saved pieces, asking about a piece, search and filters,
  * photo zoom, forms, night mode and the Studio's preview mode. */
-import { esc, rich, withPieces, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, money, pieceUrl, waNumber } from "../shared/render.mjs";
+import { buyable, deliveryFor, dollars, priceNumber, sm, esc, rich, withPieces, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, money, pieceUrl, waNumber } from "../shared/render.mjs";
 
 const API = "https://sharif-adornment-studio.netlify.app/api";
 const $ = (s, el = document) => el.querySelector(s);
@@ -66,19 +66,23 @@ track("page", "", visitInfo());
 
 /* ---------- Night mode ---------- */
 const root = document.documentElement;
-const themeBtn = $("[data-theme-toggle]");
+// The icon in the header, and on small phones a "Night mode" line in the menu
+const themeBtns = $$("[data-theme-toggle]");
 const setThemeLabel = () => {
   const dark = root.dataset.theme === "dark";
-  themeBtn?.setAttribute("aria-label", dark ? "Switch to day mode" : "Switch to night mode");
-  themeBtn?.setAttribute("title", dark ? "Day mode" : "Night mode");
+  themeBtns.forEach((b) => {
+    if (b.classList.contains("nav__theme")) { b.textContent = dark ? "Day mode" : "Night mode"; return; }
+    b.setAttribute("aria-label", dark ? "Switch to day mode" : "Switch to night mode");
+    b.setAttribute("title", dark ? "Day mode" : "Night mode");
+  });
   $('meta[name="theme-color"]')?.setAttribute("content", dark ? "#151413" : "#f6f3ee");
 };
 setThemeLabel();
-themeBtn?.addEventListener("click", () => {
+themeBtns.forEach((b) => b.addEventListener("click", () => {
   root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
   try { localStorage.setItem("sa-theme", root.dataset.theme); } catch (_) { /* private mode */ }
   setThemeLabel();
-});
+}));
 
 /* ---------- Banner ---------- */
 function setupBanner() {
@@ -305,6 +309,7 @@ function openPiece(id, { push = true } = {}) {
   if (!it || !sheet) return false;
   $("[data-sheet-body]", sheet).innerHTML = pieceDetail(it, site, items);
   syncSaved();
+  syncBag();
   setupSlides(sheet);
   if (!sheet.open) sheet.showModal();
   sheet.scrollTop = 0;
@@ -368,6 +373,164 @@ function setupCollections() {
   apply();
 }
 
+/* ---------- Bag: pieces to order, kept on this device ---------- */
+let bag = store.get("sa-bag", []); // [{ id, qty }]
+const MAX_QTY = 5;
+function bagLines() {
+  return bag.map((b) => ({ ...b, it: byId(b.id) })).filter((l) => l.it && buyable(l.it))
+    .map((l) => ({ ...l, price: priceNumber(l.it) }));
+}
+function bagTotals(lines) {
+  const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
+  const delivery = deliveryFor(site, subtotal);
+  return { subtotal, delivery, total: subtotal + delivery };
+}
+// How delivery reads: a fee, "Free", or "We'll confirm" when no fee is set
+const deliveryText = (t) => t.delivery ? dollars(t.delivery) : site?.checkout?.deliveryFee ? "Free" : "We'll confirm";
+const totalsHTML = (t) => `<div><dt>Subtotal</dt><dd>${dollars(t.subtotal)}</dd></div>
+  <div><dt>Delivery</dt><dd>${deliveryText(t)}</dd></div>
+  <div class="is-total"><dt>Total</dt><dd>${dollars(t.total)}</dd></div>`;
+function syncBag() {
+  if (items.length) bag = bag.filter((b) => byId(b.id) && buyable(byId(b.id)));
+  store.set("sa-bag", bag);
+  const n = bag.reduce((s, b) => s + b.qty, 0);
+  const count = $("[data-bag-count]");
+  if (count) { count.textContent = n; count.hidden = !n; }
+  $$("[data-add]").forEach((b) => { b.textContent = bag.some((x) => x.id === b.dataset.add) ? "In your bag — view" : "Add to bag"; });
+}
+function drawBag() {
+  const lines = bagLines();
+  $("[data-bag-empty]").hidden = lines.length > 0;
+  $("[data-bag-actions]").hidden = !lines.length;
+  const totals = $("[data-bag-totals]");
+  totals.hidden = !lines.length;
+  totals.innerHTML = lines.length ? totalsHTML(bagTotals(lines)) : "";
+  $("[data-bag-list]").innerHTML = lines.map(({ it, qty, price }) => `<div class="saved__row bag__row">
+    <a href="${pieceUrl(it)}" data-open="${esc(it.id)}"><img src="${esc(it.image)}" alt="" /></a>
+    <div><a href="${pieceUrl(it)}" data-open="${esc(it.id)}" class="saved__name">${esc(it.name)}</a><span>${dollars(price)}${qty > 1 ? ` × ${qty}` : ""}</span>
+      <div class="qty" role="group" aria-label="Quantity of ${esc(it.name)}">
+        <button type="button" data-qty="${esc(it.id)}" data-step="-1" aria-label="One fewer"${qty <= 1 ? " disabled" : ""}>−</button><b>${qty}</b><button type="button" data-qty="${esc(it.id)}" data-step="1" aria-label="One more"${qty >= MAX_QTY ? " disabled" : ""}>+</button>
+      </div></div>
+    <button type="button" class="link" data-unbag="${esc(it.id)}">Remove</button></div>`).join("");
+}
+const openBag = () => { drawBag(); const d = $("[data-bag]"); if (!d.open) d.showModal(); };
+document.addEventListener("click", (e) => {
+  const add = e.target.closest("[data-add]");
+  if (add) {
+    e.preventDefault();
+    const id = add.dataset.add;
+    if (!bag.some((b) => b.id === id)) bag.push({ id, qty: 1 });
+    syncBag();
+    openBag();
+    return;
+  }
+  const q = e.target.closest("[data-qty]");
+  if (q) {
+    const line = bag.find((b) => b.id === q.dataset.qty);
+    if (line) line.qty = Math.min(MAX_QTY, Math.max(1, line.qty + Number(q.dataset.step)));
+    syncBag(); drawBag(); drawCheckout();
+    return;
+  }
+  const u = e.target.closest("[data-unbag]");
+  if (u) { bag = bag.filter((b) => b.id !== u.dataset.unbag); syncBag(); drawBag(); drawCheckout(); }
+});
+$("[data-bag-open]")?.addEventListener("click", openBag);
+$$("[data-bag-close]").forEach((b) => b.addEventListener("click", () => $("[data-bag]").close()));
+$("[data-bag]")?.addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+
+/* ---------- Checkout ---------- */
+function drawCheckout() {
+  const box = $("[data-checkout-summary]");
+  if (!box) return;
+  const lines = bagLines();
+  const form = $('[data-form="checkout"]');
+  form.hidden = !lines.length;
+  if (!lines.length) {
+    box.innerHTML = '<p class="checkout__empty">Your bag is empty.</p><a class="btn" href="collections.html">Browse the collections</a>';
+    return;
+  }
+  box.innerHTML = `<div class="checkout__lines">${lines.map(({ it, qty, price }) => `<div class="checkout__line">
+      <img src="${esc(sm(it.image))}" alt="" /><span>${esc(it.name)}${qty > 1 ? ` <small>× ${qty}</small>` : ""}</span><b>${dollars(price * qty)}</b></div>`).join("")}</div>
+    <dl class="bag__totals">${totalsHTML(bagTotals(lines))}</dl>
+    <button type="button" class="link" data-bag-open-inline>Change quantities</button>`;
+  $("[data-bag-open-inline]", box).addEventListener("click", openBag);
+}
+function setupCheckout() {
+  const form = $('[data-form="checkout"]');
+  if (!form) return;
+  drawCheckout();
+  const note = $(".enquiry__note", form);
+  if (params.has("cancelled")) note.textContent = "Card payment was cancelled. Your bag is still here; you can try again or choose to pay after we confirm.";
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!validate(form)) return;
+    const d = Object.fromEntries(new FormData(form));
+    const btn = $("[data-place]", form);
+    btn.disabled = true;
+    btn.textContent = d.pay === "card" ? "Opening secure payment…" : "Placing your order…";
+    note.textContent = "";
+    try {
+      const res = await fetch(`${API}/order`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "place", pay: d.pay, website: d.website,
+          items: bag.map(({ id, qty }) => ({ id, qty })),
+          customer: { name: d.name, phone: d.phone, email: d.email, address: d.address, city: d.city, state: d.state, zip: d.zip, notes: d.notes },
+        }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || "Something went wrong. Please try again.");
+      store.set("sa-last-order", { id: out.id, token: out.token });
+      if (out.url) { location.href = out.url; return; } // Stripe's payment page; the bag is cleared once it's paid
+      bag = []; syncBag();
+      location.href = `order-done.html?o=${encodeURIComponent(out.id)}&t=${encodeURIComponent(out.token)}`;
+    } catch (x) {
+      note.textContent = x.message === "Failed to fetch" ? "We couldn't reach the shop. Check your connection and try again." : x.message;
+      btn.disabled = false;
+      btn.textContent = "Place order";
+    }
+  });
+}
+
+/* ---------- Order received ---------- */
+async function setupOrderDone() {
+  const view = $("[data-order-view]");
+  if (!view) return;
+  const last = store.get("sa-last-order", {});
+  const id = params.get("o") || last.id, token = params.get("t") || last.token;
+  if (!id || !token) { view.innerHTML = '<p>We couldn\'t find an order on this device. If you placed one, we\'ll text you to confirm it.</p>'; return; }
+  const load = async () => {
+    const res = await fetch(`${API}/order`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "status", id, token }) });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(out.error || "Couldn't load your order.");
+    return out.order;
+  };
+  const draw = (o) => {
+    const c = site?.checkout || {};
+    const payment = o.pay === "card"
+      ? (o.paid ? '<p class="order__paid">✓ Paid by card. Thank you!</p>' : '<p class="muted">Confirming your card payment… this takes a moment.</p>')
+      : `<div class="order__pay"><h2>How to pay</h2><p>${esc(o.payLater || "We'll text you to confirm your order and how to pay.").replace(/\n/g, "<br />")}</p><p class="muted">Please add your order number <b>${esc(o.id)}</b> to the payment note.</p></div>`;
+    view.innerHTML = `<p class="order__lead">${esc(c.thanks || "We've got your order and will text you shortly to confirm it.")}</p>
+      <p class="order__id">Order <b>${esc(o.id)}</b></p>
+      ${payment}
+      <div class="checkout__lines">${o.lines.map((l) => `<div class="checkout__line"><img src="${esc(sm(l.image))}" alt="" /><span>${esc(l.name)}${l.qty > 1 ? ` <small>× ${l.qty}</small>` : ""}</span><b>${dollars(l.price * l.qty)}</b></div>`).join("")}</div>
+      <dl class="bag__totals">${totalsHTML(o)}</dl>
+      <a class="link" href="collections.html">Keep browsing</a>`;
+  };
+  try {
+    let o = await load();
+    // The order went through, so the bag can be emptied (card orders keep it until here)
+    bag = bag.filter((b) => !o.lines.some((l) => l.id === b.id)); syncBag();
+    draw(o);
+    for (let i = 0; o.pay === "card" && !o.paid && i < 6; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      o = await load(); draw(o);
+    }
+  } catch (x) {
+    view.innerHTML = `<p>${esc(x.message)} If you placed an order, we'll text you to confirm it.</p>`;
+  }
+}
+
 /* ---------- Forms: enquiry and newsletter ---------- */
 function handoff(form, body, subject) {
   const note = $(".enquiry__note", form);
@@ -380,6 +543,8 @@ function handoff(form, body, subject) {
   note.textContent = "Your message is copied — paste it into Messenger and we'll reply there.";
   open(b.messenger || b.facebook, "_blank", "noopener");
 }
+// A field marked as missing clears as soon as something is typed into it
+document.addEventListener("input", (e) => { if (e.target.value?.trim()) e.target.closest(".field.is-invalid")?.classList.remove("is-invalid"); });
 function validate(form) {
   let ok = true;
   $$("[required]", form).forEach((input) => {
@@ -499,6 +664,9 @@ loadContent()
     setupSlides(document);
     setupCollections();
     setupForms();
+    syncBag();
+    setupCheckout();
+    setupOrderDone();
     if (onPiecePage) track("view", $("[data-piece]")?.dataset.piece);
     else if (params.get("piece") && !$('[data-form="enquiry"]')) openPiece(params.get("piece"), { push: false });
   })

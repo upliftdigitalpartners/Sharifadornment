@@ -304,5 +304,16 @@
  },
  "nav": {
   "book": "Send us a message"
+ },
+ "checkout": {
+  "label": "Checkout",
+  "title": "Your *order.*",
+  "intro": "Check your pieces, add your delivery details and choose how to pay. We'll text you to confirm.",
+  "cardPayments": false,
+  "deliveryFee": "",
+  "freeDeliveryOver": "",
+  "payMethods": "Zelle, Cash App or PayPal",
+  "payLater": "",
+  "thanks": "We've got your order and will text you shortly to confirm it."
  }
 }
