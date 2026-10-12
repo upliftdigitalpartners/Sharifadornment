@@ -35,7 +35,7 @@
    "id": "bridal",
    "name": "Bridal Sets",
    "text": "Statement necklaces with matching earrings and tikka, for the mehndi, the nikah and every photo after.",
-   "image": "assets/img/col-bridal.jpg"
+   "image": "assets/uploads/collection-bridal-sets-mv4jbjw30.jpg"
   },
   {
    "id": "kundan",
@@ -47,7 +47,19 @@
    "id": "oxidized",
    "name": "Silver Look-Alike",
    "text": "Antique silver finishes and bold, tribal-inspired forms with a quiet, old-world edge.",
-   "image": "assets/img/col-oxidized.jpg"
+   "image": "assets/uploads/collection-silver-look-alike-mv4jc0us1.jpg"
+  },
+  {
+   "id": "mossanite-polki-necklaces",
+   "name": "Mossanite & Polki Necklaces",
+   "text": "",
+   "image": "assets/uploads/collection-mossanite-and-polki-necklaces-mv4jdl372.jpg"
+  },
+  {
+   "id": "potli",
+   "name": "Potlis & Clutches",
+   "text": "Embroidered potli bags draped in pearls, and sculpted clutches made to be noticed.",
+   "image": "assets/img/col-potli.jpg"
   },
   {
    "id": "pearl",
@@ -60,12 +72,6 @@
    "name": "Bangles & Cuffs",
    "text": "",
    "image": "assets/uploads/collection-bangles-cuffs-mv4hukgid.jpg"
-  },
-  {
-   "id": "potli",
-   "name": "Potlis & Clutches",
-   "text": "Embroidered potli bags draped in pearls, and sculpted clutches made to be noticed.",
-   "image": "assets/img/col-potli.jpg"
   },
   {
    "id": "earings",
