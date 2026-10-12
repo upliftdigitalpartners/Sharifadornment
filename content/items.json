@@ -122,7 +122,7 @@
   "description": "",
   "price": "$42",
   "soldOut": false,
-  "featured": false,
+  "featured": true,
   "images": [
    "assets/uploads/piece-mv4ib0ml3.jpg"
   ],
