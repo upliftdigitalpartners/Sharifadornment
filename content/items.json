@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$28",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mv4iln1gb.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "vintage-inspired-statement-earrings",
+  "name": "Vintage-Inspired Statement Earrings",
+  "collection": "earings",
+  "image": "assets/uploads/piece-mv4ilmzpa.jpg"
+ },
+ {
+  "description": "",
   "price": "$35",
   "soldOut": false,
   "featured": false,
