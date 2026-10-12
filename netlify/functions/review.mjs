@@ -16,6 +16,7 @@ export default async (req) => {
   if (!ORDER_ID.test(String(b.id)) || typeof b.token !== "string") return json(req, { error: "Order not found." }, 404);
   const order = await orders().get(b.id, { type: "json" });
   if (!order || order.token !== b.token) return json(req, { error: "Order not found." }, 404);
+  if (order.status !== "delivered") return json(req, { error: "You can review your order once it's been delivered." }, 400);
 
   const review = {
     id: order.id, date: new Date().toISOString(),

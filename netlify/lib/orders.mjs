@@ -199,7 +199,7 @@ function codeProblem(c, subtotal) {
 }
 
 /** Count one use of a code, refusing if it's no longer valid or fully used (safe when orders arrive together) */
-async function claimCodeUse(code, subtotal) {
+export async function claimCodeUse(code, subtotal) {
   return update(shopStore(), "codes", (codes) => {
     const problem = codeProblem(codes[code], subtotal);
     if (problem) return problem;
@@ -207,7 +207,7 @@ async function claimCodeUse(code, subtotal) {
     return "";
   });
 }
-async function releaseCodeUse(code) {
+export async function releaseCodeUse(code) {
   await update(shopStore(), "codes", (codes) => { if (codes[code]) codes[code].uses = Math.max(0, (codes[code].uses || 0) - 1); });
 }
 
@@ -491,7 +491,9 @@ export async function emailCustomer(o, kind, site) {
   const rows = o.lines.map((l) => `<tr><td style="padding:6px 0">${esc(l.name)}${l.kind === "rent" ? ` <small>(rental, ${esc(l.date)})</small>` : ""}${l.qty > 1 ? ` × ${l.qty}` : ""}</td><td align="right">${dollars(l.price * l.qty)}</td></tr>`).join("");
   const subjects = { placed: `Your order ${o.id}`, shipped: `Your order ${o.id} is on its way`, delivered: `Your order ${o.id} was delivered` };
   const intro = {
-    placed: o.amountPaid ? "Thank you — your payment came through and we're getting your order ready." : (site?.checkout?.thanks || "We've got your order and will text you shortly to confirm it."),
+    placed: o.amountPaid >= o.total - 0.005 ? "Thank you — your payment came through and we're getting your order ready."
+      : o.amountPaid ? `Thank you — your deposit of ${dollars(o.amountPaid)} came through. The balance of ${dollars(o.total - o.amountPaid)} is due once we confirm your order.`
+      : (site?.checkout?.thanks || "We've got your order and will text you shortly to confirm it."),
     shipped: `Good news — your order is on its way.${o.tracking?.number ? ` Tracking: ${o.tracking.carrier || ""} ${o.tracking.number}` : ""}`,
     delivered: "Your order was delivered. We hope you love it!",
   }[kind];
@@ -499,7 +501,7 @@ export async function emailCustomer(o, kind, site) {
     <p style="font-size:22px">Hi ${esc(first)},</p><p>${esc(intro)}</p>
     <table width="100%" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px">${rows}
       <tr><td style="border-top:1px solid #ddd;padding-top:8px"><b>Total</b></td><td align="right" style="border-top:1px solid #ddd;padding-top:8px"><b>${dollars(o.total)}</b></td></tr></table>
-    ${kind === "placed" && o.pay === "later" && site?.checkout?.payLater ? `<p style="font-family:Arial,sans-serif;font-size:14px"><b>How to pay</b><br>${esc(site.checkout.payLater).replace(/\n/g, "<br>")}<br>Please add ${o.id} to the payment note.</p>` : ""}
+    ${kind === "placed" && o.amountPaid < o.total - 0.005 && site?.checkout?.payLater ? `<p style="font-family:Arial,sans-serif;font-size:14px"><b>How to pay</b><br>${esc(site.checkout.payLater).replace(/\n/g, "<br>")}<br>Please add ${o.id} to the payment note.</p>` : ""}
     <p><a href="${trackUrl(o)}" style="color:#7d5f33">See your order</a></p><p>— Sharif Adornment</p></div>`;
   try {
     await fetch("https://api.resend.com/emails", {

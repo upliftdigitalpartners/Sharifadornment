@@ -1178,7 +1178,7 @@
                   <button type="button" class="btn btn--ghost" data-oprint>Print slip</button>
                   ${o.status === "delivered" ? `<a class="btn btn--ghost" href="${sms(`Hi ${c.name.split(" ")[0]}! We hope you love your pieces from Sharif Adornment. Would you leave us a quick review? ${o.reviewUrl}`)}">Ask for a review</a>` : ""}
                 </div>
-                ${["shipped", "delivered"].includes(o.status) || o.tracking?.number ? `<div class="order__track">
+                ${["confirmed", "shipped", "delivered"].includes(o.status) || o.tracking?.number ? `<div class="order__track">
                   <select class="select" data-ocarrier aria-label="Carrier">${["", "USPS", "UPS", "FedEx", "DHL", "Courier"].map((x) => `<option${(o.tracking?.carrier || "") === x ? " selected" : ""} value="${x}">${x || "Carrier"}</option>`).join("")}</select>
                   <input data-otrack placeholder="Tracking number" value="${esc(o.tracking?.number || "")}" />
                 </div>` : ""}
@@ -1233,7 +1233,9 @@
       if (!card) return;
       const id = card.dataset.order;
       if (e.target.matches("[data-ostatus]")) {
-        if (e.target.value === "cancelled" && !confirm("Cancel this order? Counted pieces go back into stock.")) { draw(); return; }
+        const o = list.find((x) => x.id === id);
+        const refund = o?.amountPaid && o.pay !== "later" ? `\n\nIt was paid by card (${money(o.cardPaid || o.amountPaid)}): refund it in your Stripe dashboard.` : "";
+        if (e.target.value === "cancelled" && !confirm(`Cancel this order? Counted pieces go back into stock.${refund}`)) { draw(); return; }
         update(id, { status: e.target.value });
       }
       if (e.target.matches("[data-opaid]")) update(id, { paid: e.target.checked });
@@ -1276,7 +1278,7 @@
       ${c.notes ? `<p><i>“${esc(c.notes)}”</i></p>` : ""}
       <table><tr><th>Piece</th><th>Qty</th><th>Price</th></tr>${o.lines.map((l) => `<tr><td>${esc(l.name)}${l.kind === "rent" ? ` (rental, ${esc(l.date)})` : ""}</td><td>${l.qty}</td><td>${money(l.price * l.qty)}</td></tr>`).join("")}
       ${o.discount ? `<tr><td colspan="2">Discount ${esc(o.code)}</td><td>−${money(o.discount)}</td></tr>` : ""}
-      <tr><td colspan="2">${esc(o.methodLabel || "Delivery")}</td><td>${money(o.delivery)}</td></tr>
+      <tr><td colspan="2">${esc(o.methodLabel || "Delivery")}</td><td>${o.delivery ? money(o.delivery) : o.deliveryKnown === false ? "to confirm" : "Free"}</td></tr>
       ${o.rentDeposit ? `<tr><td colspan="2">Refundable rental deposit</td><td>${money(o.rentDeposit)}</td></tr>` : ""}
       ${o.tax ? `<tr><td colspan="2">Tax</td><td>${money(o.tax)}</td></tr>` : ""}
       <tr class="tot"><td colspan="2">Total</td><td>${money(o.total)}</td></tr></table>

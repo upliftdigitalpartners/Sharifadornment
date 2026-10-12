@@ -5,7 +5,7 @@
  * Cancelling puts counted pieces back in stock; "On its way" and "Delivered" email
  * the customer when emails are set up. */
 import { checkSession, configured, cors, json } from "../lib/studio.mjs";
-import { STATUSES, cancelOrder, catalogue, changeOrder, emailCustomer, expireHolds, orders, refreshPayment, reviewUrl, takeStock, trackUrl } from "../lib/orders.mjs";
+import { STATUSES, cancelOrder, catalogue, changeOrder, claimCodeUse, releaseCodeUse, emailCustomer, expireHolds, orders, refreshPayment, reviewUrl, takeStock, trackUrl } from "../lib/orders.mjs";
 
 const ORDER_ID = /^SA-\d{6}-[A-Z0-9]{4}$/;
 const clip = (v, n) => String(v ?? "").slice(0, n);
@@ -30,10 +30,19 @@ export default async (req) => {
     if (u.status === "cancelled" && was !== "cancelled") {
       await cancelOrder(u.id); // puts counted pieces and the code use back, exactly once
     } else if (u.status && was === "cancelled" && u.status !== "cancelled" && before.restocked) {
-      // Re-opening takes the pieces out of stock again, if they're still there
+      // Re-opening counts its discount code use again and takes the pieces out of stock again,
+      // if both are still possible; otherwise nothing changes
+      const reclaim = before.code && before.codeReleased;
+      if (reclaim) {
+        const problem = await claimCodeUse(before.code, before.subtotal);
+        if (problem) return json(req, { error: `Can't re-open this order: its code ${before.code} can't be used again (${problem.replace(/^That code /, "it ").replace(/\.$/, "")}).` }, 409);
+      }
       const lines = before.lines.map((l) => ({ ...l }));
-      if (!(await takeStock(lines))) return json(req, { error: "Can't re-open this order: one of its pieces has sold out since. Add stock to it first." }, 409);
-      await changeOrder(u.id, (o) => { o.restocked = false; o.lines = lines; });
+      if (!(await takeStock(lines))) {
+        if (reclaim) await releaseCodeUse(before.code);
+        return json(req, { error: "Can't re-open this order: one of its pieces has sold out since. Add stock to it first." }, 409);
+      }
+      await changeOrder(u.id, (o) => { o.restocked = false; o.lines = lines; if (reclaim) o.codeReleased = false; });
     }
     await changeOrder(u.id, (o) => {
       if (u.status != null) { o.status = u.status; (o.times ||= {})[u.status] ||= new Date().toISOString(); }
@@ -47,9 +56,10 @@ export default async (req) => {
       if (u.tracking && typeof u.tracking === "object") o.tracking = { carrier: clip(u.tracking.carrier, 40), number: clip(u.tracking.number, 60) };
       o.updated = new Date().toISOString();
     });
-    if (u.status && u.status !== was && (u.status === "shipped" || u.status === "delivered")) {
+    const trackingAdded = u.tracking?.number && !before.tracking?.number && (u.status || was) === "shipped";
+    if (trackingAdded || (u.status && u.status !== was && (u.status === "shipped" || u.status === "delivered"))) {
       const { site } = await catalogue();
-      await emailCustomer(await store.get(u.id, { type: "json" }), u.status, site);
+      await emailCustomer(await store.get(u.id, { type: "json" }), u.status || was, site);
     }
   }
 

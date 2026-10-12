@@ -588,6 +588,7 @@ async function releaseCancelled() {
 function setupCheckout() {
   const form = $('[data-form="checkout"]');
   if (!form) return;
+  if (params.has("cancelled")) checkout.code = store.get("sa-code", "") || ""; // keep the code they'd applied
   drawCheckout();
   const note = $(".enquiry__note", form);
   if (params.has("cancelled")) {
@@ -612,7 +613,7 @@ function setupCheckout() {
         customer: { name: d.name, phone: d.phone, email: d.email, address: d.address, city: d.city, state: d.state, zip: d.zip, notes: d.notes },
       });
       store.set("sa-last-order", { id: out.id, token: out.token });
-      if (out.url) { location.href = out.url; return; } // Stripe's payment page; the bag empties once it's paid
+      if (out.url) { store.set("sa-code", checkout.code); location.href = out.url; return; } // Stripe's page; the bag empties once it's paid
       bag = []; syncBag();
       location.href = `order-done.html?o=${encodeURIComponent(out.id)}&t=${encodeURIComponent(out.token)}`;
     } catch (x) {
@@ -646,7 +647,7 @@ async function setupOrderDone() {
           ? `<div class="order__pay"><p>Your card payment isn't finished yet.</p><a class="btn" href="${esc(o.payUrl)}">Pay now — ${dollars(o.due)}</a></div>`
           : '<p class="muted">Confirming your card payment… this takes a moment.</p>';
       } else if (o.paid) {
-        payment = `<p class="order__paid">✓ Paid${o.pay !== "later" ? " by card" : ""}. Thank you!</p>`;
+        payment = `<p class="order__paid">✓ Paid${o.pay === "card" ? " by card" : ""}. Thank you!</p>`;
       } else {
         payment = `${o.amountPaid ? `<p class="order__paid">✓ Deposit of ${dollars(o.amountPaid)} paid.</p>` : ""}
           <div class="order__pay"><h2>${o.amountPaid ? `Balance: ${dollars(balance)}` : "How to pay"}</h2>
