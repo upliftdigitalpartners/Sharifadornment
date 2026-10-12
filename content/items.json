@@ -621,7 +621,7 @@
   "description": "A sculpted gold hasli with ruby flower details, paired with ruby jhumkas.",
   "price": "$45",
   "soldOut": false,
-  "featured": false,
+  "featured": true,
   "images": [],
   "video": "",
   "size": "",
