@@ -3,7 +3,7 @@
   "description": "",
   "price": "$42",
   "soldOut": false,
-  "featured": false,
+  "featured": true,
   "images": [],
   "video": "",
   "size": "",
