@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$45",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "pearl-beaded-long-haar-set-with-intricate-carved",
+  "name": "Pearl Beaded Long Haar Set with Intricate Carved Silver",
+  "collection": "pearl",
+  "image": "assets/uploads/pearl-beaded-long-haar-set-with-intricate-carved-mvblp4hu2.jpg"
+ },
+ {
+  "description": "",
   "price": "50$",
   "soldOut": false,
   "featured": false,
