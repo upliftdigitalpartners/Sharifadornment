@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "50$",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mvblgx6q1.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": true,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "ethnic-green-stone-pearl-silver-jewelry-se",
+  "name": "Ethnic Green Stone & Pearl Silver Jewelry Se",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mvblgx410.jpg"
+ },
+ {
+  "description": "",
   "price": "$40",
   "soldOut": false,
   "featured": false,
