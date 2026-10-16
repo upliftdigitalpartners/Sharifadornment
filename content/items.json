@@ -19,9 +19,9 @@
  },
  {
   "description": "",
-  "price": "50$",
+  "price": "$50",
   "soldOut": false,
-  "featured": false,
+  "featured": true,
   "images": [
    "assets/uploads/piece-mvblgx6q1.jpg"
   ],
