@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$50",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "maroon-beads-with-large-pendant-mala-set",
+  "name": "Maroon beads with large pendant Mala set",
+  "collection": "pearl",
+  "image": "assets/uploads/piece-mvboukn40.jpg"
+ },
+ {
+  "description": "",
   "price": "$45",
   "soldOut": false,
   "featured": false,
