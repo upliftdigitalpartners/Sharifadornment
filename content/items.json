@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$30",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mvbw53774.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "waterdrop-hasli-style-necklace",
+  "name": "Waterdrop Hasli Style Necklace",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mvbw535y3.jpg"
+ },
+ {
+  "description": "",
   "price": "$26",
   "soldOut": false,
   "featured": false,
@@ -14,7 +34,7 @@
   "pairs": [],
   "id": "silver-look-alike-earrings",
   "name": "Silver Look-Alike Earrings",
-  "collection": "bridal",
+  "collection": "earings",
   "image": "assets/uploads/piece-mvbw36992.jpg"
  },
  {
