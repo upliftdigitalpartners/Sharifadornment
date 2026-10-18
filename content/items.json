@@ -1,6 +1,44 @@
 [
  {
   "description": "",
+  "price": "$39",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "pachi-kundan-turquoise-choker",
+  "name": "Pachi Kundan Turquoise choker",
+  "collection": "exclusive-pachi-kundan-necklaces",
+  "image": "assets/uploads/piece-mvdt0ry48.jpg"
+ },
+ {
+  "description": "",
+  "price": "$45",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mvdsybyn7.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "long-silver-look-alike-long-necklace",
+  "name": "Long Silver Look-Alike long Necklace",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvdsybug6.jpg"
+ },
+ {
+  "description": "",
   "price": "$42",
   "soldOut": false,
   "featured": false,
