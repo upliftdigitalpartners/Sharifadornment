@@ -1,6 +1,27 @@
 [
  {
   "description": "",
+  "price": "$42",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mvdsw34f4.jpg",
+   "assets/uploads/piece-mvdsw36v5.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "rodela-mala-set",
+  "name": "Rodela  Mala Set",
+  "collection": "pearl",
+  "image": "assets/uploads/piece-mvdsw2yn2.jpg"
+ },
+ {
+  "description": "",
   "price": "$45",
   "soldOut": false,
   "featured": false,
