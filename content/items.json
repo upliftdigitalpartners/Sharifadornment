@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$45",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mvdssk8i1.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "maroon-mala-set",
+  "name": "Maroon Mala set",
+  "collection": "pearl",
+  "image": "assets/uploads/piece-mvdssk540.jpg"
+ },
+ {
+  "description": "",
   "price": "$30",
   "soldOut": false,
   "featured": false,
@@ -859,7 +879,7 @@
  },
  {
   "description": "A delicate kundan choker on layered pearl strands, with matching stud earrings.",
-  "price": "$38",
+  "price": "$39",
   "soldOut": false,
   "featured": false,
   "images": [],
