@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$29",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "beliful-earrings",
+  "name": "Beliful Earrings",
+  "collection": "earings",
+  "image": "assets/uploads/piece-mvetnd8g4.jpg"
+ },
+ {
+  "description": "",
   "price": "$60",
   "soldOut": false,
   "featured": false,
