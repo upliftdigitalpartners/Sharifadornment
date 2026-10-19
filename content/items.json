@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$60",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "meenakari-mala-set",
+  "name": "Meenakari Mala Set",
+  "collection": "kundan",
+  "image": "assets/uploads/piece-mvetm4m63.jpg"
+ },
+ {
+  "description": "",
   "price": "$40",
   "soldOut": false,
   "featured": false,
