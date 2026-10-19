@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$42",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "maya-peacock-set",
+  "name": "Maya Peacock Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mvetp7g45.jpg"
+ },
+ {
+  "description": "",
   "price": "$29",
   "soldOut": false,
   "featured": false,
