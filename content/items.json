@@ -174,7 +174,7 @@
  {
   "description": "",
   "price": "$30",
-  "soldOut": false,
+  "soldOut": true,
   "featured": false,
   "images": [
    "assets/uploads/piece-mvbw53774.jpg"
@@ -266,7 +266,7 @@
  {
   "description": "",
   "price": "$45",
-  "soldOut": false,
+  "soldOut": true,
   "featured": false,
   "images": [],
   "video": "",
