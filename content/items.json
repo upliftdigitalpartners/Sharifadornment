@@ -1104,24 +1104,6 @@
   "image": "assets/gallery/silver-medallion-set.webp"
  },
  {
-  "description": "Oxidized silver necklace with peacock motifs and coloured stones, with a matching ring.",
-  "price": "$40",
-  "soldOut": false,
-  "featured": false,
-  "images": [],
-  "video": "",
-  "size": "",
-  "isNew": false,
-  "lastOne": true,
-  "rent": false,
-  "rentPrice": "",
-  "pairs": [],
-  "id": "oxidized-peacock-set",
-  "name": "Long Peacock pendant Peacock Set",
-  "collection": "oxidized",
-  "image": "assets/gallery/oxidized-peacock-set.webp"
- },
- {
   "description": "An oxidized statement pendant set with coloured stones and pearl drops on layered strands, with matching earrings and ring.",
   "price": "$42",
   "soldOut": false,
