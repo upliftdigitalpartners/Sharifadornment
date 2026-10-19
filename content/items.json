@@ -1,6 +1,27 @@
 [
  {
   "description": "",
+  "price": "$40",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mvetk8oa1.jpg",
+   "assets/uploads/piece-mvetk8r62.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "jao-pakhi-mala-set",
+  "name": "Jao Pakhi Mala Set",
+  "collection": "pearl",
+  "image": "assets/uploads/piece-mvetk8lj0.jpg"
+ },
+ {
+  "description": "",
   "price": "$38",
   "soldOut": false,
   "featured": false,
