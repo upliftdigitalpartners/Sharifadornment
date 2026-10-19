@@ -4,26 +4,6 @@
   "price": "$42",
   "soldOut": false,
   "featured": false,
-  "images": [
-   "assets/uploads/piece-mvetr6yk7.jpg"
-  ],
-  "video": "",
-  "size": "",
-  "isNew": false,
-  "lastOne": false,
-  "rent": false,
-  "rentPrice": "",
-  "pairs": [],
-  "id": "pearl-and-sequins-potli",
-  "name": "Pearl and sequins Potli",
-  "collection": "potli",
-  "image": "assets/uploads/piece-mvetr6u46.jpg"
- },
- {
-  "description": "",
-  "price": "$42",
-  "soldOut": false,
-  "featured": false,
   "images": [],
   "video": "",
   "size": "",
