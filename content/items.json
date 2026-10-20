@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$45",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "mint-green-fusion-mala-set",
+  "name": "Mint Green Fusion Mala set",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvh9yv270.jpg"
+ },
+ {
+  "description": "",
   "price": "$50",
   "soldOut": false,
   "featured": false,
