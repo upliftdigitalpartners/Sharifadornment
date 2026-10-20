@@ -713,7 +713,7 @@
  {
   "description": "",
   "price": "$60",
-  "soldOut": false,
+  "soldOut": true,
   "featured": false,
   "images": [],
   "video": "",
@@ -724,7 +724,7 @@
   "rentPrice": "",
   "pairs": [],
   "id": "waterfall-fringe-neckalce-set",
-  "name": "waterfall Fringe Neckalce Set",
+  "name": "waterfall Fringe Neckalce Set Green and Blue",
   "collection": "exclusive-pachi-kundan-necklaces",
   "image": "assets/uploads/piece-mv4hjnoma.webp"
  },
