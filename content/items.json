@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$35",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "big-bangle-pendant-set",
+  "name": "Big Bangle Pendant Set",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvfxrr6v1.jpg"
+ },
+ {
+  "description": "",
   "price": "$42",
   "soldOut": false,
   "featured": false,
