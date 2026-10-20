@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$34",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "danity-necklace-set-with-elephant-motif",
+  "name": "Danity Necklace Set with Elephant Motif",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mvfxuq9of.jpg"
+ },
+ {
+  "description": "",
   "price": "$35",
   "soldOut": false,
   "featured": false,
