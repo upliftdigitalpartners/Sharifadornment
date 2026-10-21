@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$34",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "gray-empire-set-in-dual-tone",
+  "name": "Gray Empire Set in Dual tone",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mvi5z6b63.jpg"
+ },
+ {
+  "description": "",
   "price": "$40",
   "soldOut": false,
   "featured": false,
