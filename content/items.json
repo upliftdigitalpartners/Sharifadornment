@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$22",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "peacock-earcuff",
+  "name": "Peacock Earcuff",
+  "collection": "earings",
+  "image": "assets/uploads/piece-mvi5v7e50.jpg"
+ },
+ {
+  "description": "",
   "price": "$60",
   "soldOut": false,
   "featured": false,
