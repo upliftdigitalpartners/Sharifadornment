@@ -1162,10 +1162,12 @@
  },
  {
   "description": "Layered pearl strands with ruby beads and a carved temple-style pendant, with a matching tikka.",
-  "price": "40",
+  "price": "$40",
   "soldOut": false,
   "featured": true,
-  "images": [],
+  "images": [
+   "assets/img/col-bridal.webp"
+  ],
   "video": "",
   "size": "",
   "isNew": false,
@@ -1176,7 +1178,7 @@
   "id": "temple-pendant-rani-haar",
   "name": "Heritage Pendant Rani Haar",
   "collection": "bridal",
-  "image": "assets/img/col-bridal.webp"
+  "image": "assets/uploads/heritage-pendant-rani-haar-mvi6ogxv4.jpg"
  },
  {
   "description": "Antique gold coin necklace with a filigree pendant and soft aqua drops, with matching earrings and tikka.",
