@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$40",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mvi5wemc2.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "light-blue-heavy-necklace-set",
+  "name": "Light Blue Heavy Necklace Set",
+  "collection": "kundan",
+  "image": "assets/uploads/piece-mvi5wel41.jpg"
+ },
+ {
+  "description": "",
   "price": "$22",
   "soldOut": false,
   "featured": false,
