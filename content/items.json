@@ -4,6 +4,26 @@
   "price": "$35",
   "soldOut": false,
   "featured": false,
+  "images": [
+   "assets/uploads/piece-mvij52z32.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "antique-necklace-set",
+  "name": "Antique Necklace Set",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvij4pce1.jpg"
+ },
+ {
+  "description": "",
+  "price": "$35",
+  "soldOut": false,
+  "featured": false,
   "images": [],
   "video": "",
   "size": "",
