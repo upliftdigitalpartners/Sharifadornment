@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$34",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/gajra-silver-look-alike-choker-mvie750b1.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "gajra-silver-look-alike-choker",
+  "name": "Gajra Silver Look-Alike choker",
+  "collection": "oxidized",
+  "image": "assets/uploads/gajra-silver-look-alike-choker-mvie74yr0.jpg"
+ },
+ {
+  "description": "",
   "price": "$38",
   "soldOut": false,
   "featured": false,
