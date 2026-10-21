@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$35",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mviiyzn21.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "black-pendant-with-elephant-silver-look-alike-se",
+  "name": "Black Pendant With Elephant Silver Look-Alike set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mviiyzkx0.jpg"
+ },
+ {
+  "description": "",
   "price": "$22",
   "soldOut": false,
   "featured": false,
