@@ -1,6 +1,28 @@
 [
  {
   "description": "",
+  "price": "$40",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [
+   "goldenleaf-potli-bag-with-bead-drops",
+   "blue-zardozi-lotus-potli-bag",
+   "green-zardozi-lotus-potli-bag"
+  ],
+  "id": "sabyasachi-inspired-choler-necklace",
+  "name": "SABYASACHI Inspired Choler Necklace",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvi64lx94.jpg"
+ },
+ {
+  "description": "",
   "price": "$34",
   "soldOut": false,
   "featured": false,
