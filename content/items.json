@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$60",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "meenakari-ad-mala-set",
+  "name": "Meenakari Ad Mala set",
+  "collection": "pearl",
+  "image": "assets/uploads/piece-mvioh2w00.jpg"
+ },
+ {
+  "description": "",
   "price": "$35",
   "soldOut": false,
   "featured": false,
