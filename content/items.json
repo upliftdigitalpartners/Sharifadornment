@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$22",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "dual-tone-floral-finger-ring",
+  "name": "Dual tone Floral Finger Ring",
+  "collection": "finger-rings-and-hathphool",
+  "image": "assets/uploads/piece-mviexgr61.jpg"
+ },
+ {
+  "description": "",
   "price": "$34",
   "soldOut": false,
   "featured": false,
