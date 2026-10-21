@@ -4,6 +4,24 @@
   "price": "$35",
   "soldOut": false,
   "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "moyur-black-beads-set-in-dual-tone",
+  "name": "Moyur Black beads set in dual tone",
+  "collection": "pearl",
+  "image": "assets/uploads/piece-mvij39290.jpg"
+ },
+ {
+  "description": "",
+  "price": "$35",
+  "soldOut": false,
+  "featured": false,
   "images": [
    "assets/uploads/piece-mviiyzn21.jpg"
   ],
