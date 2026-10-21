@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$38",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mvi6klkv1.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "antique-gold-polish-short-necklace",
+  "name": "Antique Gold Polish Short Necklace",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvi6kljy0.jpg"
+ },
+ {
+  "description": "",
   "price": "$40",
   "soldOut": false,
   "featured": false,
