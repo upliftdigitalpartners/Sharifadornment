@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "premium-polki-choker-with-pink-drops",
+  "name": "Premium Polki choker with Pink Drops",
+  "collection": "mossanite-polki-necklaces",
+  "image": "assets/uploads/piece-mvpz8ts53.jpg"
+ },
+ {
+  "description": "",
   "price": "$42",
   "soldOut": false,
   "featured": false,
