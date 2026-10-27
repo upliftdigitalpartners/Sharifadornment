@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$42",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "combo-necklace-set-with-tikli",
+  "name": "Combo Necklace Set with Tikli",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvpz6yo92.jpg"
+ },
+ {
+  "description": "",
   "price": "$39",
   "soldOut": false,
   "featured": false,
