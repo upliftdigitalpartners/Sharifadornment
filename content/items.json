@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$50",
+  "soldOut": false,
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "exclusive-jadau-choker-with-pearls",
+  "name": "Exclusive Jadau choker with pearls",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvpzi8yz8.jpg"
+ },
+ {
+  "description": "",
   "price": "$65",
   "soldOut": false,
   "featured": true,
