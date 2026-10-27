@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$68",
+  "soldOut": false,
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "exclusive-fusion-tulip-choker-set",
+  "name": "Exclusive Fusion Tulip Choker Set",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvpzb52r5.jpg"
+ },
+ {
+  "description": "",
   "price": "",
   "soldOut": false,
   "featured": false,
