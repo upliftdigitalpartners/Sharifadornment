@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$90",
+  "soldOut": false,
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "dancing-bird-exclusive-polki-set",
+  "name": "Dancing Bird Exclusive Polki Set",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvpzddgy6.jpg"
+ },
+ {
+  "description": "",
   "price": "$68",
   "soldOut": false,
   "featured": true,
