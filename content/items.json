@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$65",
+  "soldOut": false,
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "jadau-kundan-phultara-choker-set",
+  "name": "Jadau Kundan Phultara Choker set",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvpzfmww7.jpg"
+ },
+ {
+  "description": "",
   "price": "$90",
   "soldOut": false,
   "featured": true,
