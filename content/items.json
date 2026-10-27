@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$39",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "fusion-pendant-with-mala-set",
+  "name": "Fusion Pendant with Mala Set",
+  "collection": "pearl",
+  "image": "assets/uploads/piece-mvpz5bxr1.jpg"
+ },
+ {
+  "description": "",
   "price": "$34",
   "soldOut": false,
   "featured": false,
