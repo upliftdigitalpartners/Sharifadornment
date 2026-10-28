@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$65",
+  "soldOut": false,
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "the-sonali-noksha-necklace",
+  "name": "The Sonali Noksha Necklace",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvrfwwda6.jpg"
+ },
+ {
+  "description": "",
   "price": "$50",
   "soldOut": false,
   "featured": false,
