@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$50",
+  "soldOut": false,
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "noor-e-moti-set",
+  "name": "Noor-e-Moti Set",
+  "collection": "exclusive-pachi-kundan-necklaces",
+  "image": "assets/uploads/piece-mvrfo8l72.jpg"
+ },
+ {
+  "description": "",
   "price": "$54",
   "soldOut": false,
   "featured": true,
