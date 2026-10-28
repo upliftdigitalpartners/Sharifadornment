@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$54",
+  "soldOut": false,
+  "featured": true,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "the-gulmohar-pearl-choker",
+  "name": "The Gulmohar Pearl Choker",
+  "collection": "exclusive-pachi-kundan-necklaces",
+  "image": "assets/uploads/piece-mvrfjn1g1.jpg"
+ },
+ {
+  "description": "",
   "price": "$40",
   "soldOut": false,
   "featured": false,
