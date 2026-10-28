@@ -308,7 +308,7 @@
  {
   "description": "This bangle style hathphool is a spiraling, gold-colored wire accessory designed to wrap or curve along the hand. The wire is decorated with small, evenly spaced gold flower motifs, each featuring a tiny white pearl in the center.",
   "price": "$24",
-  "soldOut": false,
+  "soldOut": true,
   "featured": true,
   "images": [],
   "video": "",
