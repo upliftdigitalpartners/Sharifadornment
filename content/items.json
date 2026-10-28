@@ -14,7 +14,7 @@
   "pairs": [],
   "id": "the-sonali-noksha-necklace",
   "name": "The Sonali Noksha Necklace",
-  "collection": "bridal",
+  "collection": "exclusive-pachi-kundan-necklaces",
   "image": "assets/uploads/piece-mvrfwwda6.jpg"
  },
  {
@@ -140,7 +140,7 @@
   "pairs": [],
   "id": "exclusive-chandphul-set-in-peacock-shade",
   "name": "Exclusive Chandphul Set in Peacock Shade",
-  "collection": "bridal",
+  "collection": "exclusive-pachi-kundan-necklaces",
   "image": "assets/uploads/piece-mvpzmm4eb.jpg"
  },
  {
@@ -158,44 +158,8 @@
   "pairs": [],
   "id": "exclusive-chandphul-choker",
   "name": "Exclusive Chandphul Choker",
-  "collection": "bridal",
+  "collection": "exclusive-pachi-kundan-necklaces",
   "image": "assets/uploads/piece-mvpzkna5a.jpg"
- },
- {
-  "description": "",
-  "price": "$50",
-  "soldOut": false,
-  "featured": true,
-  "images": [],
-  "video": "",
-  "size": "",
-  "isNew": true,
-  "lastOne": false,
-  "rent": false,
-  "rentPrice": "",
-  "pairs": [],
-  "id": "exclusive-jadau-choker-with-pearls",
-  "name": "Exclusive Jadau choker with pearls",
-  "collection": "bridal",
-  "image": "assets/uploads/piece-mvpzi8yz8.jpg"
- },
- {
-  "description": "",
-  "price": "$65",
-  "soldOut": false,
-  "featured": true,
-  "images": [],
-  "video": "",
-  "size": "",
-  "isNew": true,
-  "lastOne": false,
-  "rent": false,
-  "rentPrice": "",
-  "pairs": [],
-  "id": "jadau-kundan-phultara-choker-set",
-  "name": "Jadau Kundan Phultara Choker set",
-  "collection": "bridal",
-  "image": "assets/uploads/piece-mvpzfmww7.jpg"
  },
  {
   "description": "",
