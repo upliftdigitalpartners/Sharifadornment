@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$65",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "the-shahi-darbar-set",
+  "name": "The Shahi Darbar Set",
+  "collection": "exclusive-pachi-kundan-necklaces",
+  "image": "assets/uploads/piece-mvrfqjwx3.jpg"
+ },
+ {
+  "description": "",
   "price": "$50",
   "soldOut": false,
   "featured": true,
