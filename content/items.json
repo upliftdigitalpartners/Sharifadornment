@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$38",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "bahar-choker-set",
+  "name": "Bahar Choker Set",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvs5ttqi1.jpg"
+ },
+ {
+  "description": "",
   "price": "$65",
   "soldOut": false,
   "featured": true,
