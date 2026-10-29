@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$75",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "sabyasachi-inspired-heavy-necklace-set",
+  "name": "SABYASACHI Inspired Heavy Necklace Set",
+  "collection": "kundan",
+  "image": "assets/uploads/piece-mvssco7n0.jpg"
+ },
+ {
+  "description": "",
   "price": "$38",
   "soldOut": false,
   "featured": false,
