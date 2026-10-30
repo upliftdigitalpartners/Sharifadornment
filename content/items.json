@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$44",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "mayurakshi-lsilver-look-alike-set",
+  "name": "Mayurakshi lSilver Look-Alike Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mvuzyk020.jpg"
+ },
+ {
+  "description": "",
   "price": "$75",
   "soldOut": false,
   "featured": false,
