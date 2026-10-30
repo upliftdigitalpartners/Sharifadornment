@@ -322,7 +322,7 @@
   "title": "Your *order.*",
   "intro": "Check your pieces, add your delivery details and choose how to pay. We'll text you to confirm.",
   "cardPayments": false,
-  "payMethods": "Zelle, Cash App or PayPal",
+  "payMethods": "Zelle, Paypal & Venmo",
   "payLater": "",
   "thanks": "We've got your order and will text you shortly to confirm it.",
   "delivery": {
