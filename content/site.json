@@ -327,23 +327,23 @@
   "thanks": "We've got your order and will text you shortly to confirm it.",
   "delivery": {
    "local": {
-    "on": true,
-    "label": "Local delivery (Queens & NYC)",
+    "on": false,
+    "label": "",
     "fee": "",
     "freeOver": "",
-    "note": "Usually within 2–3 days."
+    "note": "Usually within days."
    },
    "ship": {
-    "on": false,
+    "on": true,
     "label": "Shipping in the US",
-    "fee": "",
+    "fee": "$5",
     "freeOver": "",
-    "note": "Tracked shipping, 3–7 days."
+    "note": "Tracked shipping, 3–5 days."
    },
    "pickup": {
     "on": false,
-    "label": "Meet-up in Queens",
-    "note": "We'll text you a place and time."
+    "label": "",
+    "note": ""
    }
   },
   "taxRate": "",
