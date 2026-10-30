@@ -1990,7 +1990,7 @@
  {
   "description": "An ivory potli covered in pearls, with a pearl fringe and drawstring.",
   "price": "$42",
-  "soldOut": false,
+  "soldOut": true,
   "featured": true,
   "images": [
    "assets/uploads/pearl-cascade-potli-mvetudav1.jpg"
