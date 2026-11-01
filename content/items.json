@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$20",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mvy028gt1.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "dual-tone-bangles-set-of-four",
+  "name": "Dual tone Bangles set of four",
+  "collection": "bangles",
+  "image": "assets/uploads/piece-mvy028fh0.jpg"
+ },
+ {
+  "description": "",
   "price": "$44",
   "soldOut": false,
   "featured": false,
