@@ -1,6 +1,26 @@
 [
  {
   "description": "",
+  "price": "$45",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mvy5ex551.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "phulpakhi-necklace-set",
+  "name": "Phulpakhi Necklace Set",
+  "collection": "bridal",
+  "image": "assets/uploads/piece-mvy5ex150.jpg"
+ },
+ {
+  "description": "",
   "price": "$20",
   "soldOut": false,
   "featured": false,
