@@ -32,22 +32,10 @@
  },
  "collections": [
   {
-   "id": "bridal",
-   "name": "Bridal Sets ❤️",
-   "text": "Statement necklaces with matching earrings and tikka, for the mehndi, the nikah and every photo after.",
-   "image": "assets/uploads/collection-bridal-sets-mv4jbjw30.webp"
-  },
-  {
    "id": "kundan",
    "name": "Kundan & Stone 💗",
    "text": "Ruby, emerald and sapphire tones set in gold — colour that catches the light from across the room.",
    "image": "assets/img/col-kundan.webp"
-  },
-  {
-   "id": "oxidized",
-   "name": "Silver Look-Alike Sets 🤍",
-   "text": "Antique silver finishes and bold, tribal-inspired forms with a quiet, old-world edge.",
-   "image": "assets/uploads/collection-silver-look-alike-mv4jc0us1.webp"
   },
   {
    "id": "exclusive-pachi-kundan-necklaces",
@@ -56,10 +44,22 @@
    "image": "assets/uploads/collection-exclusive-pachi-kundan-necklaces-mv3wkb7l0.webp"
   },
   {
+   "id": "bridal",
+   "name": "Bridal Sets ❤️",
+   "text": "Statement necklaces with matching earrings and tikka, for the mehndi, the nikah and every photo after.",
+   "image": "assets/uploads/collection-bridal-sets-mv4jbjw30.webp"
+  },
+  {
    "id": "mossanite-polki-necklaces",
    "name": "Mossanite & Polki Necklaces 💎",
    "text": "",
    "image": "assets/uploads/collection-mossanite-and-polki-necklaces-mv4jdl372.webp"
+  },
+  {
+   "id": "oxidized",
+   "name": "Silver Look-Alike Sets 🤍",
+   "text": "Antique silver finishes and bold, tribal-inspired forms with a quiet, old-world edge.",
+   "image": "assets/uploads/collection-silver-look-alike-mv4jc0us1.webp"
   },
   {
    "id": "potli",
