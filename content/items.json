@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$50",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "noor-",
+  "name": "Noor-e-Moti peacock shade",
+  "collection": "exclusive-pachi-kundan-necklaces",
+  "image": "assets/uploads/noor--mw03d13k0.jpg"
+ },
+ {
+  "description": "",
   "price": "$45",
   "soldOut": false,
   "featured": false,
@@ -329,7 +347,7 @@
  },
  {
   "description": "",
-  "price": "",
+  "price": "$40",
   "soldOut": false,
   "featured": false,
   "images": [],
