@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$38",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "mint-prohor-necklace-set",
+  "name": "Mint Prohor Necklace set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mw6fkzno7.jpg"
+ },
+ {
+  "description": "",
   "price": "$42",
   "soldOut": false,
   "featured": false,
