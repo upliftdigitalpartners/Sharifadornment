@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$37",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "pushpodhara-long-necklace-set",
+  "name": "Pushpodhara Long Necklace Set",
+  "collection": "kundan",
+  "image": "assets/uploads/piece-mw6fmdx18.jpg"
+ },
+ {
+  "description": "",
   "price": "$38",
   "soldOut": false,
   "featured": false,
