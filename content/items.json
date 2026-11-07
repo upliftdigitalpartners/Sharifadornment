@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$42",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "brittakar-prem-long-necklace-set",
+  "name": "Brittakar Prem Long Necklace Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mw6fjxvj6.jpg"
+ },
+ {
+  "description": "",
   "price": "$48",
   "soldOut": false,
   "featured": false,
