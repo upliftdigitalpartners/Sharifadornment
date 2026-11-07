@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$45",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "fagun-hawa-long-necklace-set",
+  "name": "Fagun Hawa Long Necklace Set",
+  "collection": "kundan",
+  "image": "assets/uploads/piece-mw6f81ie0.jpg"
+ },
+ {
+  "description": "",
   "price": "$50",
   "soldOut": false,
   "featured": false,
