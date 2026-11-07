@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$38",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "rupali-rajprashad-necklace-set",
+  "name": "Rupali Rajprashad Necklace Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mw6fgg3r4.jpg"
+ },
+ {
+  "description": "",
   "price": "$45",
   "soldOut": false,
   "featured": false,
@@ -18,8 +36,8 @@
   "image": "assets/uploads/piece-mw6fc97u3.jpg"
  },
  {
-  "description": "$48",
-  "price": "",
+  "description": "",
+  "price": "$48",
   "soldOut": false,
   "featured": false,
   "images": [
