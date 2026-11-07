@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$48",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "oindrilas-silver-illusion-set",
+  "name": "Oindrila's Silver Illusion Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mw6fhxna5.jpg"
+ },
+ {
+  "description": "",
   "price": "$38",
   "soldOut": false,
   "featured": false,
