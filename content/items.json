@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$40",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "bahari-rong-necklace-set",
+  "name": "Bahari-Rong Necklace Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mw6foz1j9.jpg"
+ },
+ {
+  "description": "",
   "price": "$37",
   "soldOut": false,
   "featured": false,
@@ -124,7 +142,7 @@
   "pairs": [],
   "id": "maroon-and-green-stone-long-silver-look-alike-se",
   "name": "Maroon and Green stone Long Silver Look Alike Set",
-  "collection": "kundan",
+  "collection": "oxidized",
   "image": "assets/uploads/piece-mw6f9d3o1.jpg"
  },
  {
@@ -142,7 +160,7 @@
   "pairs": [],
   "id": "fagun-hawa-long-necklace-set",
   "name": "Fagun Hawa Long Necklace Set",
-  "collection": "kundan",
+  "collection": "oxidized",
   "image": "assets/uploads/piece-mw6f81ie0.jpg"
  },
  {
