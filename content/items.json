@@ -1,5 +1,23 @@
 [
  {
+  "description": "",
+  "price": "$45",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "moyuri-megher-maya-fusion-set",
+  "name": "Moyuri Megher Maya Fusion Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mw6fc97u3.jpg"
+ },
+ {
   "description": "$48",
   "price": "",
   "soldOut": false,
