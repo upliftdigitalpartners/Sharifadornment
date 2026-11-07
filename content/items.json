@@ -871,7 +871,7 @@
  {
   "description": "",
   "price": "$38",
-  "soldOut": false,
+  "soldOut": true,
   "featured": false,
   "images": [],
   "video": "",
