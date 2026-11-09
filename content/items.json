@@ -1,6 +1,24 @@
 [
  {
   "description": "",
+  "price": "$35",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "id": "silver-look-alike-set",
+  "name": "Silver Look Alike Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mw983uc50.jpg"
+ },
+ {
+  "description": "",
   "price": "$40",
   "soldOut": false,
   "featured": false,
