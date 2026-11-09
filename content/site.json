@@ -214,7 +214,7 @@
  },
  "banner": {
   "on": true,
-  "text": "Inbox Us On Facebook To Place An Order ! ",
+  "text": "You Can Also Inbox Us On Facebook To Place An Order ! ",
   "linkText": "",
   "link": ""
  },
@@ -265,7 +265,14 @@
  "reviews": {
   "label": "Kind words",
   "title": "From *our customers.*",
-  "items": []
+  "items": [
+   {
+    "name": "",
+    "occasion": "",
+    "text": "",
+    "image": ""
+   }
+  ]
  },
  "faq": {
   "label": "Questions",
