@@ -1,6 +1,28 @@
 [
  {
   "description": "",
+  "price": "$39",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "was": "",
+  "options": [],
+  "optionLabel": "",
+  "id": "shovamayi-lotika-necklace-set",
+  "name": "Shovamayi Lotika Necklace set",
+  "collection": "pearl",
+  "image": "assets/uploads/piece-mwcyf8nia.jpg",
+  "newSince": "2026-11-12"
+ },
+ {
+  "description": "",
   "price": "$42",
   "soldOut": false,
   "featured": false,
