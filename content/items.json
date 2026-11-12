@@ -1,6 +1,28 @@
 [
  {
   "description": "",
+  "price": "$45",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "was": "",
+  "options": [],
+  "optionLabel": "",
+  "id": "roktokomol-long-necklace-set",
+  "name": "Roktokomol Long Necklace Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mwcy2dqi6.jpg",
+  "newSince": "2026-11-12"
+ },
+ {
+  "description": "",
   "price": "$46",
   "soldOut": false,
   "featured": false,
