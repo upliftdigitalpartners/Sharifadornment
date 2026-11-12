@@ -1,6 +1,28 @@
 [
  {
   "description": "",
+  "price": "$42",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "was": "",
+  "options": [],
+  "optionLabel": "",
+  "id": "rodro-chaya-necklace-set",
+  "name": "Rodro-Chaya Necklace Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mwcyag6t9.jpg",
+  "newSince": "2026-11-12"
+ },
+ {
+  "description": "",
   "price": "$36",
   "soldOut": false,
   "featured": false,
