@@ -1124,7 +1124,7 @@
  {
   "description": "",
   "price": "$42",
-  "soldOut": false,
+  "soldOut": true,
   "featured": false,
   "images": [
    "assets/uploads/piece-mvdsw34f4.jpg",
