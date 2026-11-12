@@ -1,6 +1,27 @@
 [
  {
   "description": "",
+  "price": "$45",
+  "soldOut": false,
+  "featured": false,
+  "images": [],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "was": "",
+  "options": [],
+  "optionLabel": "",
+  "id": "boshonto-haowa",
+  "name": "Boshonto Haowa",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mwcxz5a43.jpg"
+ },
+ {
+  "description": "",
   "price": "$39",
   "soldOut": false,
   "featured": false,
