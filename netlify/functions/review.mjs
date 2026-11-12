@@ -3,7 +3,7 @@
  * the Studio (Reviews → Waiting for approval) until approved; nothing goes on the site
  * by itself. */
 import { cors, json } from "../lib/studio.mjs";
-import { alert, orders, reviews } from "../lib/orders.mjs";
+import { alert, changeOrder, orders, reviews } from "../lib/orders.mjs";
 
 const ORDER_ID = /^SA-\d{6}-[A-Z0-9]{4}$/;
 const text = (v, max) => String(v ?? "").replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, " ").trim().slice(0, max);
@@ -26,6 +26,7 @@ export default async (req) => {
   };
   if (review.text.length < 3) return json(req, { error: "Please write a few words." }, 400);
   await reviews().setJSON(order.id, review); // one review per order; sending again replaces it
+  await changeOrder(order.id, (o) => { o.reviewed = true; }); // so we never ask this customer for one again
   await alert(`⭐ New review (${"★".repeat(review.rating)}) from ${review.name}: “${review.text.slice(0, 200)}”\nApprove it in Studio → Reviews.`);
   return json(req, { ok: true });
 };

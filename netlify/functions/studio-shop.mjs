@@ -1,6 +1,6 @@
 /* POST /api/studio/shop  (Authorization: Bearer <session>)
  * Everything in the Studio's Shop tab, plus stock counts and reviews waiting for approval:
- *   { codes: "list" } | { codes: { set: {code, kind, value, minSubtotal, expires, maxUses, active} } } | { codes: { remove: CODE } }
+ *   { codes: "list" } | { codes: { set: {code, kind, value, minSubtotal, expires, maxUses, active, note} } } | { codes: { remove: CODE } }
  *   { telegram: "status" | "find" | "test" } | { telegram: { add: { id, name } } } | { telegram: { remove: id } }
  *   { stock: "get" } | { stock: { set: { pieceId: number | null } } }
  *   { reviews: "list" } | { reviews: { remove: orderId } }
@@ -32,6 +32,7 @@ export default async (req) => {
           kind: s.kind === "percent" ? "percent" : "amount", value, minSubtotal: num(s.minSubtotal),
           expires: /^\d{4}-\d{2}-\d{2}$/.test(s.expires || "") ? s.expires : "",
           maxUses: Math.floor(num(s.maxUses)), uses: codes[code]?.uses || 0, active: s.active !== false,
+          note: String(s.note ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 40), // where it's shared, e.g. Instagram
         };
       }
       if (b.codes.remove) delete codes[normCode(b.codes.remove)];

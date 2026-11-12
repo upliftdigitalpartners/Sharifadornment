@@ -86,6 +86,15 @@ function clean(site, items) {
     it.images = (it.images || []).map((x) => file(x, `“${it.name}”`)).filter(Boolean);
     it.video = file(it.video, `“${it.name}” video`);
     it.pairs = (it.pairs || []).filter((x) => typeof x === "string" && ID.test(x));
+    // Choices on a piece (like colours): a short name each, with an optional photo of its own
+    if (it.options != null && !Array.isArray(it.options)) it.options = [];
+    const names = new Set();
+    it.options = (it.options || []).slice(0, 12).filter((o) => o && typeof o.name === "string" && o.name.trim())
+      .map((o) => ({ name: o.name.replace(/[\u0000-\u001f\u007f:]/g, " ").replace(/\s+/g, " ").trim().slice(0, 40), image: file(o.image, `“${it.name}” option photo`), soldOut: Boolean(o.soldOut) }))
+      .filter((o) => o.name && !names.has(o.name) && names.add(o.name));
+    if (it.optionLabel != null && typeof it.optionLabel !== "string") it.optionLabel = "";
+    if (it.was != null && typeof it.was !== "string") it.was = "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(it.newSince || "")) delete it.newSince;
   }
   return { site, items };
 }

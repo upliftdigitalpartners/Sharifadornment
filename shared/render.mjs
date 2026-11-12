@@ -45,11 +45,31 @@ export const collectionName = (site, id) => (site.collections || []).find((c) =>
 
 export const pieceUrl = (it) => `p/${encodeURIComponent(it.id)}.html`;
 
+/** "New" lasts 30 days from when it was switched on, then drops off by itself */
+export const NEW_DAYS = 30;
+export const newUntil = (it) => (it.isNew && /^\d{4}-\d{2}-\d{2}/.test(it.newSince || "")
+  ? new Date(Date.parse(`${it.newSince.slice(0, 10)}T12:00:00Z`) + NEW_DAYS * 864e5).toISOString().slice(0, 10) : "");
+export const isNewNow = (it, today = new Date().toISOString().slice(0, 10)) => Boolean(it.isNew) && (!newUntil(it) || newUntil(it) >= today);
+
+/** The home page shows this many featured pieces at most (the first ones in the list) */
+export const FEATURED_MAX = 12;
+export const featuredItems = (items) => items.filter((i) => i.featured).slice(0, FEATURED_MAX);
+
+/** Reviews with something in them (an empty one added by mistake isn't shown) */
+export const realReviews = (list = []) => (list || []).filter((r) => r && String(r.text || "").trim());
+
+/** Choices on one piece, like colours: [{ name, image, soldOut }] */
+export const optionsOf = (it) => (Array.isArray(it.options) ? it.options : [])
+  .filter((o) => o && typeof o.name === "string" && o.name.trim())
+  .map((o) => ({ name: o.name.trim(), image: o.image || "", soldOut: Boolean(o.soldOut) }));
+export const optionLabel = (it) => String(it.optionLabel || "").trim() || "Colour";
+
 export function badges(it) {
   const b = [];
   if (it.soldOut) b.push('<span class="badge badge--sold">Sold out</span>');
   else if (it.lastOne) b.push('<span class="badge">Last one</span>');
-  if (it.isNew) b.push('<span class="badge badge--gold">New</span>');
+  if (isNewNow(it)) b.push(`<span class="badge badge--gold"${newUntil(it) ? ` data-new-until="${newUntil(it)}"` : ""}>New</span>`);
+  if (!it.soldOut && wasNumber(it) != null) b.push('<span class="badge badge--sale">Sale</span>');
   if (it.rent) b.push('<span class="badge">For rent</span>');
   return b.join("");
 }
@@ -82,6 +102,24 @@ export function priceLine(it) {
   return it.rent && it.rentPrice ? `${buy} · Rent ${money(it.rentPrice)}` : buy;
 }
 
+/** The price before a sale, when it's a plain amount above today's price, else null */
+export function wasNumber(it) {
+  const now = priceNumber(it);
+  const m = money(it.was).match(/^\$(\d[\d,]*(?:\.\d{1,2})?)$/);
+  const was = m ? Number(m[1].replace(/,/g, "")) : null;
+  return now != null && was != null && was > now ? was : null;
+}
+/** The price line as HTML: on sale, the old price is crossed out first */
+export const priceHTML = (it) => (wasNumber(it) != null ? `<s class="was">${esc(dollars(wasNumber(it)))}</s> ` : "") + esc(priceLine(it));
+
+/** Up to three pieces to offer instead of a sold-out one: same collection, closest in price */
+export function similarTo(it, items) {
+  const p = priceNumber(it);
+  return items.filter((x) => x.id !== it.id && x.collection === it.collection && !x.soldOut)
+    .map((x, i) => ({ x, i, d: p != null && priceNumber(x) != null ? Math.abs(priceNumber(x) - p) : Infinity }))
+    .sort((a, b) => a.d - b.d || a.i - b.i).slice(0, 3).map((r) => r.x);
+}
+
 /** A piece in a grid. The link goes to the piece's own page; on the Collections
  *  page the script opens a quick view instead. */
 export function itemCard(it, site, { sizes } = {}) {
@@ -90,7 +128,7 @@ export function itemCard(it, site, { sizes } = {}) {
     <div class="item__img">${img(it.image, it.name, { sizes })}<div class="item__badges">${badges(it)}</div></div>
     <span class="item__col">${esc(collectionName(site, it.collection))}</span>
     <span class="item__name">${esc(it.name)}</span>
-    <span class="item__price">${esc(priceLine(it))}</span>
+    <span class="item__price">${priceHTML(it)}</span>
   </a>
   <button class="heart" type="button" data-save="${esc(it.id)}" aria-pressed="false" aria-label="Save ${esc(it.name)}">${HEART}</button>
 </article>`;
@@ -132,16 +170,23 @@ export function pieceDetail(it, site, items, { heading = "h2" } = {}) {
     it.rent && ["Rent", it.rentPrice ? `${money(it.rentPrice)} — ask about dates` : "Available to rent — ask about dates"],
   ].filter(Boolean);
   const pairs = pairsFor(it, items);
+  const opts = optionsOf(it);
+  const similar = it.soldOut ? similarTo(it, items) : [];
+  const pairRow = (list) => list.map((p) => `
+      <a class="pair" href="${pieceUrl(p)}" data-open="${esc(p.id)}">${img(p.image, p.name, { sizes: "120px" })}<span>${esc(p.name)}</span><span class="pair__price">${esc(priceLine(p))}</span></a>`).join("");
   const H = heading;
   return `<div class="detail" data-detail="${esc(it.id)}">
   <div class="detail__media"><div class="slides" data-slides>${slides}</div>${dots}</div>
   <div class="detail__body">
     <p class="label">${esc(collectionName(site, it.collection))}</p>
     <${H} class="detail__name">${esc(it.name)}</${H}>
-    <p class="detail__price">${esc(it.soldOut ? "Sold out" : priceLine(it))}</p>
+    <p class="detail__price">${it.soldOut ? "Sold out" : priceHTML(it)}</p>
     <div class="detail__badges">${badges(it)}</div>
     ${it.description ? `<p class="detail__desc">${esc(it.description)}</p>` : ""}
     ${facts.length ? `<dl class="detail__facts">${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>` : ""}
+    ${opts.length && !it.soldOut ? `<fieldset class="opts" data-opts="${esc(it.id)}"><legend class="label">${esc(optionLabel(it))}</legend>
+      ${opts.map((o) => `<label class="opt${o.soldOut ? " is-out" : ""}"><input type="radio" name="opt-${esc(it.id)}" value="${esc(o.name)}"${o.image ? ` data-opt-img="${esc(o.image)}"` : ""}${o.soldOut ? " disabled" : ""} /><span>${esc(o.name)}${o.soldOut ? " <small>sold out</small>" : ""}</span></label>`).join("")}
+    </fieldset>` : ""}
     <div class="detail__actions">
       ${buyable(it)
         ? `<button class="btn" type="button" data-add="${esc(it.id)}">Add to bag</button>`
@@ -157,13 +202,13 @@ export function pieceDetail(it, site, items, { heading = "h2" } = {}) {
         <small>A refundable deposit is added at checkout. We'll confirm the dates with you.</small>
       </div>
     </div>` : ""}
+    ${similar.length ? `<div class="pairs pairs--similar"><p class="label">You may also like</p><div class="pairs__row">${pairRow(similar)}</div></div>` : ""}
     <div class="detail__more">
       <button class="link" type="button" data-share="${esc(it.id)}">Share</button>
       ${it.soldOut ? "" : `<button class="link" type="button" data-ask="${esc(it.id)}" data-kind="gift">Buying as a gift?</button>`}
       <a class="link" href="contact.html?piece=${encodeURIComponent(it.id)}">Enquiry form</a>
     </div>
-    ${pairs.length ? `<div class="pairs"><p class="label">Complete the look</p><div class="pairs__row">${pairs.map((p) => `
-      <a class="pair" href="${pieceUrl(p)}" data-open="${esc(p.id)}">${img(p.image, p.name, { sizes: "120px" })}<span>${esc(p.name)}</span><span class="pair__price">${esc(priceLine(p))}</span></a>`).join("")}</div></div>` : ""}
+    ${pairs.length ? `<div class="pairs"><p class="label">Complete the look</p><div class="pairs__row">${pairRow(pairs)}</div></div>` : ""}
   </div>
 </div>`;
 }
@@ -182,7 +227,7 @@ export const faqHTML = (items = []) =>
   items.map((f) => `<details class="faq__item reveal"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("");
 
 export const reviewsHTML = (items = []) =>
-  items.map((r) => `<figure class="review reveal">
+  realReviews(items).map((r) => `<figure class="review reveal">
   ${r.image ? `<div class="review__img">${img(r.image, r.name ? `${r.name}` : "", { sizes: "(max-width: 760px) 100vw, 33vw" })}</div>` : ""}
   ${r.rating ? `<p class="review__stars" aria-label="${r.rating} out of 5">${"★".repeat(r.rating)}</p>` : ""}
   <blockquote>${esc(r.text)}</blockquote>

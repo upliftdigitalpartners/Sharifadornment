@@ -2,7 +2,7 @@
  * The pages arrive fully built (shared/pages.mjs); this adds the interactive
  * parts: quick view, saved pieces, asking about a piece, search and filters,
  * photo zoom, forms, night mode and the Studio's preview mode. */
-import { buyable, rentNumber, dollars, priceNumber, sm, esc, rich, withPieces, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, money, pieceUrl, waNumber } from "../shared/render.mjs";
+import { realReviews, featuredItems, optionsOf, optionLabel, buyable, rentNumber, dollars, priceNumber, sm, esc, rich, withPieces, bannerHTML, pieceDetail, itemCard, collectionCard, stepsHTML, pillarsHTML, paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, priceLine, money, pieceUrl, waNumber } from "../shared/render.mjs";
 
 const API = "https://sharif-adornment-studio.netlify.app/api";
 const $ = (s, el = document) => el.querySelector(s);
@@ -42,6 +42,9 @@ function toast(msg) {
 
 /* ---------- Stats (anonymous counts, no cookies) ---------- */
 const PREVIEW = params.has("preview");
+// A link like ?code=IG10 (from a post or a bio) applies that discount code at checkout
+const linkCode = (params.get("code") || "").toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 24);
+if (linkCode) store.set("sa-code-link", linkCode);
 const tracking = !PREVIEW && navigator.doNotTrack !== "1" && !/^(localhost|127\.)/.test(location.hostname);
 function track(e, id = "", extra = {}) {
   if (!tracking) return;
@@ -406,20 +409,27 @@ function applyStock(scope = document) {
 /* ---------- Bag: pieces to buy or rent, kept on this device ---------- */
 let bag = store.get("sa-bag", []); // [{ id, qty }] or [{ id, kind: "rent", date }]
 const MAX_QTY = 5;
-const bagKey = (b) => (b.kind === "rent" ? `${b.id}:rent:${b.date}` : b.id);
+const bagKey = (b) => (b.kind === "rent" ? `${b.id}:rent:${b.date}` : b.opt ? `${b.id}:opt:${b.opt}` : b.id);
+// A piece with choices (like colours) needs one that's still available; one without takes none
+const optOk = (it, opt = "") => { const opts = optionsOf(it); return opts.length ? opts.some((o) => o.name === opt && !o.soldOut) : !opt; };
+const lineImage = (l) => optionsOf(l.it).find((o) => o.name === l.opt)?.image || l.it.image;
 function bagLines() {
-  return bag.map((b) => ({ ...b, key: bagKey(b), it: byId(b.id) })).filter((l) => l.it && (l.kind === "rent" ? rentNumber(l.it) != null : available(l.it)))
+  return bag.map((b) => ({ ...b, key: bagKey(b), it: byId(b.id) })).filter((l) => l.it && (l.kind === "rent" ? rentNumber(l.it) != null : available(l.it) && optOk(l.it, l.opt)))
     .map((l) => ({ ...l, qty: l.kind === "rent" ? 1 : Math.min(l.qty, stockLeft(l.id)), price: l.kind === "rent" ? rentNumber(l.it) : priceNumber(l.it) }));
 }
 const lineName = (l) => `${esc(l.it?.name || l.name)}${l.kind === "rent" ? ` <small>· rental for ${esc(prettyDate(l.date))}</small>` : ""}`;
 const prettyDate = (d) => (d ? new Date(`${d}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "");
 function syncBag() {
-  if (items.length) bag = bagLines().map(({ id, qty, kind, date }) => (kind === "rent" ? { id, kind, date } : { id, qty }));
+  if (items.length) bag = bagLines().map(({ id, qty, kind, date, opt }) => (kind === "rent" ? { id, kind, date } : opt ? { id, qty, opt } : { id, qty }));
   store.set("sa-bag", bag);
   const n = bag.reduce((s, b) => s + (b.qty || 1), 0);
   const count = $("[data-bag-count]");
   if (count) { count.textContent = n; count.hidden = !n; }
-  $$("[data-add]").forEach((b) => { if (!b.disabled) b.textContent = bag.some((x) => !x.kind && x.id === b.dataset.add) ? "In your bag — view" : "Add to bag"; });
+  $$("[data-add]").forEach((b) => {
+    if (b.disabled) return;
+    const choices = optionsOf(byId(b.dataset.add) || {}).length; // another colour can always be added
+    b.textContent = !choices && bag.some((x) => !x.kind && x.id === b.dataset.add) ? "In your bag — view" : "Add to bag";
+  });
 }
 function drawBag() {
   const lines = bagLines();
@@ -430,8 +440,8 @@ function drawBag() {
   totals.innerHTML = lines.length ? `<div class="is-total"><dt>Subtotal</dt><dd>${dollars(lines.reduce((s, l) => s + l.price * l.qty, 0))}</dd></div>
     <p class="bag__note">Delivery${site?.checkout?.taxRate ? ", tax" : ""} and discount codes at checkout.</p>` : "";
   $("[data-bag-list]").innerHTML = lines.map((l) => `<div class="saved__row bag__row">
-    <a href="${pieceUrl(l.it)}" data-open="${esc(l.id)}"><img src="${esc(l.it.image)}" alt="" /></a>
-    <div><a href="${pieceUrl(l.it)}" data-open="${esc(l.id)}" class="saved__name">${esc(l.it.name)}</a>
+    <a href="${pieceUrl(l.it)}" data-open="${esc(l.id)}"><img src="${esc(lineImage(l))}" alt="" /></a>
+    <div><a href="${pieceUrl(l.it)}" data-open="${esc(l.id)}" class="saved__name">${esc(l.it.name)}${l.opt ? ` — ${esc(l.opt)}` : ""}</a>
       <span>${dollars(l.price)}${l.kind === "rent" ? ` · rental for ${esc(prettyDate(l.date))}` : l.qty > 1 ? ` × ${l.qty}` : ""}</span>
       ${l.kind === "rent" ? "" : `<div class="qty" role="group" aria-label="Quantity of ${esc(l.it.name)}">
         <button type="button" data-qty="${esc(l.key)}" data-step="-1" aria-label="One fewer"${l.qty <= 1 ? " disabled" : ""}>−</button><b>${l.qty}</b><button type="button" data-qty="${esc(l.key)}" data-step="1" aria-label="One more"${l.qty >= Math.min(MAX_QTY, stockLeft(l.id)) ? " disabled" : ""}>+</button>
@@ -445,7 +455,19 @@ document.addEventListener("click", (e) => {
   if (add) {
     e.preventDefault();
     const id = add.dataset.add;
-    if (!bag.some((b) => !b.kind && b.id === id)) { bag.push({ id, qty: 1 }); track("bag", id); }
+    const it = byId(id);
+    let opt = "";
+    if (it && optionsOf(it).length) {
+      const box = $("[data-opts]", add.closest("[data-detail]") || document);
+      opt = $("input:checked", box)?.value || "";
+      if (!opt) {
+        toast(`Choose a ${optionLabel(it).toLowerCase()} first.`);
+        box?.classList.add("is-needed");
+        $("input:not(:disabled)", box)?.focus();
+        return;
+      }
+    }
+    if (!bag.some((b) => !b.kind && b.id === id && (b.opt || "") === opt)) { bag.push(opt ? { id, qty: 1, opt } : { id, qty: 1 }); track("bag", id); }
     syncBag();
     openBag();
     return;
@@ -480,6 +502,16 @@ document.addEventListener("click", (e) => {
   }
   const u = e.target.closest("[data-unbag]");
   if (u) { bag = bag.filter((b) => bagKey(b) !== u.dataset.unbag); bagChanged(); }
+});
+// Choosing a colour shows its photo
+document.addEventListener("change", (e) => {
+  const box = e.target.closest?.("[data-opts]");
+  if (!box) return;
+  box.classList.remove("is-needed");
+  const photo = e.target.dataset.optImg;
+  const slides = $("[data-slides]", box.closest("[data-detail]"));
+  const slide = photo && slides && $$("[data-zoom]", slides).find((z) => z.dataset.zoom === photo)?.closest(".slide");
+  if (slide) slides.scrollTo({ left: slide.offsetLeft - slides.offsetLeft, behavior: reduceMotion ? "auto" : "smooth" });
 });
 $("[data-bag-open]")?.addEventListener("click", openBag);
 $$("[data-bag-close]").forEach((b) => b.addEventListener("click", () => $("[data-bag]").close()));
@@ -543,7 +575,7 @@ async function drawCheckoutInner() {
   if (q.problems.length) {
     toast(q.problems[0]);
     // keep the bag in step with what's really available
-    bag = q.lines.map((l) => (l.kind === "rent" ? { id: l.id, kind: "rent", date: l.date } : { id: l.id, qty: l.qty }));
+    bag = q.lines.map((l) => (l.kind === "rent" ? { id: l.id, kind: "rent", date: l.date } : l.opt ? { id: l.id, qty: l.qty, opt: l.opt } : { id: l.id, qty: l.qty }));
     syncBag();
     if (!q.lines.length) return drawCheckoutInner();
   }
@@ -588,7 +620,8 @@ async function releaseCancelled() {
 function setupCheckout() {
   const form = $('[data-form="checkout"]');
   if (!form) return;
-  if (params.has("cancelled")) checkout.code = store.get("sa-code", "") || ""; // keep the code they'd applied
+  // Keep the code they'd applied before a cancelled card payment, or one from a ?code= link
+  checkout.code = (params.has("cancelled") && store.get("sa-code", "")) || store.get("sa-code-link", "") || "";
   drawCheckout();
   const note = $(".enquiry__note", form);
   if (params.has("cancelled")) {
@@ -613,6 +646,7 @@ function setupCheckout() {
         customer: { name: d.name, phone: d.phone, email: d.email, address: d.address, city: d.city, state: d.state, zip: d.zip, notes: d.notes },
       });
       store.set("sa-last-order", { id: out.id, token: out.token });
+      store.set("sa-code-link", "");
       if (out.url) { store.set("sa-code", checkout.code); location.href = out.url; return; } // Stripe's page; the bag empties once it's paid
       bag = []; syncBag();
       location.href = `order-done.html?o=${encodeURIComponent(out.id)}&t=${encodeURIComponent(out.token)}`;
@@ -775,6 +809,13 @@ $("[data-feed-load]")?.addEventListener("click", () => {
   box.classList.add("is-loaded");
 });
 
+/* ---------- "New" labels drop off after 30 days, even between publishes ---------- */
+function expireNew() {
+  const today = new Date().toISOString().slice(0, 10);
+  $$("[data-new-until]").forEach((b) => { if (b.dataset.newUntil < today) b.remove(); });
+}
+expireNew();
+
 /* ---------- Content ---------- */
 function loadContent() {
   if (PREVIEW) {
@@ -799,15 +840,15 @@ function rerender() {
   $$("[data-paragraphs]").forEach((el) => { el.innerHTML = paragraphsHTML(get(site, el.dataset.paragraphs)); });
   const set = (sel, html) => { const el = $(sel); if (el) el.innerHTML = html; };
   set("[data-collections]", withPieces(site, items).map(collectionCard).join(""));
-  set("[data-featured]", items.filter((i) => i.featured).map((it) => itemCard(it, site)).join(""));
-  $$("[data-featured-section]").forEach((s) => { s.hidden = !items.some((i) => i.featured); });
+  set("[data-featured]", featuredItems(items).map((it) => itemCard(it, site)).join(""));
+  $$("[data-featured-section]").forEach((s) => { s.hidden = !featuredItems(items).length; });
   set("[data-items]", items.map((it) => itemCard(it, site)).join(""));
   set("[data-steps]", stepsHTML(site.order?.steps));
   set("[data-pillars]", pillarsHTML(site.story?.pillars));
   set("[data-faq]", faqHTML(site.faq?.items));
   set("[data-looks]", (site.bridal?.looks || []).map((l, i) => lookHTML(l, items, i)).join(""));
   set("[data-gallery]", galleryHTML(site.gallery?.images));
-  const rv = site.reviews?.items || [];
+  const rv = realReviews(site.reviews?.items);
   $$("[data-reviews-section]").forEach((s) => { s.hidden = !rv.length; });
   set("[data-reviews]", reviewsHTML(rv));
   const piece = $("[data-piece]");
@@ -830,6 +871,7 @@ loadContent()
     site = c.site;
     items = c.items;
     if (PREVIEW) rerender();
+    if (linkCode) toast(`Code ${linkCode} will be applied at checkout.`);
     reveal();
     startHero();
     syncSaved();

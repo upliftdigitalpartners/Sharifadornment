@@ -8,7 +8,7 @@
 import {
   esc, rich, img, motif, itemCard, collectionCard, pieceDetail, stepsHTML, pillarsHTML,
   paragraphsHTML, faqHTML, reviewsHTML, lookHTML, galleryHTML, bannerHTML, collectionName,
-  priceLine, pieceUrl, waNumber, HEART, BAG, withPieces, shareImg, priceNumber,
+  priceLine, pieceUrl, waNumber, HEART, BAG, withPieces, shareImg, priceNumber, realReviews, featuredItems, wasNumber,
 } from "./render.mjs";
 
 export const SITE_URL = "https://sharifadornment.com/";
@@ -199,7 +199,7 @@ const occasion = (site) => {
 
 const reviewsSection = (site) => {
   const r = site.reviews || {};
-  if (!(r.items || []).length) return `    <section class="section reviews" data-reviews-section hidden><div class="reviews__grid" data-reviews></div></section>`;
+  if (!realReviews(r.items).length) return `    <section class="section reviews" data-reviews-section hidden><div class="reviews__grid" data-reviews></div></section>`;
   return `    <section class="section reviews" data-reviews-section>
 ${head("reviews", site)}
       <div class="reviews__grid" data-reviews>${reviewsHTML(r.items)}</div>
@@ -257,7 +257,7 @@ export function buildSite(site, items) {
       <div class="collections" data-collections>${withPieces(site, items).map(collectionCard).join("")}</div>
     </section>
 
-    <section class="section" data-featured-section${visible.some((i) => i.featured) ? "" : " hidden"}>
+    <section class="section" data-featured-section${featuredItems(visible).length ? "" : " hidden"}>
       <header class="section__head section__head--row">
         <div>
           <p class="label reveal" data-t="home.featuredLabel">${rich(h.featuredLabel)}</p>
@@ -265,7 +265,7 @@ export function buildSite(site, items) {
         </div>
         <a class="link reveal" href="collections.html">View all pieces</a>
       </header>
-      <div class="items items--row" data-featured>${visible.filter((i) => i.featured).map((it) => itemCard(it, site, { sizes: "(max-width: 860px) 64vw, 25vw" })).join("")}</div>
+      <div class="items items--row" data-featured>${featuredItems(visible).map((it) => itemCard(it, site, { sizes: "(max-width: 860px) 64vw, 25vw" })).join("")}</div>
     </section>
 
     <section class="section story">
@@ -503,7 +503,7 @@ ${head("faq", site, { tag: "h1", intro: true })}
         <div class="field"><label for="f-name">Your name</label><input id="f-name" name="name" type="text" required autocomplete="name" /></div>
         <div class="field"><label for="f-contact">Phone or email</label><input id="f-contact" name="contact" type="text" required autocomplete="tel" /></div>
         <div class="field"><label for="f-topic">I'm interested in</label>
-          <select id="f-topic" name="topic" data-topics>${[...(site.collections || []).map((c) => c.name), "Help me choose"].map((n, i, a) => `<option${i === a.length - 1 ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></div>
+          <select id="f-topic" name="topic" data-topics>${[...withPieces(site, items).map((c) => c.name), "Help me choose"].map((n, i, a) => `<option${i === a.length - 1 ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></div>
         <div class="field"><label for="f-msg">Message</label><textarea id="f-msg" name="message" rows="4" required placeholder="The occasion, colours, the piece you saw…"></textarea></div>
         <button type="submit" class="btn btn--block" data-t="contact.button">${rich(ct.button)}</button>
         <p class="enquiry__note" role="status" aria-live="polite"></p>
@@ -559,7 +559,8 @@ ${listed.map((it) => `<item>
   <g:image_link>${esc(abs(shareImg(it.image)))}</g:image_link>
 ${(it.images || []).slice(0, 10).map((x) => `  <g:additional_image_link>${esc(abs(shareImg(x)))}</g:additional_image_link>\n`).join("")}  <g:availability>${it.soldOut ? "out of stock" : "in stock"}</g:availability>
   <g:condition>new</g:condition>
-  <g:price>${priceNumber(it).toFixed(2)} USD</g:price>
+  <g:price>${(wasNumber(it) ?? priceNumber(it)).toFixed(2)} USD</g:price>${wasNumber(it) != null ? `
+  <g:sale_price>${priceNumber(it).toFixed(2)} USD</g:sale_price>` : ""}
   <g:brand>Sharif Adornment</g:brand>
   <g:product_type>${esc(collectionName(site, it.collection))}</g:product_type>
 </item>`).join("\n")}

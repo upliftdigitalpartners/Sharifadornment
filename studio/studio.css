@@ -411,3 +411,74 @@ div.tile { cursor: default; align-content: start; }
 .pending blockquote { margin: 4px 0 6px; font-family: var(--serif); font-size: 1.2rem; }
 .review__stars { margin: 0; color: var(--gold); letter-spacing: 2px; }
 .stat-block h3.sub { margin-top: 20px; font-size: 1.2rem; }
+
+/* ---------- Notices: things worth fixing ---------- */
+.notices { display: grid; gap: 8px; margin-bottom: 24px; }
+.notice { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin: 0 0 16px; padding: 12px 16px; background: var(--surface); border-left: 2px solid var(--gold); font-size: 0.9rem; }
+.notices .notice { margin: 0; }
+.notice span { flex: 1 1 240px; }
+.notice .add-link { flex: none; }
+
+/* ---------- Buttons that open a file picker ---------- */
+.file-btn { position: relative; overflow: hidden; }
+.file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.tile__flags { flex-wrap: wrap; right: 8px; }
+
+/* ---------- Wide dialogs: add many, bulk edit, Instagram image ---------- */
+.editor form.wide { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 28px clamp(18px, 3vw, 36px); }
+.editor form.wide h2 { font-size: 2.2rem; }
+.editor form.wide > p { margin: 0; }
+.bulk { display: grid; gap: 14px; }
+.bulk__row { display: grid; grid-template-columns: 64px 2fr 1fr 1.4fr 32px; gap: 12px; align-items: end; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.bulk__row img { width: 64px; aspect-ratio: 4 / 5; object-fit: cover; background: var(--surface); align-self: center; }
+.bulk__row .field.is-invalid input { border-color: var(--danger); }
+.opt-del { width: 32px; height: 40px; background: none; border: 0; color: var(--muted); font-size: 1.3rem; cursor: pointer; }
+.opt-del:hover { color: var(--danger); }
+.bulk__choices { display: grid; gap: 10px; }
+.bulk__opts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 14px 16px; background: var(--surface); }
+.bulk__opts input[name="amount"] { width: 90px; }
+.bulk__opts .select { width: auto; }
+.bulk__opts[hidden] { display: none; }
+.bulk__preview p { margin: 0 0 8px; }
+.bulk__list { list-style: none; margin: 0; padding: 0; font-size: 0.9rem; }
+.bulk__list li { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.bulk__list li span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.bulk__list li span:last-child { text-align: right; max-width: 60%; }
+.bulk__list b { font-weight: 500; }
+
+/* ---------- Piece options (colours) and name spelling ---------- */
+.opt-rows { display: grid; gap: 8px; margin: 12px 0 6px; }
+.opt-row { display: grid; grid-template-columns: 1.4fr 1fr auto 32px; gap: 10px; align-items: center; }
+.opt-row .select { min-width: 0; }
+.spell { color: var(--danger); }
+.field > .add-link { margin-top: 4px; }
+
+/* ---------- Instagram image ---------- */
+.editor--post { width: min(760px, calc(100% - 32px)); }
+.post__opts { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; }
+.post__opts .field { flex: 1 1 180px; }
+.post__grid { display: grid; grid-template-columns: 1fr 0.5625fr; gap: 20px; align-items: start; }
+.post__grid figure { margin: 0; display: grid; gap: 10px; }
+.post__grid canvas { width: 100%; height: auto; background: var(--surface); }
+.post__grid figcaption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.85rem; color: var(--muted); }
+.post__grid figcaption span:last-child { display: flex; gap: 6px; }
+.post__grid .btn { min-height: 36px; padding: 0 14px; font-size: 0.68rem; }
+
+/* ---------- Orders: the message to send, newsletter ---------- */
+.order__msg { margin-top: 10px; }
+.order__msg textarea { font-size: 0.88rem; line-height: 1.45; }
+.order__head .flag { margin-left: 8px; }
+.nl__test { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
+
+@media (max-width: 700px) {
+  .bulk__row { grid-template-columns: 56px 1fr 32px; }
+  .bulk__row img { grid-row: span 3; align-self: start; width: 56px; }
+  .bulk__row .opt-del { grid-column: 3; grid-row: 1; }
+  .bulk__row .field { grid-column: 2; }
+  .bulk__row .field:first-of-type { grid-row: 1; }
+  .opt-row { grid-template-columns: 1fr 1fr 32px; }
+  .opt-row .check { grid-column: 1 / 3; grid-row: 2; }
+  .post__grid { grid-template-columns: 1fr; }
+  .post__grid figure:last-child canvas { max-width: 60%; }
+  .nl__test { grid-template-columns: 1fr; }
+}

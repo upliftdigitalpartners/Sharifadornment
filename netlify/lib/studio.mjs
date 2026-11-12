@@ -67,6 +67,11 @@ async function hmacKey() {
   const secret = `studio-session:${env("STUDIO_PASSWORD")}:${env("GITHUB_TOKEN")}`;
   return crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
 }
+/** A signature for a short text (used for newsletter unsubscribe links) */
+export async function sign(text) {
+  const key = await crypto.subtle.importKey("raw", enc.encode(`studio-sign:${env("STUDIO_PASSWORD")}`), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return b64url(new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(text)))).slice(0, 32);
+}
 export async function newSession() {
   const payload = b64url(enc.encode(JSON.stringify({ exp: Date.now() + SESSION_HOURS * 3600e3 })));
   const sig = new Uint8Array(await crypto.subtle.sign("HMAC", await hmacKey(), enc.encode(payload)));
