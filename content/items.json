@@ -1,6 +1,29 @@
 [
  {
   "description": "",
+  "price": "$36",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/chand-tara-set-mwcy9ouk8.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": false,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "was": "",
+  "options": [],
+  "optionLabel": "",
+  "id": "chand-tara-set",
+  "name": "Chand-Tara Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mwcy77ui7.jpg"
+ },
+ {
+  "description": "",
   "price": "$45",
   "soldOut": false,
   "featured": false,
