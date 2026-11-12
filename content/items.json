@@ -327,7 +327,8 @@
   "id": "bahar-choker-set",
   "name": "Bahar Choker Set",
   "collection": "bridal",
-  "image": "assets/uploads/piece-mvs5ttqi1.jpg"
+  "image": "assets/uploads/piece-mvs5ttqi1.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -345,7 +346,8 @@
   "id": "the-sonali-noksha-necklace",
   "name": "The Sonali Noksha Necklace",
   "collection": "exclusive-pachi-kundan-necklaces",
-  "image": "assets/uploads/piece-mvrfwwda6.jpg"
+  "image": "assets/uploads/piece-mvrfwwda6.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -363,7 +365,8 @@
   "id": "meher-radiance-choker",
   "name": "Meher Radiance Choker",
   "collection": "exclusive-pachi-kundan-necklaces",
-  "image": "assets/uploads/piece-mvrftrrf5.jpg"
+  "image": "assets/uploads/piece-mvrftrrf5.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -381,7 +384,8 @@
   "id": "the-shahi-darbar-set",
   "name": "The Shahi Darbar Set",
   "collection": "exclusive-pachi-kundan-necklaces",
-  "image": "assets/uploads/piece-mvrfqjwx3.jpg"
+  "image": "assets/uploads/piece-mvrfqjwx3.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -399,7 +403,8 @@
   "id": "noor-e-moti-set",
   "name": "Noor-e-Moti Set",
   "collection": "exclusive-pachi-kundan-necklaces",
-  "image": "assets/uploads/piece-mvrfo8l72.jpg"
+  "image": "assets/uploads/piece-mvrfo8l72.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -417,7 +422,8 @@
   "id": "the-gulmohar-pearl-choker",
   "name": "The Gulmohar Pearl Choker",
   "collection": "exclusive-pachi-kundan-necklaces",
-  "image": "assets/uploads/piece-mvrfjn1g1.jpg"
+  "image": "assets/uploads/piece-mvrfjn1g1.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -451,9 +457,10 @@
   "rentPrice": "",
   "pairs": [],
   "id": "exclusive-green-stone-and-polki-necklace",
-  "name": "Exclusive  Swarna-Lata Haar",
+  "name": "Exclusive Swarna-Lata Haar",
   "collection": "mossanite-polki-necklaces",
-  "image": "assets/uploads/piece-mvrdt2ql0.jpg"
+  "image": "assets/uploads/piece-mvrdt2ql0.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -471,7 +478,8 @@
   "id": "exclusive-chandphul-set-in-peacock-shade",
   "name": "Exclusive Chandphul Set in Peacock Shade",
   "collection": "exclusive-pachi-kundan-necklaces",
-  "image": "assets/uploads/piece-mvpzmm4eb.jpg"
+  "image": "assets/uploads/piece-mvpzmm4eb.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -489,7 +497,8 @@
   "id": "exclusive-chandphul-choker",
   "name": "Exclusive Chandphul Choker",
   "collection": "exclusive-pachi-kundan-necklaces",
-  "image": "assets/uploads/piece-mvpzkna5a.jpg"
+  "image": "assets/uploads/piece-mvpzkna5a.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -507,7 +516,8 @@
   "id": "dancing-bird-exclusive-polki-set",
   "name": "Baganbilash Exclusive Polki Set",
   "collection": "mossanite-polki-necklaces",
-  "image": "assets/uploads/piece-mvpzddgy6.jpg"
+  "image": "assets/uploads/piece-mvpzddgy6.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -525,7 +535,8 @@
   "id": "exclusive-fusion-tulip-choker-set",
   "name": "Exclusive Bahari Koli Haar",
   "collection": "bridal",
-  "image": "assets/uploads/piece-mvpzb52r5.jpg"
+  "image": "assets/uploads/piece-mvpzb52r5.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -615,7 +626,8 @@
   "id": "spiraling-antique-polish-hathphool",
   "name": "Spiraling Antique Polish hathphool",
   "collection": "finger-rings-and-hathphool",
-  "image": "assets/uploads/piece-mvnzkn6y0.jpg"
+  "image": "assets/uploads/piece-mvnzkn6y0.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -789,7 +801,7 @@
    "green-zardozi-lotus-potli-bag"
   ],
   "id": "sabyasachi-inspired-choler-necklace",
-  "name": "SABYASACHI Inspired Choler Necklace",
+  "name": "SABYASACHI Inspired Choker Necklace",
   "collection": "bridal",
   "image": "assets/uploads/piece-mvi64lx94.jpg"
  },
@@ -863,7 +875,7 @@
   "rentPrice": "",
   "pairs": [],
   "id": "waterfall-fringe-neckalce-set-2",
-  "name": "waterfall Fringe Neckalce Set",
+  "name": "Waterfall Fringe Necklace Set",
   "collection": "exclusive-pachi-kundan-necklaces",
   "image": "assets/uploads/piece-mvhbda0c0.jpg"
  },
@@ -991,7 +1003,8 @@
   "id": "maya-peacock-set",
   "name": "Maya Peacock Set",
   "collection": "oxidized",
-  "image": "assets/uploads/piece-mvetp7g45.jpg"
+  "image": "assets/uploads/piece-mvetp7g45.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -1009,7 +1022,8 @@
   "id": "beliful-earrings",
   "name": "Beliful Earrings",
   "collection": "earings",
-  "image": "assets/uploads/piece-mvetnd8g4.jpg"
+  "image": "assets/uploads/piece-mvetnd8g4.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -1048,7 +1062,8 @@
   "id": "jao-pakhi-mala-set",
   "name": "Jao Pakhi Mala Set",
   "collection": "pearl",
-  "image": "assets/uploads/piece-mvetk8lj0.jpg"
+  "image": "assets/uploads/piece-mvetk8lj0.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -1123,7 +1138,7 @@
   "rentPrice": "",
   "pairs": [],
   "id": "rodela-mala-set",
-  "name": "Rodela  Mala Set",
+  "name": "Rodela Mala Set",
   "collection": "pearl",
   "image": "assets/uploads/piece-mvdsw2yn2.jpg"
  },
@@ -1183,7 +1198,8 @@
   "id": "silver-look-alike-earrings",
   "name": "Silver Look-Alike Earrings",
   "collection": "earings",
-  "image": "assets/uploads/piece-mvbw36992.jpg"
+  "image": "assets/uploads/piece-mvbw36992.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -1201,7 +1217,8 @@
   "id": "sandhatara-earrings",
   "name": "Sandhatara Earrings",
   "collection": "earings",
-  "image": "assets/uploads/piece-mvbw1rgw1.jpg"
+  "image": "assets/uploads/piece-mvbw1rgw1.jpg",
+  "newSince": "2026-11-12"
  },
  {
   "description": "",
@@ -1592,7 +1609,7 @@
   "rentPrice": "",
   "pairs": [],
   "id": "waterfall-fringe-neckalce-set",
-  "name": "waterfall Fringe Neckalce Set Green and Blue",
+  "name": "Waterfall Fringe Necklace Set Green and Blue",
   "collection": "exclusive-pachi-kundan-necklaces",
   "image": "assets/uploads/piece-mv4hjnoma.webp"
  },

@@ -34,6 +34,14 @@
     tab: "pieces", filter: "all", query: "",
   };
   const src = (path) => state.previews.get(path) || (path ? `../${path}` : "");
+  const H = window.SAHelpers; // spell-check, description suggestions, bulk maths, messages, post images
+  // The same numbers as shared/render.mjs
+  const FEATURED_MAX = 12, NEW_DAYS = 30;
+  const today = () => new Date().toISOString().slice(0, 10);
+  // "New" lasts 30 days from the day it's switched on
+  const newDaysLeft = (it) => (it.isNew && it.newSince ? Math.max(0, Math.ceil((Date.parse(`${it.newSince}T12:00:00Z`) + NEW_DAYS * 864e5 - Date.now()) / 864e5)) : null);
+  const setNew = (it, on) => { it.isNew = on; if (on) it.newSince = today(); else delete it.newSince; };
+  const featuredCount = () => state.items.filter((i) => i.featured).length;
 
   /* ---------- Theme ---------- */
   $("[data-theme-toggle]").addEventListener("click", () => {
@@ -163,7 +171,7 @@
   });
 
   // Fill in anything older content is missing, so every editor has something to work with
-  const ITEM_DEFAULTS = { description: "", price: "", soldOut: false, featured: false, images: [], video: "", size: "", isNew: false, lastOne: false, rent: false, rentPrice: "", pairs: [] };
+  const ITEM_DEFAULTS = { description: "", price: "", soldOut: false, featured: false, images: [], video: "", size: "", isNew: false, lastOne: false, rent: false, rentPrice: "", pairs: [], was: "", options: [], optionLabel: "" };
   const normalizeItem = (it) => ({ ...ITEM_DEFAULTS, ...it });
   function normalizeSite(s) {
     s.business ||= {}; s.home ||= {}; s.collections ||= []; s.story ||= { paragraphs: [], pillars: [] };
@@ -429,6 +437,64 @@
     changed();
   }
   const colName = (id) => state.site.collections.find((c) => c.id === id)?.name || "—";
+  const goTab = (tab) => {
+    state.tab = tab;
+    $$("[data-tab]").forEach((x) => x.setAttribute("aria-selected", x.dataset.tab === tab));
+    render();
+    scrollTo(0, 0);
+  };
+
+  /* ---------- Things worth fixing, shown at the top of a view ---------- */
+  function notices(only) {
+    const out = [];
+    const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+    if (!String(state.site.checkout?.payLater || "").trim()) {
+      out.push({ key: "pay", text: "Customers who choose “pay after we confirm” aren't told where to send the money yet.", action: "Add payment details" });
+    }
+    const typos = [...state.items, ...state.site.collections].filter((x) => H.nameIssues(x.name).length);
+    if (typos.length) {
+      out.push({ key: "names", text: `${plural(typos.length, "name")} may have a typo: ${typos.slice(0, 3).map((x) => `“${x.name.trim()}”`).join(", ")}${typos.length > 3 ? "…" : ""}`, action: "Review and fix" });
+    }
+    if (featuredCount() > FEATURED_MAX) {
+      out.push({ key: "featured", text: `${featuredCount()} pieces are marked Featured. The home page shows the first ${FEATURED_MAX}.`, action: `Keep only the first ${FEATURED_MAX}` });
+    }
+    const blank = state.site.reviews.items.filter((r) => !String(r.text || "").trim()).length;
+    if (blank) out.push({ key: "reviews", text: `${plural(blank, "empty review")} (hidden on the site).`, action: "Remove" });
+    return only ? out.filter((n) => only.includes(n.key)) : out;
+  }
+  const noticesHTML = (only) => {
+    const list = notices(only);
+    return list.length ? `<div class="notices">${list.map((n) => `<p class="notice"><span>${esc(n.text)}</span><button type="button" class="add-link" data-notice="${n.key}">${esc(n.action)}</button></p>`).join("")}</div>` : "";
+  };
+  function bindNotices(el) {
+    el.addEventListener("click", (e) => {
+      const key = e.target.closest("[data-notice]")?.dataset.notice;
+      if (!key) return;
+      if (key === "pay") {
+        goTab("shop");
+        const field = $('[data-path="checkout.payLater"]');
+        field?.scrollIntoView({ block: "center" });
+        field?.focus();
+      }
+      if (key === "names") {
+        const list = [...state.items, ...state.site.collections].filter((x) => H.nameIssues(x.name).length);
+        if (!confirm(`Fix these names?\n\n${list.map((x) => `${x.name.trim()}  →  ${H.fixName(x.name)}`).join("\n")}`)) return;
+        for (const x of list) x.name = H.fixName(x.name);
+        render();
+        toast("Names fixed. Press Publish to update the site.");
+      }
+      if (key === "featured") {
+        const extra = state.items.filter((i) => i.featured).slice(FEATURED_MAX);
+        if (!confirm(`Take “Featured” off ${extra.length} piece${extra.length === 1 ? "" : "s"}? The first ${FEATURED_MAX} in your list stay featured.`)) return;
+        for (const i of extra) i.featured = false;
+        render();
+      }
+      if (key === "reviews") {
+        state.site.reviews.items = state.site.reviews.items.filter((r) => String(r.text || "").trim());
+        render();
+      }
+    });
+  }
 
   /* ---------- Pieces ---------- */
   views.pieces = (el) => {
@@ -438,8 +504,13 @@
     el.innerHTML = `
       <div class="view__head">
         <div><h2>Pieces</h2><p>Everything on the Collections page. Tap a photo to edit a piece, or change the price and labels right here.</p></div>
-        <button class="btn" data-new-piece>+ Add piece</button>
+        <div class="head-actions">
+          <label class="btn btn--ghost file-btn">+ Add many<input type="file" accept="image/*" multiple data-bulk-add /></label>
+          <button class="btn btn--ghost" type="button" data-bulk-edit>Bulk edit</button>
+          <button class="btn" data-new-piece>+ Add piece</button>
+        </div>
       </div>
+      ${noticesHTML()}
       <div class="toolbar">
         <input class="search" type="search" placeholder="Search pieces" value="${esc(state.query)}" data-query />
         <select class="select" data-filter-col>
@@ -449,15 +520,18 @@
         <span class="muted" data-count></span>
       </div>
       <div class="grid" data-grid></div>`;
-    const draw = () => {
+    const shown = () => {
       const q = state.query.toLowerCase();
-      const list = state.items.filter((i) => (state.filter === "all" || i.collection === state.filter) && (!q || i.name.toLowerCase().includes(q)));
+      return state.items.filter((i) => (state.filter === "all" || i.collection === state.filter) && (!q || i.name.toLowerCase().includes(q)));
+    };
+    const draw = () => {
+      const list = shown();
       $("[data-count]", el).textContent = `${list.length} of ${state.items.length}`;
       $("[data-grid]", el).innerHTML = list.map((i) => `
         <div class="tile${i.soldOut ? " is-sold" : ""}" data-tile="${esc(i.id)}">
           <button type="button" class="tile__open" data-edit="${esc(i.id)}" aria-label="Edit ${esc(i.name)}">
             <div class="tile__img"><img src="${esc(src(i.image))}" alt="" loading="lazy" />
-              <div class="tile__flags">${i.id in (state.stock || {}) ? `<span class="flag${state.stock[i.id] ? "" : " flag--gold"}">${state.stock[i.id] ? `${state.stock[i.id]} left` : "0 left"}</span>` : ""}${i.lastOne ? '<span class="flag">Last one</span>' : ""}${i.rent ? '<span class="flag">Rent</span>' : ""}${i.video ? '<span class="flag">▶</span>' : ""}</div>
+              <div class="tile__flags">${i.id in (state.stock || {}) ? `<span class="flag${state.stock[i.id] ? "" : " flag--gold"}">${state.stock[i.id] ? `${state.stock[i.id]} left` : "0 left"}</span>` : ""}${i.lastOne ? '<span class="flag">Last one</span>' : ""}${H.priceOf(i.was) != null ? '<span class="flag flag--gold">Sale</span>' : ""}${i.options?.length ? `<span class="flag">${i.options.length} options</span>` : ""}${i.rent ? '<span class="flag">Rent</span>' : ""}${i.video ? '<span class="flag">▶</span>' : ""}</div>
             </div>
             <span class="tile__col">${esc(colName(i.collection))}</span>
             <span class="tile__name">${esc(i.name)}</span>
@@ -467,12 +541,15 @@
               <input data-qprice value="${esc(i.price)}" placeholder="Price on request" inputmode="decimal" autocomplete="off" /></label>
             <div class="quick__toggles">
               ${[["soldOut", "Sold out"], ["featured", "Featured"], ["isNew", "New"]].map(([k, label]) =>
-                `<button type="button" class="quick__t" data-qt="${k}" aria-pressed="${!!i[k]}">${label}</button>`).join("")}
+                `<button type="button" class="quick__t" data-qt="${k}" aria-pressed="${!!i[k]}">${k === "isNew" && newDaysLeft(i) != null ? `New · ${newDaysLeft(i)}d` : label}</button>`).join("")}
             </div>
           </div>
         </div>`).join("") + '<button class="tile tile--add" data-new-piece><div class="tile__img">+ Add piece</div></button>';
     };
     draw();
+    bindNotices(el);
+    $("[data-bulk-add]", el).addEventListener("change", (e) => { const files = [...e.target.files]; e.target.value = ""; bulkAdd(files); });
+    $("[data-bulk-edit]", el).addEventListener("click", () => bulkEdit(shown()));
     $("[data-query]", el).addEventListener("input", (e) => { state.query = e.target.value; draw(); });
     $("[data-filter-col]", el).addEventListener("change", (e) => { state.filter = e.target.value; draw(); });
     const itemOf = (node) => state.items.find((i) => i.id === node.closest("[data-tile]")?.dataset.tile);
@@ -484,7 +561,9 @@
       const q = e.target.closest("[data-qt]");
       const it = q && itemOf(q);
       if (it) {
-        it[q.dataset.qt] = !it[q.dataset.qt];
+        const k = q.dataset.qt, on = !it[k];
+        if (k === "featured" && on && featuredCount() >= FEATURED_MAX) { toast(`The home page shows ${FEATURED_MAX} featured pieces. Take “Featured” off another piece first.`, true); return; }
+        if (k === "isNew") { setNew(it, on); q.textContent = on ? `New · ${NEW_DAYS}d` : "New"; } else it[k] = on;
         q.setAttribute("aria-pressed", it[q.dataset.qt]);
         q.closest("[data-tile]").classList.toggle("is-sold", !!it.soldOut);
         changed();
@@ -503,9 +582,9 @@
     <label class="tick"><input type="checkbox" name="${name}" value="${esc(x.id)}" ${selected.includes(x.id) ? "checked" : ""} />
       <img src="${esc(src(x.image))}" alt="" loading="lazy" /><span>${esc(x.name)}</span></label>`).join("")}</div>`;
 
-  function editPiece(id) {
+  function editPiece(id, copyOf = null) {
     const existing = state.items.find((i) => i.id === id);
-    const it = normalizeItem(existing ? structuredClone(existing) : { id: "", name: "", collection: state.filter !== "all" ? state.filter : state.site.collections[0]?.id, image: "" });
+    const it = normalizeItem(existing ? structuredClone(existing) : copyOf || { id: "", name: "", collection: state.filter !== "all" ? state.filter : state.site.collections[0]?.id, image: "" });
     const dlg = $("[data-editor]");
     dlg.innerHTML = `
       <form method="dialog" novalidate>
@@ -524,10 +603,12 @@
             <label class="add-link file-link">${it.video ? "Replace video" : "+ Add a video"}<input type="file" accept="video/mp4,video/webm" data-video /></label>
           </div>
           <small class="muted">Portrait photos (4:5) look best. Photos are resized automatically.</small>
+          <button type="button" class="add-link" data-post>Make an Instagram image</button>
         </div>
         <div class="editor__body">
           <h2>${existing ? "Edit piece" : "New piece"}</h2>
-          <label class="field"><span>Name</span><input name="name" required value="${esc(it.name)}" /></label>
+          <label class="field"><span>Name</span><input name="name" required value="${esc(it.name)}" spellcheck="true" />
+            <small class="spell" data-spell hidden></small></label>
           <label class="field"><span>Collection (category)</span>
             <select name="collection">${state.site.collections.map((c) => `<option value="${esc(c.id)}"${c.id === it.collection ? " selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
           </label>
@@ -537,8 +618,16 @@
           </div>
           <div class="field-pair">
             <label class="field"><span>Size / length</span><input name="size" value="${esc(it.size)}" placeholder="e.g. Bangle 2.6, adjustable" /></label>
+            <label class="field"><span>Price before a sale <small>(optional)</small></span><input name="was" value="${esc(it.was)}" placeholder="e.g. $60" /><small>Shown crossed out next to the price, with a Sale label.</small></label>
           </div>
-          <label class="field"><span>Description</span><textarea name="description" rows="3">${esc(it.description)}</textarea></label>
+          <label class="field"><span>Description</span><textarea name="description" rows="3">${esc(it.description)}</textarea>
+            <button type="button" class="add-link" data-suggest>Suggest a description</button></label>
+          <details class="field picks" ${it.options.length ? "open" : ""}>
+            <summary><span>Colours / options</span> <small data-opt-count>${it.options.length ? `${it.options.length} added` : "One listing, several choices"}</small></summary>
+            <label class="field"><span>What the choice is called</span><input name="optionLabel" value="${esc(it.optionLabel)}" placeholder="Colour" /></label>
+            <div class="opt-rows" data-options></div>
+            <button type="button" class="add-link" data-opt-add>+ Add an option</button>
+          </details>
           <div class="editor__checks">
             <label class="check"><input type="checkbox" name="featured" ${it.featured ? "checked" : ""} /> <span>Feature on home page</span></label>
             <label class="check"><input type="checkbox" name="isNew" ${it.isNew ? "checked" : ""} /> <span>New</span></label>
@@ -554,6 +643,7 @@
           <div class="editor__foot">
             ${existing ? '<button type="button" class="btn btn--danger" data-delete>Delete</button>' : ""}
             ${existing ? '<button type="button" class="btn btn--danger" data-top>Move to top</button>' : ""}
+            ${existing ? '<button type="button" class="btn btn--danger" data-dup>Duplicate</button>' : ""}
             <span class="spacer"></span>
             <button type="button" class="btn btn--ghost" data-cancel>Cancel</button>
             <button type="submit" class="btn">Done</button>
@@ -563,7 +653,19 @@
     let image = it.image;
     let images = [...it.images];
     let video = it.video;
+    // Choices like colours: a name, optionally one of this piece's photos, and its own "sold out"
+    let options = it.options.map((o) => ({ name: o.name || "", image: o.image || "", soldOut: Boolean(o.soldOut) }));
+    const photoChoices = () => [image, ...images].filter(Boolean);
+    const drawOptions = () => {
+      $("[data-options]", dlg).innerHTML = options.map((o, i) => `<div class="opt-row" data-opt-row="${i}">
+        <input data-opt-name value="${esc(o.name)}" placeholder="e.g. Green" aria-label="Option ${i + 1} name" />
+        <select class="select" data-opt-img aria-label="Photo for option ${i + 1}"><option value="">No photo</option>${photoChoices().map((ph, n) => `<option value="${esc(ph)}"${ph === o.image ? " selected" : ""}>${n ? `Photo ${n + 1}` : "Main photo"}</option>`).join("")}</select>
+        <label class="check"><input type="checkbox" data-opt-sold ${o.soldOut ? "checked" : ""} /> <span>Sold out</span></label>
+        <button type="button" class="opt-del" data-opt-del aria-label="Remove option ${i + 1}">×</button></div>`).join("");
+      $("[data-opt-count]", dlg).textContent = options.length ? `${options.length} added` : "One listing, several choices";
+    };
     const drawThumbs = () => {
+      drawOptions();
       $("[data-thumbs]", dlg).innerHTML = images.map((p, i) => `<figure><img src="${esc(src(p))}" alt="" />
         <button type="button" data-thumb-left="${i}" aria-label="Move earlier" ${i ? "" : "disabled"}>←</button>
         <button type="button" class="thumb-main" data-thumb-main="${i}">Make main</button>
@@ -581,7 +683,49 @@
     });
     const form = $("form", dlg);
     const nameNow = () => $("[name=name]", dlg).value || "piece";
-    const showMain = () => { const img = $("[data-preview]", dlg); img.src = src(image); img.hidden = !image; };
+    const showMain = () => { const img = $("[data-preview]", dlg); img.src = src(image); img.hidden = !image; drawOptions(); };
+    // Options
+    const optOf = (node) => options[+node.closest("[data-opt-row]").dataset.optRow];
+    $("[data-options]", dlg).addEventListener("input", (e) => {
+      const o = optOf(e.target);
+      if (e.target.matches("[data-opt-name]")) o.name = e.target.value;
+      if (e.target.matches("[data-opt-img]")) o.image = e.target.value;
+      if (e.target.matches("[data-opt-sold]")) o.soldOut = e.target.checked;
+    });
+    $("[data-options]", dlg).addEventListener("click", (e) => {
+      if (e.target.closest("[data-opt-del]")) { options.splice(+e.target.closest("[data-opt-row]").dataset.optRow, 1); drawOptions(); }
+    });
+    $("[data-opt-add]", dlg).addEventListener("click", () => {
+      options.push({ name: "", image: "", soldOut: false });
+      drawOptions();
+      $$("[data-opt-name]", dlg).at(-1)?.focus();
+    });
+    // Name: point out likely typos, with one tap to fix them
+    const spell = $("[data-spell]", dlg);
+    const checkName = () => {
+      const notes = H.nameIssues(form.name.value);
+      spell.hidden = !notes.length;
+      spell.innerHTML = notes.length ? `Check the spelling: ${esc(notes.join(", "))}. <button type="button" class="add-link" data-spell-fix>Fix it</button>` : "";
+    };
+    form.name.addEventListener("input", checkName);
+    spell.addEventListener("click", (e) => { if (e.target.closest("[data-spell-fix]")) { form.name.value = H.fixName(form.name.value); checkName(); } });
+    checkName();
+    $("[data-suggest]", dlg).addEventListener("click", () => {
+      if (!form.name.value.trim()) { toast("Add the name first.", true); form.name.focus(); return; }
+      const box = form.description;
+      if (box.value.trim() && !confirm("Replace the description you've written with a suggestion?")) return;
+      box.value = H.suggestDescription({ name: form.name.value, size: form.size.value.trim(), options: options.filter((o) => o.name.trim()) }, colName(form.collection.value));
+      toast("A starting point — edit it so it sounds like you.");
+    });
+    $("[data-post]", dlg).addEventListener("click", () => {
+      if (!image) { toast("Add a photo first.", true); return; }
+      postImage({ name: form.name.value.trim() || "Sharif Adornment", price: form.price.value, photos: photoChoices(), isNew: form.isNew.checked, sale: H.priceOf(form.was.value) != null });
+    });
+    $("[data-dup]", dlg)?.addEventListener("click", () => {
+      dlg.close();
+      editPiece(null, { ...structuredClone(existing), id: "", name: `${existing.name} (copy)`, featured: false });
+      toast("This is a copy. Change what's different, then press Done.");
+    });
     // Phone photos take a moment each, so show progress and hold "Done" until they're ready
     let busy = 0;
     const done = $("[type=submit]", dlg);
@@ -636,8 +780,19 @@
       const name = f.name.value.trim();
       if (!name) { e.preventDefault(); f.name.focus(); return; }
       if (!image) { e.preventDefault(); toast("Add a main photo for this piece.", true); return; }
+      if (f.featured.checked && !existing?.featured && featuredCount() >= FEATURED_MAX) {
+        e.preventDefault();
+        toast(`The home page shows ${FEATURED_MAX} featured pieces. Take “Featured” off another piece first.`, true);
+        return;
+      }
+      const names = new Set();
       const data = {
         ...it, name, image, images, video,
+        was: f.was.value.trim(),
+        optionLabel: f.optionLabel.value.trim(),
+        // Options need a name each (no repeats); a photo that was removed is forgotten
+        options: options.map((o) => ({ name: o.name.replace(/:/g, " ").replace(/\s+/g, " ").trim(), image: photoChoices().includes(o.image) ? o.image : "", soldOut: o.soldOut }))
+          .filter((o) => o.name && !names.has(o.name) && names.add(o.name)),
         collection: f.collection.value,
         price: f.price.value.trim(),
         size: f.size.value.trim(),
@@ -650,6 +805,9 @@
         rentPrice: f.rent.checked ? f.rentPrice.value.trim() : "",
         pairs: $$("[name=pairs]:checked", dlg).map((x) => x.value),
       };
+      // "New" counts its 30 days from when it was switched on
+      if (!data.isNew) delete data.newSince;
+      else if (!existing?.isNew || !data.newSince) data.newSince = today();
       if (existing) {
         state.items[state.items.indexOf(existing)] = data;
         if (toTop) {
@@ -669,6 +827,228 @@
     dlg.showModal();
   }
 
+  /* ---------- Add many pieces at once: one photo each, then name and price them in a list ---------- */
+  async function bulkAdd(files) {
+    if (!files.length) return;
+    const dlg = $("[data-editor]");
+    const cols = state.site.collections;
+    const startCol = state.filter !== "all" ? state.filter : cols[0]?.id;
+    const colOptions = (sel) => cols.map((c) => `<option value="${esc(c.id)}"${c.id === sel ? " selected" : ""}>${esc(c.name)}</option>`).join("");
+    dlg.innerHTML = `
+      <form method="dialog" novalidate class="wide">
+        <h2>Add many pieces</h2>
+        <p class="muted" data-bulk-status></p>
+        <div class="field-pair bulk__all">
+          <label class="field"><span>Collection for all</span><select class="select" data-all-col>${colOptions(startCol)}</select></label>
+          <label class="field"><span>Price for all <small>(optional)</small></span><input data-all-price placeholder="e.g. $45" inputmode="decimal" autocomplete="off" /></label>
+        </div>
+        <div class="bulk" data-bulk-rows></div>
+        <div class="editor__foot">
+          <label class="btn btn--ghost file-btn">+ More photos<input type="file" accept="image/*" multiple data-bulk-more /></label>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-cancel>Cancel</button>
+          <button type="submit" class="btn" disabled>Add pieces</button>
+        </div>
+      </form>`;
+    const form = $("form", dlg), rows = $("[data-bulk-rows]", dlg), status = $("[data-bulk-status]", dlg), done = $("[type=submit]", dlg);
+    let busy = 0;
+    const count = () => $$("[data-bulk-row]", rows).length;
+    const tell = (t) => { status.textContent = t || `${count()} piece${count() === 1 ? "" : "s"} ready. Give each one a name; price and collection can be changed later too.`; };
+    async function take(list) {
+      busy++; done.disabled = true;
+      for (const [n, file] of list.entries()) {
+        tell(`Preparing photo ${n + 1} of ${list.length}…`);
+        try {
+          const path = await addPhoto(file);
+          if (!form.isConnected) return; // closed meanwhile
+          rows.insertAdjacentHTML("beforeend", `<div class="bulk__row" data-bulk-row data-image="${esc(path)}">
+            <img src="${esc(src(path))}" alt="" />
+            <label class="field"><span>Name</span><input data-b-name autocomplete="off" spellcheck="true" /></label>
+            <label class="field"><span>Price</span><input data-b-price value="${esc($("[data-all-price]", dlg).value.trim())}" placeholder="On request" inputmode="decimal" autocomplete="off" /></label>
+            <label class="field"><span>Collection</span><select class="select" data-b-col>${colOptions($("[data-all-col]", dlg).value)}</select></label>
+            <button type="button" class="opt-del" data-b-del aria-label="Remove this piece">×</button></div>`);
+        } catch (x) { toast(`${file.name}: ${x.message}`, true); }
+      }
+      if (--busy === 0) { done.disabled = !count(); tell(); }
+    }
+    $("[data-all-col]", dlg).addEventListener("change", (e) => $$("[data-b-col]", rows).forEach((x) => { x.value = e.target.value; }));
+    $("[data-all-price]", dlg).addEventListener("input", (e) => $$("[data-b-price]", rows).forEach((x) => { x.value = e.target.value.trim(); }));
+    $("[data-bulk-more]", dlg).addEventListener("change", (e) => { const more = [...e.target.files]; e.target.value = ""; take(more); });
+    rows.addEventListener("click", (e) => {
+      const del = e.target.closest("[data-b-del]");
+      if (del) { del.closest("[data-bulk-row]").remove(); if (!busy) { done.disabled = !count(); tell(); } }
+    });
+    rows.addEventListener("input", (e) => e.target.closest(".field")?.classList.remove("is-invalid"));
+    $("[data-cancel]", dlg).addEventListener("click", () => {
+      if (count() && !confirm("Leave without adding these pieces?")) return;
+      dlg.close();
+    });
+    form.addEventListener("submit", (e) => {
+      const list = $$("[data-bulk-row]", rows);
+      const unnamed = list.filter((r) => !$("[data-b-name]", r).value.trim());
+      if (busy || unnamed.length) {
+        e.preventDefault();
+        unnamed.forEach((r) => $("[data-b-name]", r).closest(".field").classList.add("is-invalid"));
+        if (unnamed.length) { toast(`Name ${unnamed.length === 1 ? "the highlighted piece" : `the ${unnamed.length} highlighted pieces`}, or remove the ones you don't want.`, true); $("[data-b-name]", unnamed[0]).focus(); }
+        return;
+      }
+      // Added in order: the first photo ends up first on the Collections page
+      const made = list.map((r) => {
+        const name = $("[data-b-name]", r).value.trim();
+        return normalizeItem({ id: "", name, collection: $("[data-b-col]", r).value, image: r.dataset.image, price: $("[data-b-price]", r).value.trim() });
+      });
+      for (const it of made.reverse()) {
+        let nid = slug(it.name);
+        while (state.items.some((i) => i.id === nid)) nid += "-2";
+        it.id = nid;
+        state.items.unshift(it);
+      }
+      render();
+      toast(`Added ${made.length} piece${made.length === 1 ? "" : "s"}. Tap one to add more photos or a description, then Publish.`);
+    });
+    dlg.showModal();
+    take(files);
+  }
+
+  /* ---------- Bulk edit: prices, sales, collection or descriptions for the pieces showing ---------- */
+  function bulkEdit(list) {
+    if (!list.length) { toast("No pieces are showing. Clear the search first.", true); return; }
+    const dlg = $("[data-editor]");
+    const scope = [state.filter !== "all" ? `in ${colName(state.filter)}` : "", state.query ? `matching “${state.query}”` : ""].filter(Boolean).join(", ");
+    dlg.innerHTML = `
+      <form method="dialog" novalidate class="wide">
+        <h2>Bulk edit</h2>
+        <p class="muted">Changes the <b>${list.length}</b> piece${list.length === 1 ? "" : "s"} showing now${scope ? ` (${esc(scope)})` : " — every piece"}. To change fewer, close this and pick a collection or search first.</p>
+        <div class="bulk__choices">
+          <label class="check"><input type="radio" name="what" value="price" checked /> <span>Change prices</span></label>
+          <label class="check"><input type="radio" name="what" value="endsale" /> <span>End a sale <small class="muted">— bring back the crossed-out prices</small></span></label>
+          <label class="check"><input type="radio" name="what" value="move" /> <span>Move to another collection</span></label>
+          <label class="check"><input type="radio" name="what" value="describe" /> <span>Fill in missing descriptions <small class="muted">— suggestions you can edit</small></span></label>
+        </div>
+        <div class="bulk__opts" data-for="price">
+          <select class="select" name="dir" aria-label="Raise or lower"><option value="up">Raise</option><option value="down">Lower</option></select>
+          <span>by</span>
+          <input name="amount" inputmode="decimal" placeholder="5" aria-label="Amount" autocomplete="off" />
+          <select class="select" name="unit" aria-label="Dollars or percent"><option value="$">$</option><option value="%">%</option></select>
+          <label class="check"><input type="checkbox" name="whole" checked /> <span>Round to whole dollars</span></label>
+          <label class="check" data-sale-box hidden><input type="checkbox" name="sale" /> <span>Show as a sale <small class="muted">— old price crossed out</small></span></label>
+        </div>
+        <div class="bulk__opts" data-for="move" hidden>
+          <label class="field"><span>Move to</span><select class="select" name="col">${state.site.collections.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}</select></label>
+        </div>
+        <div class="bulk__preview" data-preview></div>
+        <div class="editor__foot">
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-cancel>Cancel</button>
+          <button type="submit" class="btn" disabled>Apply</button>
+        </div>
+      </form>`;
+    const f = $("form", dlg);
+    // What would change: [{ it, from, to, apply }]
+    const plan = () => {
+      const what = f.what.value;
+      if (what === "price") {
+        const opts = { dir: f.dir.value, amount: f.amount.value, unit: f.unit.value, whole: f.whole.checked };
+        return list.map((it) => {
+          const next = H.changedPrice(it.price, opts);
+          if (next == null) return null;
+          const to = H.asPrice(next), sale = opts.dir === "down" && f.sale.checked;
+          return { it, from: it.price, to: sale ? `${to} (was ${H.asPrice(H.priceOf(it.was) ?? H.priceOf(it.price))})` : to, apply: () => {
+            // A sale keeps the first "before" price; raising a price back up ends it
+            if (sale) it.was ||= H.asPrice(H.priceOf(it.price));
+            else if (H.priceOf(it.was) != null && next >= H.priceOf(it.was)) it.was = "";
+            it.price = to;
+          } };
+        }).filter(Boolean);
+      }
+      if (what === "endsale") return list.filter((it) => H.priceOf(it.was) != null).map((it) => ({ it, from: it.price, to: H.asPrice(H.priceOf(it.was)), apply: () => { it.price = H.asPrice(H.priceOf(it.was)); it.was = ""; } }));
+      if (what === "move") return list.filter((it) => it.collection !== f.col.value).map((it) => ({ it, from: colName(it.collection), to: colName(f.col.value), apply: () => { it.collection = f.col.value; } }));
+      return list.filter((it) => !String(it.description || "").trim()).map((it) => {
+        const text = H.suggestDescription(it, colName(it.collection));
+        return { it, from: "", to: text, apply: () => { it.description = text; } };
+      });
+    };
+    const show = () => {
+      const what = f.what.value;
+      $$("[data-for]", dlg).forEach((x) => { x.hidden = x.dataset.for !== what; });
+      $("[data-sale-box]", dlg).hidden = f.dir.value !== "down";
+      const changes = plan();
+      const skipped = what === "price" && f.amount.value.trim() ? list.filter((it) => H.priceOf(it.price) == null).length : 0;
+      $("[type=submit]", dlg).disabled = !changes.length;
+      $("[data-preview]", dlg).innerHTML = changes.length
+        ? `<p><b>${changes.length}</b> piece${changes.length === 1 ? "" : "s"} will change${skipped ? ` <span class="muted">· ${skipped} without a plain price ${skipped === 1 ? "is" : "are"} left alone</span>` : ""}:</p>
+           <ul class="bulk__list">${changes.slice(0, 6).map((c) => `<li><span>${esc(c.it.name)}</span><span>${c.from ? `${esc(c.from)} → ` : ""}<b>${esc(c.to)}</b></span></li>`).join("")}</ul>
+           ${changes.length > 6 ? `<p class="muted">…and ${changes.length - 6} more.</p>` : ""}`
+        : `<p class="muted">${what === "price" ? (f.amount.value.trim() ? "Nothing to change — type an amount above zero." : "Type how much to change the prices by.") : what === "endsale" ? "None of these pieces is on sale." : what === "move" ? "They're all in that collection already." : "Every piece here already has a description."}</p>`;
+    };
+    f.addEventListener("input", show);
+    $("[data-cancel]", dlg).addEventListener("click", () => dlg.close());
+    f.addEventListener("submit", () => {
+      const changes = plan();
+      changes.forEach((c) => c.apply());
+      render();
+      toast(`Changed ${changes.length} piece${changes.length === 1 ? "" : "s"}. Check them, then press Publish.`);
+    });
+    show();
+    dlg.showModal();
+  }
+
+  /* ---------- Instagram image: a square post and a tall story from a piece ---------- */
+  function postImage({ name, price, photos, isNew, sale }) {
+    const d = document.createElement("dialog");
+    d.className = "editor editor--post";
+    const canShare = typeof navigator.canShare === "function" && typeof File === "function";
+    d.innerHTML = `
+      <form method="dialog" class="wide">
+        <h2>Instagram image</h2>
+        <p class="muted">A square post and a tall story, made from this piece. Save or share them, then post from Instagram or Facebook.</p>
+        <div class="post__opts">
+          ${photos.length > 1 ? `<label class="field"><span>Photo</span><select class="select" data-post-photo>${photos.map((ph, n) => `<option value="${esc(ph)}">${n ? `Photo ${n + 1}` : "Main photo"}</option>`).join("")}</select></label>` : ""}
+          <label class="field"><span>Corner label <small>(optional)</small></span><input data-post-badge maxlength="14" value="${sale ? "Sale" : isNew ? "New" : ""}" placeholder="e.g. New, Eid sale" /></label>
+          <label class="check"><input type="checkbox" data-post-price ${H.priceOf(price) != null ? "checked" : "disabled"} /> <span>Show the price</span></label>
+        </div>
+        <div class="post__grid">
+          ${[["square", "Post"], ["story", "Story"]].map(([k, label]) => `<figure><canvas data-post-canvas="${k}" aria-label="${label} image"></canvas>
+            <figcaption><span>${label}</span><span><button type="button" class="btn btn--ghost" data-post-save="${k}">Save</button>${canShare ? `<button type="button" class="btn" data-post-share="${k}">Share</button>` : ""}</span></figcaption></figure>`).join("")}
+        </div>
+        <div class="editor__foot"><span class="spacer"></span><button type="submit" class="btn btn--ghost">Close</button></div>
+      </form>`;
+    document.body.append(d);
+    let seq = 0;
+    const draw = async () => {
+      const mine = ++seq;
+      const opts = {
+        photo: src($("[data-post-photo]", d)?.value || photos[0]), name,
+        price: $("[data-post-price]", d).checked && H.priceOf(price) != null ? H.asPrice(H.priceOf(price)) : "",
+        badge: $("[data-post-badge]", d).value.trim(),
+      };
+      try {
+        for (const k of ["square", "story"]) { if (mine === seq) await H.drawPost($(`[data-post-canvas="${k}"]`, d), { ...opts, tall: k === "story" }); }
+      } catch (x) { toast(x.message, true); }
+    };
+    const fileOf = (k) => new Promise((ok) => $(`[data-post-canvas="${k}"]`, d).toBlob((b) => ok(new File([b], `${slug(name)}-${k}.jpg`, { type: "image/jpeg" })), "image/jpeg", 0.9));
+    d.addEventListener("input", draw);
+    d.addEventListener("click", async (e) => {
+      const save = e.target.closest("[data-post-save]"), share = e.target.closest("[data-post-share]");
+      if (save) {
+        const file = await fileOf(save.dataset.postSave);
+        const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(file), download: file.name });
+        document.body.append(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      }
+      if (share) {
+        const file = await fileOf(share.dataset.postShare);
+        try {
+          if (navigator.canShare({ files: [file] })) await navigator.share({ files: [file] });
+          else toast("This device can't share images. Use Save instead.", true);
+        } catch (_) { /* sharing was cancelled */ }
+      }
+    });
+    d.addEventListener("close", () => d.remove());
+    d.showModal();
+    draw();
+  }
+
   /* ---------- Collections ---------- */
   views.collections = (el) => {
     el.innerHTML = `
@@ -681,7 +1061,7 @@
         return `<button class="row" data-col="${esc(c.id)}">
           <img src="${esc(src(c.image))}" alt="" loading="lazy" />
           <div><h3>${esc(c.name)}</h3><p>${esc(c.text)}</p></div>
-          <span class="count">${n} piece${n === 1 ? "" : "s"}</span>
+          <span class="count">${n ? `${n} piece${n === 1 ? "" : "s"}` : "No pieces — hidden on the site"}</span>
         </button>`;
       }).join("")}</div>`;
     el.addEventListener("click", (e) => {
@@ -906,7 +1286,8 @@
     el.innerHTML = `
       <div class="view__head"><div><h2>Reviews</h2><p>Shown on the home and Bridal pages. The section stays hidden until you add one.</p></div></div>
       <section class="group" data-pending hidden><h3>Waiting for approval</h3><div class="group__fields" data-pending-list></div></section>
-      <p class="hint">Only add real reviews from customers — ideally with their permission to show their name and photo. Reviews customers send from their order link appear above for you to approve.</p>
+      <p class="hint">Only add real reviews from customers — ideally with their permission to show their name and photo. Reviews customers send from their order link appear above for you to approve. A review with nothing written in it isn't shown.</p>
+      ${noticesHTML(["reviews"])}
       ${list.map((r, i) => `<section class="group card-block"><h3>Review ${i + 1}</h3><div class="group__fields">
         ${fieldHTML([`reviews.items.${i}.text`, "What they said", "area"])}
         <div class="field-pair">${fieldHTML([`reviews.items.${i}.name`, "Name", "text"])}${fieldHTML([`reviews.items.${i}.occasion`, "Occasion (optional)"])}</div>
@@ -917,6 +1298,7 @@
       <button type="button" class="btn btn--ghost" data-list-add="reviews.items" data-blank='{"name":"","occasion":"","text":"","image":""}'>+ Add a review</button>`;
     bindFields(el);
     bindList(el);
+    bindNotices(el);
     drawPending(el);
   };
 
@@ -984,6 +1366,7 @@
     const D = "checkout.delivery";
     el.innerHTML = `
       <div class="view__head"><div><h2>Shop</h2><p>Order alerts, discount codes, delivery, tax and payment settings.</p></div></div>
+      ${String(state.site.checkout.payLater || "").trim() ? "" : '<p class="notice"><span>Customers who choose “pay after we confirm” aren\'t told where to send the money yet. Fill in “How to pay” under Payment below — your Zelle number, Venmo or PayPal name — then Publish.</span></p>'}
       <section class="group"><h3>New-order alerts</h3><div class="group__fields" data-tg><p class="loading">Loading…</p></div></section>
       <section class="group"><h3>Discount codes</h3><div class="group__fields" data-codes><p class="loading">Loading…</p></div></section>
       <section class="group"><h3>Delivery</h3><div class="group__fields">
@@ -1045,11 +1428,12 @@
     const draw = () => {
       const rows = Object.entries(codes);
       box.innerHTML = `${rows.length ? `<div class="table-wrap"><table class="stat-table codes-table"><thead><tr><th>Code</th><th>Takes off</th><th>Rules</th><th>Used</th><th></th></tr></thead><tbody>
-        ${rows.map(([k, c]) => `<tr class="${c.active === false ? "is-off" : ""}"><td><b>${esc(k)}</b></td><td>${off(c)}</td>
+        ${rows.map(([k, c]) => `<tr class="${c.active === false ? "is-off" : ""}"><td><b>${esc(k)}</b>${c.note ? `<br><small class="muted">${esc(c.note)}</small>` : ""}</td><td>${off(c)}</td>
           <td>${[c.minSubtotal ? `orders over $${c.minSubtotal}` : "", c.expires ? `until ${esc(c.expires)}` : "", c.maxUses ? `max ${c.maxUses} uses` : ""].filter(Boolean).join(" · ") || "—"}</td>
           <td>${c.uses || 0}</td>
-          <td><button type="button" class="add-link" data-code-toggle="${esc(k)}">${c.active === false ? "Turn on" : "Pause"}</button> <button type="button" class="add-link" data-code-del="${esc(k)}">Delete</button></td></tr>`).join("")}
-        </tbody></table></div>` : '<p class="muted">No codes yet.</p>'}
+          <td><button type="button" class="add-link" data-code-link="${esc(k)}">Copy link</button> <button type="button" class="add-link" data-code-toggle="${esc(k)}">${c.active === false ? "Turn on" : "Pause"}</button> <button type="button" class="add-link" data-code-del="${esc(k)}">Delete</button></td></tr>`).join("")}
+        </tbody></table></div>
+        <p class="muted small">Tip: make one code per place you share it (like IG10 for Instagram, FB10 for Facebook). “Copy link” gives a link that applies the code by itself, and Analytics → Sales shows which code brings orders.</p>` : '<p class="muted">No codes yet. Tip: make one code per place you share it (like IG10 for Instagram, FB10 for Facebook) to see which brings orders.</p>'}
         <form class="code-new" data-code-new>
           <div class="field-pair">
             <label class="field"><span>Code</span><input name="code" placeholder="e.g. EID15" autocapitalize="characters" required /></label>
@@ -1059,13 +1443,16 @@
             <label class="field"><span>Only on orders over ($, optional)</span><input name="minSubtotal" inputmode="decimal" /></label>
             <label class="field"><span>Last day (optional)</span><input name="expires" type="date" /></label>
           </div>
-          <label class="field"><span>Maximum uses (optional)</span><input name="maxUses" inputmode="numeric" /></label>
+          <div class="field-pair">
+            <label class="field"><span>Maximum uses (optional)</span><input name="maxUses" inputmode="numeric" /></label>
+            <label class="field"><span>Where you'll share it (optional)</span><input name="note" maxlength="40" placeholder="e.g. Instagram" /></label>
+          </div>
           <button type="submit" class="btn">Add code</button>
         </form>`;
     };
     const save = async (body) => {
       if (DEMO) { toast("Demo mode — codes aren't saved."); return false; }
-      try { codes = (await shopApi({ codes: body })).codes; draw(); return true; } catch (x) { toast(x.message, true); return false; }
+      try { codes = state.codes = (await shopApi({ codes: body })).codes; draw(); return true; } catch (x) { toast(x.message, true); return false; }
     };
     box.addEventListener("submit", (e) => {
       if (!e.target.matches("[data-code-new]")) return;
@@ -1078,8 +1465,14 @@
       if (t) { const c = codes[t.dataset.codeToggle]; save({ set: { code: t.dataset.codeToggle, ...c, active: c.active === false } }); }
       const d = e.target.closest("[data-code-del]");
       if (d && confirm(`Delete the code ${d.dataset.codeDel}?`)) save({ remove: d.dataset.codeDel });
+      const l = e.target.closest("[data-code-link]");
+      if (l) {
+        const link = `https://sharifadornment.com/?code=${encodeURIComponent(l.dataset.codeLink)}`;
+        navigator.clipboard.writeText(link).then(() => toast("Link copied. Anyone who opens it gets the code at checkout."), () => prompt("Copy this link:", link));
+      }
     });
     if (!DEMO) { try { codes = (await shopApi({ codes: "list" })).codes; } catch (x) { box.innerHTML = `<p class="muted">${esc(x.message)}</p>`; return; } }
+    state.codes = codes;
     draw();
   }
 
@@ -1124,7 +1517,7 @@
       const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
       const total = subtotal + 8;
       return { id, created: new Date(Date.now() - h * 36e5).toISOString(), status, pay, paid, amountPaid: paid ? total : 0, lines, subtotal, discount: 0, delivery: 8, tax: 0, rentDeposit: 0, total, due: total,
-        method: "local", methodLabel: "Local delivery", note: "", times: { new: new Date(Date.now() - h * 36e5).toISOString() },
+        method: "local", methodLabel: "Local delivery", note: "", times: { new: new Date(Date.now() - h * 36e5).toISOString(), [status]: new Date(Date.now() - h * 30e5).toISOString() },
         trackUrl: "https://sharifadornment.com/order-done.html?o=" + id, reviewUrl: "https://sharifadornment.com/review.html?o=" + id,
         customer: { name: c, phone: "(347) 555-0101", email: "", address: "12 Example Ave", city: "Queens", state: "NY", zip: "11101", notes: h < 5 ? "For a mehndi on Saturday" : "" }, ...extra };
     };
@@ -1145,8 +1538,11 @@
       if (o.amountPaid) return `<span class="flag flag--gold">Deposit paid ${money(o.amountPaid)}</span> <span class="muted">Balance ${money(o.total - o.amountPaid)}</span>`;
       return "";
     };
+    // Three days after delivery is a good moment to ask for a review
+    const reviewDue = (o) => o.status === "delivered" && !o.reviewAsked && !o.reviewed && o.times?.delivered && Date.now() - Date.parse(o.times.delivered) >= 3 * 864e5;
     const draw = () => {
       showOrderCount(list);
+      const due = list.filter(reviewDue).length;
       const shown = list.filter((o) => ordersFilter === "all" || (ordersFilter === "open" ? OPEN.includes(o.status) : o.status === ordersFilter));
       const count = (f) => list.filter((o) => (f === "all" ? true : f === "open" ? OPEN.includes(o.status) : o.status === f)).length;
       el.innerHTML = `
@@ -1154,15 +1550,15 @@
           <div class="head-actions"><button class="btn btn--ghost" type="button" data-orders-csv>Download spreadsheet</button><button class="btn btn--ghost" type="button" data-orders-refresh>Refresh</button></div></div>
         <div class="chips">${[["open", "Open"], ["delivered", "Delivered"], ["cancelled", "Cancelled"], ["all", "All"]].map(([k, label]) =>
           `<button type="button" class="chip" data-ofilter="${k}" aria-pressed="${ordersFilter === k}">${label} <small>${count(k)}</small></button>`).join("")}</div>
+        ${noticesHTML(["pay"])}
+        ${due ? `<p class="notice"><span>⭐ ${due} delivered order${due === 1 ? " is" : "s are"} ready for a review request.</span>${ordersFilter === "delivered" ? "" : '<button type="button" class="add-link" data-ofilter="delivered">Show them</button>'}</p>` : ""}
         ${shown.length ? shown.map((o) => {
           const c = o.customer;
-          const hi = `Hi ${c.name.split(" ")[0]}, this is Sharif Adornment about your order ${o.id}. `;
-          const sms = (t) => `sms:+1${digits(c.phone)}?&body=${encodeURIComponent(t)}`;
-          const wa = (t) => `https://wa.me/1${digits(c.phone)}?text=${encodeURIComponent(t)}`;
           const addr = [c.address, c.city, [c.state, c.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
           return `<article class="order${o.status === "new" ? " is-new" : ""}" data-order="${esc(o.id)}">
             <header class="order__head">
-              <div><b>${esc(o.id)}</b><span class="muted">${esc(when(o.created))}</span></div>
+              <div><b>${esc(o.id)}</b><span class="muted">${esc(when(o.created))}</span>
+                ${o.reviewed ? '<span class="flag">Reviewed ✓</span>' : o.reviewAsked ? '<span class="flag">Review asked ✓</span>' : reviewDue(o) ? '<span class="flag flag--gold">Ask for a review</span>' : ""}</div>
               <select class="select" data-ostatus aria-label="Status of ${esc(o.id)}">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}"${o.status === k ? " selected" : ""}>${v}</option>`).join("")}</select>
             </header>
             <div class="order__grid">
@@ -1171,12 +1567,14 @@
                 <p><a href="tel:+1${digits(c.phone)}">${esc(c.phone)}</a>${c.email ? ` · <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ""}</p>
                 <p>${esc(o.methodLabel || "Delivery")}${o.method === "pickup" ? "" : `: <a href="https://maps.google.com/?q=${encodeURIComponent(addr)}" target="_blank" rel="noopener">${esc(addr)}</a>`}</p>
                 ${c.notes ? `<p class="order__notes">“${esc(c.notes)}”</p>` : ""}
+                <label class="field order__msg"><span>${o.status === "delivered" ? "Message — asks for a review" : o.status === "shipped" ? "Message — it's on its way" : o.status === "cancelled" ? "Message" : "Message — confirms the order and how to pay"}</span>
+                  <textarea rows="4" data-omsg>${esc(H.orderMessage(o, state.site.checkout))}</textarea></label>
                 <div class="order__actions">
-                  <a class="btn btn--ghost" href="${sms(hi + "Track it here: " + o.trackUrl)}">Text</a>
-                  <a class="btn btn--ghost" href="${wa(hi + "Track it here: " + o.trackUrl)}" target="_blank" rel="noopener">WhatsApp</a>
+                  <button type="button" class="btn" data-osend="sms">Text</button>
+                  <button type="button" class="btn btn--ghost" data-osend="wa">WhatsApp</button>
+                  <button type="button" class="btn btn--ghost" data-osend="copy" title="Copy it, then paste into Messenger">Copy</button>
                   <a class="btn btn--ghost" href="tel:+1${digits(c.phone)}">Call</a>
                   <button type="button" class="btn btn--ghost" data-oprint>Print slip</button>
-                  ${o.status === "delivered" ? `<a class="btn btn--ghost" href="${sms(`Hi ${c.name.split(" ")[0]}! We hope you love your pieces from Sharif Adornment. Would you leave us a quick review? ${o.reviewUrl}`)}">Ask for a review</a>` : ""}
                 </div>
                 ${["confirmed", "shipped", "delivered"].includes(o.status) || o.tracking?.number ? `<div class="order__track">
                   <select class="select" data-ocarrier aria-label="Carrier">${["", "USPS", "UPS", "FedEx", "DHL", "Courier"].map((x) => `<option${(o.tracking?.carrier || "") === x ? " selected" : ""} value="${x}">${x || "Carrier"}</option>`).join("")}</select>
@@ -1204,12 +1602,13 @@
     };
     draw();
     // Notes and tracking numbers save quietly, without redrawing the fields being typed in
-    const update = async (id, change, { redraw = true } = {}) => {
+    const update = async (id, change, { redraw = true, quiet = false } = {}) => {
       if (sample) { Object.assign(list.find((o) => o.id === id), change); if (redraw) draw(); return; }
       try {
         const fresh = (await api("orders", { update: { id, ...change } }, session.get())).orders;
         if (redraw) { list = ordersCache = fresh; draw(); } else { const o = fresh.find((x) => x.id === id); Object.assign(list.find((x) => x.id === id), o); ordersCache = list; }
-        toast("Saved."); loadStock();
+        if (!quiet) toast("Saved.");
+        loadStock();
       } catch (x) { toast(x.message, true); if (redraw) draw(); }
     };
     el.addEventListener("click", async (e) => {
@@ -1221,6 +1620,24 @@
       const o = card && list.find((x) => x.id === card.dataset.order);
       if (!o) return;
       if (e.target.closest("[data-oprint]")) printSlip(o);
+      // Send the message shown on the card (it can be edited first): by text, WhatsApp, or copied for Messenger
+      const send = e.target.closest("[data-osend]");
+      if (send) {
+        const text = $("[data-omsg]", card).value.trim();
+        const how = send.dataset.osend;
+        if (how === "sms") location.href = `sms:+1${digits(o.customer.phone)}?&body=${encodeURIComponent(text)}`;
+        if (how === "wa") open(`https://wa.me/1${digits(o.customer.phone)}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+        if (how === "copy") {
+          try { await navigator.clipboard.writeText(text); toast("Copied. Paste it into Messenger or anywhere else."); }
+          catch (_) { toast("Couldn't copy. Select the message and copy it instead.", true); return; }
+        }
+        // Sending the review request once is enough: remember it was asked
+        if (o.status === "delivered" && !o.reviewAsked && !o.reviewed) {
+          await update(o.id, { reviewAsked: true }, { redraw: false, quiet: true });
+          $(".order__head .flag", card)?.remove();
+          $(".order__head div", card).insertAdjacentHTML("beforeend", '<span class="flag">Review asked ✓</span>');
+        }
+      }
       if (e.target.closest("[data-osold]")) {
         let n = 0;
         for (const l of o.lines) { const it = state.items.find((i) => i.id === l.id); if (l.kind === "buy" && it && !it.soldOut) { it.soldOut = true; n++; } }
@@ -1465,9 +1882,11 @@
           ${data.subscribers.length ? `<button type="button" class="btn btn--ghost" data-copy-emails>Copy all emails</button>
           <ol class="stat-list">${data.subscribers.map((s) => `<li><span>${esc(s.email)}</span><small class="muted">${new Date(s.date).toLocaleDateString()}</small>
             <button type="button" class="add-link" data-unsub="${esc(s.email)}">Remove</button></li>`).join("")}</ol>` : '<p class="muted">No sign-ups yet.</p>'}
-        </div></section>`;
+        </div></section>
+        <section class="group"><h3>Send a newsletter</h3><div class="group__fields" data-nl><p class="loading">Loading…</p></div></section>`;
       if (sum(perDay)) bindChart(perDay, unit, m);
       drawSales(d);
+      drawNewsletter($("[data-nl]", el));
     };
     // Orders for the chosen month: count, money, average, best sellers, and how many bags became orders
     let allOrders = sample ? sampleOrders() : ordersCache;
@@ -1487,7 +1906,18 @@
           <div><span>Average order</span><b>${inMonth.length ? money(revenue / inMonth.length) : "—"}</b></div>
           <div><span>Added to bag</span><b>${fmt(bagged)}</b>${bagged ? `<small>${Math.round((inMonth.length / bagged) * 100)}% became orders</small>` : ""}</div>
         </div>
-        <h3 class="sub">Best sellers</h3>${Object.keys(best).length ? bars(best, (k) => k, 8, money) : '<p class="muted">No orders this month yet.</p>'}`;
+        <h3 class="sub">Best sellers</h3>${Object.keys(best).length ? bars(best, (k) => k, 8, money) : '<p class="muted">No orders this month yet.</p>'}
+        <h3 class="sub">Discount codes</h3><div data-code-sales></div>`;
+      // Which code (and so which place it was shared) brought orders this month
+      const byCode = {};
+      for (const o of inMonth) if (o.code) { const c = (byCode[o.code] ||= { orders: 0, sales: 0, off: 0 }); c.orders++; c.sales += o.total; c.off += o.discount || 0; }
+      if (!state.codes && !sample) { try { state.codes = (await shopApi({ codes: "list" })).codes; } catch (_) { state.codes = {}; } }
+      const codeBox = $("[data-code-sales]", box);
+      if (!codeBox) return;
+      const rows = Object.entries(byCode).sort((a, b) => b[1].sales - a[1].sales);
+      codeBox.innerHTML = rows.length ? `<div class="table-wrap"><table class="stat-table"><thead><tr><th>Code</th><th>Shared on</th><th>Orders</th><th>Sales</th><th>Discount given</th></tr></thead>
+        <tbody>${rows.map(([k, c]) => `<tr><td>${esc(k)}</td><td>${esc(state.codes?.[k]?.note || "—")}</td><td>${fmt(c.orders)}</td><td>${money(c.sales)}</td><td>${money(c.off)}</td></tr>`).join("")}</tbody></table></div>`
+        : '<p class="muted">No orders used a code this month. Make one code per place you share it (Shop → Discount codes) to see what works.</p>';
     }
     draw();
     el.addEventListener("change", (e) => { if (e.target.matches("[data-month]")) { m = e.target.value; draw(); } });
@@ -1500,6 +1930,63 @@
         try { data = await api("stats", { unsubscribe: u.dataset.unsub }, session.get()); draw(); } catch (x) { toast(x.message, true); }
       }
     });
+  }
+
+  /* ---------- Newsletter: a short email to everyone who signed up ---------- */
+  state.nl = { subject: "", message: "", pieces: [], test: "" }; // kept while you look at other tabs
+  async function drawNewsletter(box) {
+    if (!box) return;
+    if (DEMO) { box.innerHTML = '<p class="muted">Newsletters are sent from the live Studio.</p>'; return; }
+    let info;
+    try { info = await api("newsletter", {}, session.get()); } catch (x) { box.innerHTML = `<p class="muted">Couldn't load the newsletter (${esc(x.message)}).</p>`; return; }
+    const d = state.nl;
+    const show = () => {
+      box.innerHTML = !info.ready
+        ? '<p class="muted">To send from here, order emails need to be set up first (a free Resend account — see the setup guide). Until then, use “Copy all emails” above and send from your own email, with everyone in <b>Bcc</b>.</p>'
+        : `<label class="field"><span>Subject</span><input data-nl-subject maxlength="120" value="${esc(d.subject)}" placeholder="e.g. New Eid pieces are here" /></label>
+          <label class="field"><span>Message</span><textarea rows="5" data-nl-message placeholder="A few friendly lines. Leave an empty line between paragraphs.">${esc(d.message)}</textarea></label>
+          <details class="field picks" ${d.pieces.length ? "open" : ""}><summary><span>Pieces to show</span> <small data-nl-count>${d.pieces.length ? `${d.pieces.length} chosen` : "Up to 6 — published pieces only"}</small></summary>${pieceTicks(d.pieces, { name: "nl" })}</details>
+          <div class="nl__test"><label class="field"><span>Send a test to</span><input type="email" data-nl-test value="${esc(d.test)}" placeholder="your@email.com" autocomplete="email" /></label>
+            <button type="button" class="btn btn--ghost" data-nl-send="test">Send test</button></div>
+          <button type="button" class="btn" data-nl-send="all" ${info.count ? "" : "disabled"}>Send to ${info.count} subscriber${info.count === 1 ? "" : "s"}</button>
+          <p class="muted small">Every email ends with an unsubscribe link. Resend's free plan sends up to 100 emails a day.</p>
+          ${info.sent?.length ? `<ol class="stat-list">${info.sent.slice(0, 5).map((x) => `<li><span>${esc(x.subject)}</span><small class="muted">${new Date(x.date).toLocaleDateString()} · sent to ${x.to}</small></li>`).join("")}</ol>` : ""}`;
+    };
+    show();
+    box.oninput = (e) => {
+      if (e.target.matches("[data-nl-subject]")) d.subject = e.target.value;
+      if (e.target.matches("[data-nl-message]")) d.message = e.target.value;
+      if (e.target.matches("[data-nl-test]")) d.test = e.target.value;
+    };
+    box.onchange = (e) => {
+      if (e.target.name !== "nl") return;
+      if ($$('[name="nl"]:checked', box).length > 6) { e.target.checked = false; toast("Choose up to 6 pieces."); }
+      d.pieces = $$('[name="nl"]:checked', box).map((x) => x.value);
+      $("[data-nl-count]", box).textContent = d.pieces.length ? `${d.pieces.length} chosen` : "Up to 6 — published pieces only";
+    };
+    box.onclick = async (e) => {
+      const btn = e.target.closest("[data-nl-send]");
+      if (!btn || btn.disabled) return;
+      const test = btn.dataset.nlSend === "test";
+      if (!d.subject.trim() || d.message.trim().length < 10) { toast("Add a subject and a short message first.", true); return; }
+      if (test && !d.test.trim()) { toast("Type the email address to send the test to.", true); $("[data-nl-test]", box).focus(); return; }
+      if (!test && !confirm(`Send “${d.subject.trim()}” to ${info.count} subscriber${info.count === 1 ? "" : "s"} now? This can't be undone.`)) return;
+      btn.disabled = true;
+      const label = btn.textContent;
+      btn.textContent = "Sending…";
+      try {
+        const out = await api("newsletter", { send: { subject: d.subject, message: d.message, pieces: d.pieces, ...(test ? { test: d.test } : {}) } }, session.get());
+        info = { ...info, sent: out.sent, count: out.count };
+        if (test) { toast("Test sent. Check your inbox (and the spam folder)."); btn.disabled = false; btn.textContent = label; return; }
+        toast(out.problem ? `Sent to ${out.delivered}, then stopped: ${out.problem}` : `Sent to ${out.delivered} subscriber${out.delivered === 1 ? "" : "s"}.`, Boolean(out.problem));
+        Object.assign(d, { subject: "", message: "", pieces: [] });
+        show();
+      } catch (x) {
+        toast(x.message, true);
+        btn.disabled = false;
+        btn.textContent = label;
+      }
+    };
   }
 
   /* ---------- History: bring back an earlier version ---------- */

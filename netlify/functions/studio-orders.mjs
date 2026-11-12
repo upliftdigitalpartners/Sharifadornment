@@ -1,6 +1,6 @@
 /* POST /api/studio/orders  (Authorization: Bearer <session>)
  *   {}                                                     → { orders: [...] } newest first
- *   { update: { id, status?, paid?, note?, tracking? } }   → { orders: [...] }
+ *   { update: { id, status?, paid?, note?, tracking?, reviewAsked? } }   → { orders: [...] }
  * Card orders still waiting for payment are checked with Stripe as they're listed.
  * Cancelling puts counted pieces back in stock; "On its way" and "Delivered" email
  * the customer when emails are set up. */
@@ -53,6 +53,7 @@ export default async (req) => {
         o.paidAt = o.paid ? new Date().toISOString() : null;
       }
       if (u.note != null) o.note = clip(u.note, 1000);
+      if (u.reviewAsked === true) o.reviewAsked ||= new Date().toISOString(); // the admin texted the review link
       if (u.tracking && typeof u.tracking === "object") o.tracking = { carrier: clip(u.tracking.carrier, 40), number: clip(u.tracking.number, 60) };
       o.updated = new Date().toISOString();
     });

@@ -17,7 +17,7 @@
  */
 import { getStore } from "@netlify/blobs";
 import { BASE, BRANCH, env, github } from "./studio.mjs";
-import { esc, money, priceNumber, rentNumber } from "../../shared/render.mjs";
+import { esc, money, optionLabel, optionsOf, priceNumber, rentNumber } from "../../shared/render.mjs";
 
 export const SITE = "https://sharifadornment.com/";
 export const STATUSES = ["new", "confirmed", "shipped", "delivered", "cancelled"];
@@ -130,7 +130,10 @@ export async function takeStock(lines) {
   const buys = lines.filter((l) => l.kind === "buy");
   return update(stockStore(), "levels", (levels) => {
     for (const l of buys) delete l.counted;
-    for (const l of buys) if (Object.hasOwn(levels, l.id) && levels[l.id] < l.qty) return false;
+    // One piece can be on several lines (different colours), so add them up first
+    const need = {};
+    for (const l of buys) need[l.id] = (need[l.id] || 0) + l.qty;
+    for (const [id, n] of Object.entries(need)) if (Object.hasOwn(levels, id) && levels[id] < n) return false;
     for (const l of buys) if (Object.hasOwn(levels, l.id)) { levels[l.id] -= l.qty; l.counted = true; }
     return true;
   });
@@ -233,14 +236,22 @@ export async function quote({ wanted = [], code = "", method = "", pay = "" } = 
       continue;
     }
     const price = priceNumber(it);
-    const left = Object.hasOwn(levels, id) ? levels[id] : Infinity;
-    if (it.soldOut || left <= 0) { problems.push(`Sorry, the ${it.name} is sold out.`); continue; }
+    // Counted stock is per piece: other colours of it already in the bag come off what's left
+    const taken = lines.reduce((n, l) => n + (l.kind === "buy" && l.id === id ? l.qty : 0), 0);
+    const left = Object.hasOwn(levels, id) ? levels[id] - taken : Infinity;
+    if (it.soldOut || left <= 0) { problems.push(taken ? `Only ${taken} of the ${it.name} left, so your bag was updated.` : `Sorry, the ${it.name} is sold out.`); continue; }
     if (price == null) { problems.push(`The ${it.name} is priced on request. Please message us about it.`); continue; }
+    // A piece with choices (like colours) needs one that's still available
+    const opts = optionsOf(it);
+    const opt = opts.find((o) => o.name === String(w.opt ?? ""));
+    if (opts.length && !opt) { problems.push(`Please choose a ${optionLabel(it).toLowerCase()} for the ${it.name}.`); continue; }
+    if (opt?.soldOut) { problems.push(`Sorry, the ${it.name} in ${opt.name} is sold out.`); continue; }
     const asked = Math.min(1e6, Math.max(1, Math.floor(Number(w.qty) || 1)));
     const qty = Math.min(5, left, asked);
     if (qty < asked) problems.push(left < asked && left < 5 ? `Only ${left} of the ${it.name} left, so your bag was updated.` : `You can order up to 5 of the ${it.name} at a time, so your bag was updated.`);
-    if (lines.some((l) => l.kind === "buy" && l.id === id)) continue;
-    lines.push({ key: id, id, kind: "buy", name: it.name, price, qty, image: it.image || "", left: Number.isFinite(left) ? left : null });
+    const key = opt ? `${id}:opt:${opt.name}` : id;
+    if (lines.some((l) => l.key === key)) continue;
+    lines.push({ key, id, kind: "buy", name: opt ? `${it.name} — ${opt.name}` : it.name, ...(opt ? { opt: opt.name } : {}), price, qty, image: opt?.image || it.image || "", left: Number.isFinite(left) ? left : null });
   }
   const subtotal = round(lines.reduce((s, l) => s + l.price * l.qty, 0));
 
@@ -489,27 +500,62 @@ export async function emailCustomer(o, kind, site) {
   if (!o.customer.email || !env("RESEND_API_KEY") || !env("ORDER_EMAIL_FROM")) return;
   const first = o.customer.name.split(" ")[0];
   const rows = o.lines.map((l) => `<tr><td style="padding:6px 0">${esc(l.name)}${l.kind === "rent" ? ` <small>(rental, ${esc(l.date)})</small>` : ""}${l.qty > 1 ? ` × ${l.qty}` : ""}</td><td align="right">${dollars(l.price * l.qty)}</td></tr>`).join("");
-  const subjects = { placed: `Your order ${o.id}`, shipped: `Your order ${o.id} is on its way`, delivered: `Your order ${o.id} was delivered` };
+  const subjects = { placed: `Your order ${o.id}`, shipped: `Your order ${o.id} is on its way`, delivered: `Your order ${o.id} was delivered`, review: "How did you like your pieces?" };
   const intro = {
     placed: o.amountPaid >= o.total - 0.005 ? "Thank you — your payment came through and we're getting your order ready."
       : o.amountPaid ? `Thank you — your deposit of ${dollars(o.amountPaid)} came through. The balance of ${dollars(o.total - o.amountPaid)} is due once we confirm your order.`
       : (site?.checkout?.thanks || "We've got your order and will text you shortly to confirm it."),
     shipped: `Good news — your order is on its way.${o.tracking?.number ? ` Tracking: ${o.tracking.carrier || ""} ${o.tracking.number}` : ""}`,
     delivered: "Your order was delivered. We hope you love it!",
+    review: "We hope you're enjoying your pieces from Sharif Adornment. Would you take a minute to tell us how we did? It helps a small shop like ours a lot.",
   }[kind];
   const html = `<div style="font-family:Georgia,serif;color:#1b1917;max-width:520px">
     <p style="font-size:22px">Hi ${esc(first)},</p><p>${esc(intro)}</p>
     <table width="100%" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px">${rows}
       <tr><td style="border-top:1px solid #ddd;padding-top:8px"><b>Total</b></td><td align="right" style="border-top:1px solid #ddd;padding-top:8px"><b>${dollars(o.total)}</b></td></tr></table>
     ${kind === "placed" && o.amountPaid < o.total - 0.005 && site?.checkout?.payLater ? `<p style="font-family:Arial,sans-serif;font-size:14px"><b>How to pay</b><br>${esc(site.checkout.payLater).replace(/\n/g, "<br>")}<br>Please add ${o.id} to the payment note.</p>` : ""}
-    <p><a href="${trackUrl(o)}" style="color:#7d5f33">See your order</a></p><p>— Sharif Adornment</p></div>`;
+    ${kind === "review" ? `<p><a href="${reviewUrl(o)}" style="display:inline-block;background:#1b1917;color:#fff;padding:12px 22px;text-decoration:none;font-family:Arial,sans-serif;font-size:14px">Leave a review</a></p>` : `<p><a href="${trackUrl(o)}" style="color:#7d5f33">See your order</a></p>`}<p>— Sharif Adornment</p></div>`;
   try {
-    await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${env("RESEND_API_KEY")}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from: env("ORDER_EMAIL_FROM"), to: [o.customer.email], subject: subjects[kind], html }),
     });
-  } catch { /* emails must never stop an order */ }
+    return res.ok;
+  } catch { return false; /* emails must never stop an order */ }
+}
+
+/* ---------- Asking for a review a few days after delivery ----------
+ * Run once a day (netlify/functions/review-reminders.mjs). Customers who gave an email get one
+ * (when emails are set up); the admin gets one Telegram note listing who to ask by text. */
+export const REVIEW_AFTER_DAYS = 3;
+export const reviewDue = (o, now = Date.now()) => o.status === "delivered" && !o.reviewAsked && !o.reviewed && Boolean(o.times?.delivered) &&
+  now - Date.parse(o.times.delivered) >= REVIEW_AFTER_DAYS * 864e5 && now - Date.parse(o.times.delivered) < 30 * 864e5;
+export async function askForReviews() {
+  const st = orders();
+  const { blobs } = await st.list();
+  const all = (await Promise.all(blobs.map((b) => st.get(b.key, { type: "json" })))).filter(Boolean);
+  const { site } = await catalogue();
+  const byText = [], emailed = [];
+  for (const o of all) {
+    if (!reviewDue(o)) continue;
+    // Claim it first, so a customer is never emailed twice
+    const claim = await changeOrder(o.id, (x) => { if (x.reviewAsked) return NO_WRITE; x.reviewAsked = new Date().toISOString(); });
+    if (!claim?.wrote) continue;
+    if (await emailCustomer(claim.order, "review", site)) { emailed.push(o); continue; }
+    // No email went out: it stays "to ask" in the Studio, and the admin hears about it once
+    const first = !claim.order.reviewNudged;
+    await changeOrder(o.id, (x) => { x.reviewAsked = null; x.reviewNudged = true; });
+    if (first) byText.push(o);
+  }
+  if (emailed.length || byText.length) {
+    await alert([
+      "⭐ Time to ask for reviews",
+      emailed.length ? `Emailed: ${emailed.map((o) => o.customer.name).join(", ")}` : "",
+      byText.length ? `Ask by text (Studio → Orders → Delivered → “Ask for a review”): ${byText.map((o) => `${o.customer.name} (${o.id})`).join(", ")}` : "",
+    ].filter(Boolean).join("\n"));
+  }
+  return { emailed: emailed.length, byText: byText.length };
 }
 
 export { money };

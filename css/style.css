@@ -892,3 +892,20 @@ body:has(.banner) .nav:not(.is-scrolled) { top: var(--banner-h, 41px); }
 .checkout > * { min-width: 0; }
 .code .btn { flex: 0 0 auto; }
 .checkout__notice { margin: 0 0 1.4rem; padding: 14px 16px; background: var(--surface); border-left: 3px solid var(--gold); font-size: 0.92rem; }
+
+/* ---------- Sale prices, choices on a piece (colours), similar pieces ---------- */
+.was { color: var(--muted); font-weight: 400; text-decoration: line-through; margin-right: 0.3em; }
+.badge--sale { background: var(--bg); color: var(--gold-text); border: 1px solid var(--gold); }
+.opts { border: 0; padding: 0; margin: 22px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.opts legend { padding: 0; margin-bottom: 10px; }
+.opt { position: relative; cursor: pointer; }
+.opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.opt span { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px; border: 1px solid var(--line); font-size: 0.9rem; transition: border-color 0.2s, background 0.2s, color 0.2s; }
+.opt:hover span { border-color: var(--ink); }
+.opt input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.opt input:focus-visible + span { outline: 2px solid var(--gold); outline-offset: 2px; }
+.opt.is-out { cursor: default; }
+.opt.is-out span { color: var(--muted); text-decoration: line-through; border-style: dashed; }
+.opt.is-out small { text-decoration: none; font-size: 0.72rem; }
+.opts.is-needed .opt span { border-color: var(--gold); }
+.pairs--similar { margin-top: 1.6rem; padding-top: 1.2rem; }

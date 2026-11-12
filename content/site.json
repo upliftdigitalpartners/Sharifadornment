@@ -57,7 +57,7 @@
   },
   {
    "id": "mossanite-polki-necklaces",
-   "name": "Mossanite & Polki Necklaces 💎",
+   "name": "Moissanite & Polki Necklaces 💎",
    "text": "",
    "image": "assets/uploads/collection-mossanite-and-polki-necklaces-mv4jdl372.webp"
   },
@@ -265,14 +265,7 @@
  "reviews": {
   "label": "Kind words",
   "title": "From *our customers.*",
-  "items": [
-   {
-    "name": "",
-    "occasion": "",
-    "text": "",
-    "image": ""
-   }
-  ]
+  "items": []
  },
  "faq": {
   "label": "Questions",
@@ -365,10 +358,10 @@
   "label": "Policies",
   "title": "The *small print.*",
   "intro": "Everything you need to know about ordering from us. Questions? Just message us.",
-  "shipping": "We ship within USA . \nAsk us about shipping.\n\nWe'll text you to arrange a delivery time.",
+  "shipping": "We ship within the USA, with tracking. Shipping usually takes 3–5 days, and the fee is shown at checkout before you place your order.\n\nOnce your order is on its way, you can follow it from the link on your order page. Questions about shipping? Just message us.",
   "returns": "Because many pieces are one of a kind, please message us before you order if you have any questions about size, colour or fit.\n\nIf something arrives damaged, tell us within 48 hours with a photo and we'll make it right.",
-  "rentals": "Rentals are for one event. A refundable deposit is taken with the rental and returned once the piece comes back in the same condition.\n\nWe'll confirm the pickup and return dates with you by text.",
-  "payment": "Pay by card at checkout, or choose to pay after we confirm your order by Zelle, Cash App or PayPal. Your order is reserved once payment is received.",
+  "rentals": "",
+  "payment": "Place your order on the site, then pay by Zelle, PayPal or Venmo once we confirm it. We'll send the payment details with your confirmation. Your order is reserved once payment is received.",
   "privacy": "We only use your details to deliver your order and contact you about it. We never sell or share them."
  }
 }

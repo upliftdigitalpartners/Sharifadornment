@@ -189,6 +189,33 @@ options stay hidden even if ticked. **Sales tax:** collecting NY sales tax
 usually requires being registered with NY State; check with an accountant
 before setting a rate.
 
+### Faster listing, sales and marketing tools
+
+- **Add many:** Pieces → **+ Add many**, pick several photos, then name and
+  price them in one list. **Duplicate** (inside a piece) starts a similar one.
+- **Colours / options:** one piece can offer choices (Green, Blue…), each with
+  its own photo and its own "sold out". Customers pick one before adding to
+  the bag. Stock counts stay per piece, shared across its colours.
+- **Bulk edit:** changes the pieces currently showing (use search or the
+  collection menu first): raise or lower prices by $ or %, run a sale (old
+  price crossed out), end it, move collection, or fill in missing descriptions.
+- **Spelling:** likely typos in names ("Neckalce") are pointed out with a
+  one-tap fix. **Suggest a description** writes a starting point from the name.
+- **New** drops off by itself 30 days after it's switched on. The home page
+  shows the first 12 **Featured** pieces.
+- **Orders:** each order has a ready-made message (confirmation with the total
+  and how to pay, "on its way", or a review request) to send by Text or
+  WhatsApp, or Copy for Messenger. Three days after delivery the customer is
+  asked for a review: by email when emails are set up, otherwise Telegram
+  reminds you to send the message.
+- **Discount codes per channel:** add where a code is shared (Instagram,
+  Facebook…), use **Copy link** for a link that applies it by itself
+  (`sharifadornment.com/?code=IG10`), and see orders per code in Analytics.
+- **Newsletter:** Analytics → **Send a newsletter** emails everyone who signed
+  up (needs the Resend setup below; every email has an unsubscribe link).
+- **Instagram image:** inside a piece, **Make an Instagram image** makes a
+  square post and a tall story with the name and price.
+
 ### Facebook & Instagram Shop, Google Shopping
 
 Every publish also rebuilds **https://sharifadornment.com/products.xml**, a
