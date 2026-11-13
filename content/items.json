@@ -306,7 +306,7 @@
  {
   "description": "",
   "price": "$45",
-  "soldOut": false,
+  "soldOut": true,
   "featured": false,
   "images": [],
   "video": "",
