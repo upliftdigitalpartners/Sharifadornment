@@ -1,6 +1,30 @@
 [
  {
   "description": "",
+  "price": "$54",
+  "soldOut": false,
+  "featured": false,
+  "images": [
+   "assets/uploads/piece-mwgxcqnu1.jpg"
+  ],
+  "video": "",
+  "size": "",
+  "isNew": true,
+  "lastOne": false,
+  "rent": false,
+  "rentPrice": "",
+  "pairs": [],
+  "was": "",
+  "options": [],
+  "optionLabel": "",
+  "id": "pahariphul-necklace-set",
+  "name": "Pahariphul Necklace Set",
+  "collection": "oxidized",
+  "image": "assets/uploads/piece-mwgxcql90.jpg",
+  "newSince": "2026-11-14"
+ },
+ {
+  "description": "",
   "price": "$39",
   "soldOut": false,
   "featured": false,
