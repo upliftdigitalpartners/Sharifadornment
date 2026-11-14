@@ -265,7 +265,14 @@
  "reviews": {
   "label": "Kind words",
   "title": "From *our customers.*",
-  "items": []
+  "items": [
+   {
+    "name": "",
+    "occasion": "",
+    "text": "",
+    "image": ""
+   }
+  ]
  },
  "faq": {
   "label": "Questions",
