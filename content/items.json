@@ -1669,8 +1669,8 @@
   ],
   "video": "",
   "size": "",
-  "isNew": false,
-  "lastOne": true,
+  "isNew": true,
+  "lastOne": false,
   "rent": false,
   "rentPrice": "",
   "pairs": [],
@@ -1680,7 +1680,8 @@
   "id": "ethnic-green-stone-pearl-silver-jewelry-se",
   "name": "Ethnic Green Stone & Pearl Silver Jewelry Se",
   "collection": "oxidized",
-  "image": "assets/uploads/piece-mvblgx410.jpg"
+  "image": "assets/uploads/piece-mvblgx410.jpg",
+  "newSince": "2026-11-15"
  },
  {
   "description": "",
