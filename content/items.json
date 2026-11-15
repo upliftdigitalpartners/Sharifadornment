@@ -330,7 +330,7 @@
  {
   "description": "",
   "price": "$45",
-  "soldOut": true,
+  "soldOut": false,
   "featured": false,
   "images": [],
   "video": "",
@@ -1204,7 +1204,7 @@
  {
   "description": "",
   "price": "$45",
-  "soldOut": false,
+  "soldOut": true,
   "featured": false,
   "images": [],
   "video": "",
