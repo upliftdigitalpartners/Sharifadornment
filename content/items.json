@@ -1620,7 +1620,7 @@
  {
   "description": "",
   "price": "$50",
-  "soldOut": false,
+  "soldOut": true,
   "featured": false,
   "images": [],
   "video": "",
