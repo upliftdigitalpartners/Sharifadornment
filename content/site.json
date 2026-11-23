@@ -213,7 +213,7 @@
   "button": "Send enquiry"
  },
  "banner": {
-  "on": true,
+  "on": false,
   "text": "Use Code *CELEBRATE* To Get 5% Off ! ",
   "linkText": "",
   "link": ""
